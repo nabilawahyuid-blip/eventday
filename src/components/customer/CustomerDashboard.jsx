@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import FooterCustomer from "../shared/FooterCustomer";
 import "./CustomerDashboard.css";
 
 function DashboardCustomer() {
@@ -8,6 +9,7 @@ function DashboardCustomer() {
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [currentSlide, setCurrentSlide] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const heroEvents = [
     {
@@ -30,72 +32,72 @@ function DashboardCustomer() {
     },
   ];
 
-  const events = [
+  const dummyEvents = [
     {
       id: 1,
       category: "MUSIC FESTIVAL",
-      title: "Neon Nights 2024",
+      title: "Soundwave Festival 2024",
       date: "15 Aug 2024",
       time: "19:00",
-      location: "Stadium Utama Gelora Bung Karno",
-      price: "Rp 500.000",
+      location: "Stadion Utama Gelora Bung Karno",
+      price: "Rp 250.000",
       image:
-        "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=900&q=85",
     },
     {
       id: 2,
       category: "CONFERENCE",
-      title: "Tech Summit Summit '24",
+      title: "Tech Summit Indonesia",
       date: "22 Sep 2024",
       time: "09:00",
       location: "Jakarta Convention Center",
-      price: "Rp 1.500.000",
+      price: "Rp 150.000",
       image:
-        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=900&q=85",
     },
     {
       id: 3,
       category: "EXHIBITION",
-      title: "Taste of Nusantara",
+      title: "Art & Creative Expo",
       date: "05 Oct 2024",
       time: "10:00",
       location: "JIExpo Kemayoran",
-      price: "Rp 150.000",
+      price: "Rp 75.000",
       image:
-        "https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1561214115-f2f134cc4912?auto=format&fit=crop&w=900&q=85",
     },
     {
       id: 4,
-      category: "MUSIC FESTIVAL",
-      title: "Neon Nights 2024",
-      date: "15 Aug 2024",
-      time: "19:00",
-      location: "Stadium Utama Gelora Bung Karno",
-      price: "Rp 500.000",
+      category: "CULINARY",
+      title: "Taste of Nusantara",
+      date: "12 Oct 2024",
+      time: "11:00",
+      location: "Senayan Park, Jakarta",
+      price: "Rp 50.000",
       image:
-        "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=85",
     },
     {
       id: 5,
-      category: "CONFERENCE",
-      title: "Tech Summit Summit '24",
-      date: "22 Sep 2024",
-      time: "09:00",
-      location: "Jakarta Convention Center",
-      price: "Rp 1.500.000",
+      category: "MUSIC FESTIVAL",
+      title: "Jakarta Music Night",
+      date: "19 Oct 2024",
+      time: "18:30",
+      location: "Istora Senayan",
+      price: "Rp 300.000",
       image:
-        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=900&q=85",
     },
     {
       id: 6,
-      category: "EXHIBITION",
-      title: "Taste of Nusantara",
-      date: "05 Oct 2024",
-      time: "10:00",
-      location: "JIExpo Kemayoran",
-      price: "Rp 150.000",
+      category: "CONFERENCE",
+      title: "Digital Future Conference",
+      date: "26 Oct 2024",
+      time: "09:30",
+      location: "ICE BSD City",
+      price: "Rp 200.000",
       image:
-        "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1000&q=80",
+        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=85",
     },
   ];
 
@@ -107,20 +109,25 @@ function DashboardCustomer() {
     "Kuliner",
   ];
 
-  const categoryMap = {
-    Semua: "ALL",
-    Musik: "MUSIC FESTIVAL",
-    Konferensi: "CONFERENCE",
-    Pameran: "EXHIBITION",
-    Kuliner: "CULINARY",
-  };
+  const filteredEvents = dummyEvents.filter((event) => {
+    const categoryMatch =
+      activeCategory === "Semua" ||
+      (activeCategory === "Musik" &&
+        event.category === "MUSIC FESTIVAL") ||
+      (activeCategory === "Konferensi" &&
+        event.category === "CONFERENCE") ||
+      (activeCategory === "Pameran" &&
+        event.category === "EXHIBITION") ||
+      (activeCategory === "Kuliner" &&
+        event.category === "CULINARY");
 
-  const filteredEvents =
-    activeCategory === "Semua"
-      ? events
-      : events.filter(
-          (event) => event.category === categoryMap[activeCategory]
-        );
+    const searchMatch =
+      event.title.toLowerCase().includes(search.toLowerCase()) ||
+      event.category.toLowerCase().includes(search.toLowerCase()) ||
+      event.location.toLowerCase().includes(search.toLowerCase());
+
+    return categoryMatch && searchMatch;
+  });
 
   const nextSlide = () => {
     setCurrentSlide((prev) =>
@@ -135,8 +142,8 @@ function DashboardCustomer() {
   };
 
   const handleBuyTicket = (event) => {
-  navigate(`/customer/event/${event.id}`);
-};
+    navigate(`/customer/event/${event.id}`);
+  };
 
   const handleCreateEvent = () => {
     navigate("/eo/event/create");
@@ -157,11 +164,10 @@ function DashboardCustomer() {
 
           <button className="location-button">
             <svg viewBox="0 0 24 24">
-              <path
-                d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"
-              />
+              <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
               <circle cx="12" cy="10" r="2.5" />
             </svg>
+
             <span>Jakarta, ID</span>
             <span className="location-arrow">⌄</span>
           </button>
@@ -176,6 +182,8 @@ function DashboardCustomer() {
           <input
             type="text"
             placeholder="Cari artis, genre, acara, atau venue..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
@@ -194,7 +202,10 @@ function DashboardCustomer() {
             Tiket Saya
           </button>
 
-          <button className="nav-link" onClick={handleCreateEvent}>
+          <button
+            className="nav-link"
+            onClick={handleCreateEvent}
+          >
             Buat Event
           </button>
 
@@ -234,17 +245,31 @@ function DashboardCustomer() {
 
         {menuOpen && (
           <div className="mobile-menu">
-            <button onClick={() => navigate("/customer/dashboard")}>
+            <button
+              onClick={() => navigate("/customer/dashboard")}
+            >
               Beranda
             </button>
-            <button onClick={() => navigate("/customer/tickets")}>
+
+            <button
+              onClick={() => navigate("/customer/tickets")}
+            >
               Tiket Saya
             </button>
-            <button onClick={handleCreateEvent}>Buat Event</button>
-            <button onClick={() => navigate("/customer/history")}>
+
+            <button onClick={handleCreateEvent}>
+              Buat Event
+            </button>
+
+            <button
+              onClick={() => navigate("/customer/history")}
+            >
               Riwayat
             </button>
-            <button onClick={() => navigate("/customer/profile")}>
+
+            <button
+              onClick={() => navigate("/customer/profile")}
+            >
               Profil
             </button>
           </div>
@@ -255,11 +280,10 @@ function DashboardCustomer() {
         <div className="mobile-location">
           <button className="location-button">
             <svg viewBox="0 0 24 24">
-              <path
-                d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"
-              />
+              <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
               <circle cx="12" cy="10" r="2.5" />
             </svg>
+
             <span>Lokasi</span>
           </button>
         </div>
@@ -290,15 +314,15 @@ function DashboardCustomer() {
             </button>
 
             <div className="hero-content">
-              <span className="hero-badge">SOROTAN UTAMA</span>
+              <span className="hero-badge">
+                SOROTAN UTAMA
+              </span>
 
               <h1>{currentHero.title}</h1>
 
               <div className="hero-location">
                 <svg viewBox="0 0 24 24">
-                  <path
-                    d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"
-                  />
+                  <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
                   <circle cx="12" cy="10" r="2.5" />
                 </svg>
 
@@ -310,7 +334,9 @@ function DashboardCustomer() {
               {heroEvents.map((_, index) => (
                 <button
                   key={index}
-                  className={index === currentSlide ? "active" : ""}
+                  className={
+                    index === currentSlide ? "active" : ""
+                  }
                   onClick={() => setCurrentSlide(index)}
                   aria-label={`Slide ${index + 1}`}
                 />
@@ -323,9 +349,10 @@ function DashboardCustomer() {
           <div className="latest-header">
             <div>
               <h2>Terkini</h2>
+
               <p>
-                Jelajahi konser, festival musik, pameran, dan konferensi
-                paling seru.
+                Jelajahi konser, festival musik, pameran, dan
+                konferensi paling seru.
               </p>
             </div>
 
@@ -334,9 +361,13 @@ function DashboardCustomer() {
                 <button
                   key={category}
                   className={
-                    activeCategory === category ? "active" : ""
+                    activeCategory === category
+                      ? "active"
+                      : ""
                   }
-                  onClick={() => setActiveCategory(category)}
+                  onClick={() =>
+                    setActiveCategory(category)
+                  }
                 >
                   {category}
                 </button>
@@ -350,14 +381,21 @@ function DashboardCustomer() {
 
           <div className="event-grid">
             {filteredEvents.map((event) => (
-              <article className="event-card" key={event.id}>
+              <article
+                className="event-card"
+                key={event.id}
+              >
                 <div className="event-image-wrapper">
-                  <img src={event.image} alt={event.title} />
+                  <img
+                    src={event.image}
+                    alt={event.title}
+                  />
 
                   <div className="event-image-overlay"></div>
 
                   <div className="event-image-content">
                     <span>{event.category}</span>
+
                     <h3>{event.title}</h3>
                   </div>
                 </div>
@@ -373,6 +411,7 @@ function DashboardCustomer() {
                           height="15"
                           rx="2"
                         />
+
                         <path d="M8 3v4M16 3v4M4 10h16" />
                       </svg>
 
@@ -383,10 +422,13 @@ function DashboardCustomer() {
 
                     <div className="event-info-row">
                       <svg viewBox="0 0 24 24">
-                        <path
-                          d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"
+                        <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+
+                        <circle
+                          cx="12"
+                          cy="10"
+                          r="2.5"
                         />
-                        <circle cx="12" cy="10" r="2.5" />
                       </svg>
 
                       <span>{event.location}</span>
@@ -394,11 +436,15 @@ function DashboardCustomer() {
                   </div>
 
                   <div className="event-card-bottom">
-                    <span className="event-price">{event.price}</span>
+                    <span className="event-price">
+                      {event.price}
+                    </span>
 
                     <button
                       className="buy-ticket-button"
-                      onClick={() => handleBuyTicket(event)}
+                      onClick={() =>
+                        handleBuyTicket(event)
+                      }
                     >
                       Beli Tiket
                     </button>
@@ -411,62 +457,17 @@ function DashboardCustomer() {
           {filteredEvents.length === 0 && (
             <div className="empty-events">
               <h3>Belum ada event</h3>
+
               <p>
-                Belum tersedia event untuk kategori yang kamu pilih.
+                Tidak ada event yang sesuai dengan pencarian
+                atau kategori yang kamu pilih.
               </p>
             </div>
           )}
         </section>
       </main>
 
-      <footer className="customer-footer">
-        <p>© 2027 EVENTDAY. Hak cipta dilindungi undang-undang.</p>
-      </footer>
-
-      <nav className="mobile-bottom-navigation">
-        <button
-          className="active"
-          onClick={() => navigate("/customer/dashboard")}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z" />
-          </svg>
-          <span>Home</span>
-        </button>
-
-        <button onClick={() => navigate("/customer/tickets")}>
-          <svg viewBox="0 0 24 24">
-            <path d="M4 5h16v4a2 2 0 0 0 0 4v4H4v-4a2 2 0 0 0 0-4Z" />
-            <path d="M9 8v1M9 12v1M9 16v1" />
-          </svg>
-          <span>Tickets</span>
-        </button>
-
-        <button onClick={handleCreateEvent}>
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 8v8M8 12h8" />
-          </svg>
-          <span>Create Event</span>
-        </button>
-
-        <button onClick={() => navigate("/customer/history")}>
-          <svg viewBox="0 0 24 24">
-            <path d="M3 12a9 9 0 1 0 3-6.7" />
-            <path d="M3 5v5h5" />
-            <path d="M12 7v5l3 2" />
-          </svg>
-          <span>History</span>
-        </button>
-
-        <button onClick={() => navigate("/customer/profile")}>
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="3" />
-            <path d="M5 20c.8-3.2 3.2-5 7-5s6.2 1.8 7 5" />
-          </svg>
-          <span>Profile</span>
-        </button>
-      </nav>
+      <FooterCustomer />
     </div>
   );
 }

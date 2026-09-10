@@ -24,6 +24,8 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const saveLoginData = (data) => {
+    // BE sekarang pakai HttpOnly Cookie (data.token = null / @JsonIgnore).
+    // Jika BE masih kirim token (legacy), simpan. Jika tidak, jangan hapus token lama — cookie sudah tersimpan otomatis via credentials:'include'.
     if (data.token) {
       localStorage.setItem("token", data.token);
     }
