@@ -1,0 +1,289 @@
+.customer-navbar {
+  position: relative;
+  z-index: 100;
+  width: 100%;
+  min-height: 76px;
+  padding: 0 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  background: #ffffff;
+  border-bottom: 1px solid #edf0f6;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-shrink: 0;
+}
+
+.customer-logo {
+  font-size: 22px;
+  font-weight: 800;
+  color: #172038;
+  letter-spacing: -0.8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.customer-logo span {
+  color: #4938df;
+}
+
+.location-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border: 1px solid #e4e8f1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #4d5870;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.location-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.location-arrow {
+  font-size: 16px;
+  margin-left: 2px;
+}
+
+.navbar-search {
+  flex: 1;
+  max-width: 430px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 15px;
+  border: 1px solid #e5e9f2;
+  border-radius: 10px;
+  background: #f8f9fc;
+}
+
+.navbar-search svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: #8993a8;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.navbar-search input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #273149;
+  font-size: 12px;
+}
+
+.navbar-search input::placeholder {
+  color: #9aa3b5;
+}
+
+.desktop-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 10px 11px;
+  border: none;
+  background: transparent;
+  color: #59647a;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #4938df;
+}
+
+.nav-link.active {
+  color: #4938df;
+  font-weight: 700;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 9px;
+  border: none;
+  background: transparent;
+  color: #374158;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #4938df;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.mobile-header-icons {
+  display: none;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobile-header-icons button {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.mobile-header-icons svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: #273149;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mobile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 20px;
+  width: 190px;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #e9ecf3;
+  border-radius: 14px;
+  box-shadow: 0 15px 40px rgba(30, 40, 70, 0.14);
+}
+
+.mobile-menu button {
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #374158;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mobile-menu button:hover {
+  background: #f3f1ff;
+  color: #4938df;
+}
+
+@media (max-width: 1100px) {
+  .customer-navbar {
+    gap: 18px;
+    padding: 0 3%;
+  }
+
+  .navbar-left {
+    gap: 15px;
+  }
+
+  .desktop-navigation {
+    gap: 2px;
+  }
+
+  .nav-link {
+    padding: 9px 7px;
+  }
+
+  .navbar-search {
+    max-width: 300px;
+  }
+}
+
+@media (max-width: 850px) {
+  .customer-navbar {
+    min-height: 64px;
+    padding: 0 20px;
+  }
+
+  .navbar-left {
+    gap: 0;
+  }
+
+  .location-button {
+    display: none;
+  }
+
+  .navbar-search {
+    display: none;
+  }
+
+  .desktop-navigation {
+    display: none;
+  }
+
+  .mobile-header-icons {
+    display: flex;
+  }
+
+  .customer-logo {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-navbar {
+    padding: 0 16px;
+  }
+
+  .customer-logo {
+    font-size: 19px;
+  }
+
+  .mobile-header-icons {
+    gap: 3px;
+  }
+
+  .mobile-header-icons button {
+    width: 35px;
+    height: 35px;
+  }
+
+  .mobile-menu {
+    right: 16px;
+    width: 200px;
+  }
+}

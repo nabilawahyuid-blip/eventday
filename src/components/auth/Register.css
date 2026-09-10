@@ -1,0 +1,793 @@
+/* ==============================
+   RESET
+============================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* ==============================
+   REGISTER PAGE
+============================== */
+
+.register-page {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #f7f8fc;
+  overflow-x: hidden;
+}
+
+
+/* ==============================
+   HEADER
+============================== */
+
+.register-header {
+  width: 100%;
+  height: 82px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f7f8fc;
+}
+
+.register-header h1 {
+  margin: 0;
+
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -1px;
+
+  color: #20212b;
+}
+
+.register-header h1 span {
+  color: #5146e5;
+}
+
+
+/* ==============================
+   CONTENT
+============================== */
+
+.register-content {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  padding: 38px 20px 50px;
+}
+
+
+/* ==============================
+   REGISTER CONTAINER / BOX
+============================== */
+
+.register-container {
+  width: 100%;
+  max-width: 400px;
+
+  padding: 36px 32px 32px;
+
+  background: #ffffff;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+
+/* ==============================
+   TITLE
+============================== */
+
+.register-container h2 {
+  margin: 0 0 52px;
+
+  text-align: center;
+
+  color: #15283b;
+
+  font-size: 25px;
+  font-weight: 700;
+
+  letter-spacing: -0.5px;
+}
+
+
+/* ==============================
+   FORM
+============================== */
+
+.register-container form {
+  width: 100%;
+}
+
+
+/* ==============================
+   FIELD
+============================== */
+
+.register-field {
+  width: 100%;
+  margin-bottom: 19px;
+}
+
+.register-field label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #41424d;
+
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.register-field input {
+  display: block;
+
+  width: 100%;
+  height: 44px;
+
+  padding: 0 15px;
+
+  border: 1px solid #c5c8dc;
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #f0f3fd;
+
+  color: #292a35;
+
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 14px;
+
+  transition: all 0.2s ease;
+}
+
+.register-field input::placeholder {
+  color: #9699aa;
+}
+
+.register-field input:hover {
+  border-color: #aeb2c9;
+}
+
+.register-field input:focus {
+  border-color: #5146e5;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px rgba(81, 70, 229, 0.08);
+}
+
+
+/* ==============================
+   PASSWORD INPUT + EYE ICON
+============================== */
+
+.register-password-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.register-password-wrapper input {
+  width: 100% !important;
+
+  /* Memberi ruang agar teks tidak bertabrakan dengan icon */
+  padding: 0 48px 0 15px !important;
+}
+
+.register-password-toggle {
+  position: absolute !important;
+
+  right: 12px !important;
+  top: 50% !important;
+
+  transform: translateY(-50%) !important;
+
+  width: 28px !important;
+  height: 28px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: none !important;
+  outline: none !important;
+
+  background: transparent !important;
+
+  color: #85879a !important;
+
+  cursor: pointer !important;
+
+  z-index: 10 !important;
+}
+
+.register-password-toggle:hover {
+  color: #5146e5 !important;
+}
+
+.register-password-toggle:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.register-password-toggle:active {
+  transform: translateY(-50%) !important;
+}
+
+.register-password-toggle svg {
+  display: block !important;
+
+  width: 20px !important;
+  height: 20px !important;
+
+  color: currentColor !important;
+  stroke: currentColor !important;
+}
+
+
+/* ==============================
+   AGREEMENT / CHECKBOX
+============================== */
+
+.register-agreement {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 8px;
+  margin-bottom: 27px;
+}
+
+
+/* CHECKBOX BENAR-BENAR BULAT */
+
+.register-agreement input {
+  flex: 0 0 16px;
+
+  width: 16px;
+  min-width: 16px;
+
+  height: 16px;
+  min-height: 16px;
+
+  margin: 0;
+  padding: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 1px solid #bfc4d7;
+  border-radius: 50%;
+
+  background: #f0f3fd;
+
+  cursor: pointer;
+
+  position: relative;
+
+  aspect-ratio: 1 / 1;
+}
+
+.register-agreement input:checked {
+  border-color: #5146e5;
+  background: #5146e5;
+}
+
+.register-agreement input:checked::after {
+  content: "";
+
+  position: absolute;
+
+  width: 4px;
+  height: 7px;
+
+  left: 5px;
+  top: 2px;
+
+  border: solid #ffffff;
+
+  border-width: 0 1.5px 1.5px 0;
+
+  transform: rotate(45deg);
+}
+
+.register-agreement label {
+  color: #5c5e69;
+
+  font-size: 10.5px;
+
+  line-height: 1.4;
+
+  cursor: pointer;
+}
+
+.register-agreement label span {
+  color: #5146e5;
+}
+
+
+/* ==============================
+   BUAT AKUN BUTTON
+============================== */
+
+.register-button {
+  display: flex !important;
+
+  width: 100% !important;
+  height: 46px !important;
+
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+  padding: 0;
+
+  border: none !important;
+  border-radius: 6px !important;
+
+  background: #5146e5 !important;
+
+  color: #ffffff !important;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 14px !important;
+  font-weight: 500;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  outline: none;
+
+  box-shadow: none;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* Saat mouse diarahkan */
+
+.register-button:hover {
+  background: #453bd0 !important;
+
+  color: #ffffff !important;
+
+  transform: translateY(-1px);
+}
+
+
+/* Saat diklik */
+
+.register-button:active {
+  background: #4036c9 !important;
+
+  color: #ffffff !important;
+
+  transform: translateY(0);
+}
+
+
+/* Saat focus */
+
+.register-button:focus {
+  background: #5146e5 !important;
+
+  color: #ffffff !important;
+
+  outline: none !important;
+
+  box-shadow: none !important;
+}
+
+
+/* ==============================
+   DIVIDER
+============================== */
+
+.register-divider {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  margin: 34px 0 25px;
+}
+
+.register-divider span {
+  flex: 1;
+
+  height: 1px;
+
+  background: #c7cad7;
+}
+
+.register-divider p {
+  flex-shrink: 0;
+
+  margin: 0;
+
+  color: #858794;
+
+  font-size: 14px;
+
+  white-space: nowrap;
+}
+
+
+/* ==============================
+   GOOGLE BUTTON
+============================== */
+
+.register-google {
+  width: 100%;
+  height: 43px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  border: 1px solid #c5c8d5;
+  border-radius: 6px;
+
+  background: #f8f9ff;
+
+  color: #292a35;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 15px;
+  font-weight: 400;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.register-google:hover {
+  background: #ffffff;
+
+  border-color: #aeb1c0;
+}
+
+
+/* ==============================
+   GOOGLE ICON
+============================== */
+
+.google-icon {
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 21px;
+  font-weight: 700;
+
+  color: #4285f4;
+}
+
+
+/* ==============================
+   LOGIN LINK
+============================== */
+
+.register-login {
+  margin: 34px 0 0;
+
+  text-align: center;
+
+  color: #565864;
+
+  font-size: 14px;
+}
+
+.register-login button {
+  border: none;
+
+  background: transparent;
+
+  padding: 0;
+
+  margin-left: 4px;
+
+  color: #5146e5;
+
+  font-family: inherit;
+
+  font-size: inherit;
+
+  cursor: pointer;
+}
+
+.register-login button:hover {
+  text-decoration: underline;
+}
+
+
+/* ==============================
+   TABLET
+============================== */
+
+@media (max-width: 768px) {
+
+  .register-content {
+    padding: 35px 24px 45px;
+  }
+
+  .register-container {
+    max-width: 400px;
+  }
+
+}
+
+
+/* ==============================
+   MOBILE
+============================== */
+
+@media (max-width: 480px) {
+
+  .register-header {
+    height: 78px;
+  }
+
+  .register-header h1 {
+    font-size: 28px;
+  }
+
+  .register-content {
+    padding: 30px 16px 40px;
+  }
+
+  .register-container {
+    width: 100%;
+    max-width: 400px;
+
+    padding: 32px 24px 28px;
+
+    border-radius: 12px;
+  }
+
+  .register-container h2 {
+    font-size: 24px;
+
+    margin-bottom: 48px;
+  }
+
+  .register-field {
+    margin-bottom: 19px;
+  }
+
+  .register-field input {
+    height: 44px;
+
+    font-size: 14px;
+  }
+
+  .register-agreement {
+    margin-top: 7px;
+
+    margin-bottom: 27px;
+  }
+
+  .register-agreement input {
+    flex-basis: 16px;
+
+    width: 16px;
+    height: 16px;
+
+    min-width: 16px;
+    min-height: 16px;
+  }
+
+  .register-agreement label {
+    font-size: 10px;
+  }
+
+  .register-button {
+    height: 46px;
+
+    font-size: 14px;
+  }
+
+  .register-divider {
+    margin: 32px 0 24px;
+  }
+
+}
+
+
+/* ==============================
+   SMALL MOBILE
+============================== */
+
+@media (max-width: 360px) {
+
+  .register-header {
+    height: 70px;
+  }
+
+  .register-header h1 {
+    font-size: 25px;
+  }
+
+  .register-content {
+    padding: 25px 12px 35px;
+  }
+
+  .register-container {
+    padding: 28px 20px 24px;
+  }
+
+  .register-container h2 {
+    font-size: 22px;
+
+    margin-bottom: 42px;
+  }
+
+  .register-field {
+    margin-bottom: 17px;
+  }
+
+  .register-field label {
+    font-size: 13px;
+  }
+
+  .register-field input {
+    height: 43px;
+
+    padding: 0 13px;
+
+    font-size: 13px;
+  }
+
+  /* Tetap beri ruang untuk icon mata */
+  .register-password-wrapper input {
+    padding: 0 44px 0 13px !important;
+  }
+
+  .register-password-toggle {
+    right: 9px !important;
+
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  .register-password-toggle svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  .register-agreement {
+    gap: 7px;
+
+    margin-bottom: 24px;
+  }
+
+  .register-agreement input {
+    flex-basis: 15px;
+
+    width: 15px;
+    height: 15px;
+
+    min-width: 15px;
+    min-height: 15px;
+  }
+
+  .register-agreement input:checked::after {
+    width: 4px;
+    height: 6px;
+
+    left: 4px;
+    top: 2px;
+  }
+
+  .register-agreement label {
+    font-size: 9px;
+  }
+
+  .register-button {
+    height: 45px;
+
+    font-size: 13px;
+  }
+
+  .register-divider {
+    margin: 29px 0 21px;
+
+    gap: 7px;
+  }
+
+  .register-divider p {
+    font-size: 12px;
+  }
+
+  .register-google {
+    height: 42px;
+
+    font-size: 14px;
+  }
+
+  .register-login {
+    margin-top: 28px;
+
+    font-size: 13px;
+  }
+
+}
+
+
+/* ==============================
+   LANDSCAPE MOBILE
+============================== */
+
+@media (max-height: 600px) and (orientation: landscape) {
+
+  .register-content {
+    padding-top: 25px;
+    padding-bottom: 25px;
+  }
+
+  .register-container {
+    padding-top: 28px;
+  }
+
+  .register-container h2 {
+    margin-bottom: 30px;
+  }
+
+  .register-field {
+    margin-bottom: 14px;
+  }
+
+  .register-agreement {
+    margin-bottom: 20px;
+  }
+
+  .register-divider {
+    margin: 20px 0;
+  }
+
+  .register-login {
+    margin-top: 20px;
+  }
+
+}

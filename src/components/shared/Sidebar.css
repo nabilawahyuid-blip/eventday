@@ -1,0 +1,199 @@
+.sidebar {
+  width: 220px;
+  min-height: 100vh;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px 14px;
+
+  background: #ffffff;
+
+  border-right: 1px solid #e9e6f1;
+
+  z-index: 100;
+}
+
+
+/* BRAND */
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 9px;
+
+  margin-bottom: 34px;
+}
+
+
+.sidebar-logo {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: linear-gradient(
+    135deg,
+    #5868ee,
+    #6d4edb
+  );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  box-shadow:
+    0 7px 15px rgba(91, 86, 226, 0.22);
+}
+
+
+.sidebar-brand-info h2 {
+  color: #5146d8;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+
+.sidebar-brand-info span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #9994a6;
+
+  font-size: 7px;
+  font-weight: 500;
+}
+
+
+/* MENU */
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+
+.sidebar-menu-item {
+  width: 100%;
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #777283;
+
+  font-family: inherit;
+
+  font-size: 10px;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.sidebar-icon {
+  width: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+}
+
+
+.sidebar-menu-item:hover {
+  background: #f3f1ff;
+
+  color: #574bd7;
+}
+
+
+.sidebar-menu-item.active {
+  background: linear-gradient(
+    135deg,
+    #5b63ed,
+    #6e50dd
+  );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 7px 15px rgba(91, 91, 230, 0.2);
+}
+
+
+/* LOGOUT */
+
+.sidebar-logout {
+  margin-top: auto;
+
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 0 12px;
+
+  border: none;
+
+  background: transparent;
+
+  color: #777283;
+
+  font-family: inherit;
+
+  font-size: 10px;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+
+.sidebar-logout:hover {
+  color: #574bd7;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+  .sidebar {
+    display: none;
+  }
+}

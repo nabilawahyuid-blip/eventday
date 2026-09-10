@@ -1,0 +1,717 @@
+/* =
+   PROFILE EO
+= */
+
+.profile-eo-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #f8f7fc;
+}
+
+
+/* =
+   MAIN
+= */
+
+.profile-eo-main {
+  min-height: 100vh;
+  margin-left: 220px;
+  background: #f8f7fc;
+}
+
+
+/* =
+   CONTENT
+= */
+
+.profile-eo-content {
+  width: 100%;
+  max-width: 1120px;
+
+  margin: 0 auto;
+
+  padding: 30px 34px 60px;
+
+  box-sizing: border-box;
+}
+
+
+/* =
+   PAGE HEADER
+= */
+
+.profile-page-header {
+  margin-bottom: 20px;
+}
+
+.profile-page-header h1 {
+  margin: 0;
+
+  color: #28263f;
+
+  font-size: 25px;
+  font-weight: 700;
+}
+
+
+/* =
+   MAIN PROFILE CARD
+= */
+
+.profile-main-card {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  min-height: 85px;
+
+  padding: 14px 16px;
+
+  background: #ffffff;
+
+  border: 1px solid #e3e0ed;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 3px 10px rgba(49, 43, 90, 0.035);
+
+  box-sizing: border-box;
+}
+
+
+/* =
+   COMPANY
+= */
+
+.profile-company {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+
+/* =
+   PROFILE IMAGE
+= */
+
+.profile-image-wrapper {
+  position: relative;
+}
+
+.profile-image {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 58px;
+  height: 58px;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #e9e6ff,
+      #f7f5ff
+    );
+
+  border: 1px solid #ded9f5;
+
+  color: #5a4be7;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.profile-image-edit {
+  position: absolute;
+
+  right: -2px;
+  bottom: -2px;
+
+  width: 18px;
+  height: 18px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 2px solid #ffffff;
+
+  border-radius: 50%;
+
+  background: #5a4be7;
+
+  color: #ffffff;
+
+  font-size: 8px;
+
+  cursor: pointer;
+}
+
+
+/* =
+   COMPANY INFO
+= */
+
+.profile-company-info {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.profile-company-info h2 {
+  margin: 0;
+
+  color: #3f3c4d;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.profile-company-info span {
+  color: #9794a3;
+
+  font-size: 8px;
+}
+
+
+/* =
+   ACTIONS
+= */
+
+.profile-actions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.profile-actions button {
+  height: 28px;
+
+  padding: 0 12px;
+
+  border-radius: 6px;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 8px;
+
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+
+/* CHANGE PASSWORD */
+
+.change-password-btn {
+  border: 1px solid #d5d1e3;
+
+  background: #ffffff;
+
+  color: #4f4c5d;
+}
+
+.change-password-btn:hover {
+  background: #f6f4fc;
+
+  border-color: #bcb6d8;
+}
+
+
+/* EDIT PROFILE */
+
+.edit-profile-btn {
+  border: none;
+
+  background: #584be0;
+
+  color: #ffffff;
+}
+
+.edit-profile-btn:hover {
+  background: #493bc7;
+}
+
+
+/* =
+   INFORMATION CARD
+= */
+
+.profile-information-card {
+  margin-top: 14px;
+
+  padding: 15px;
+
+  background: #ffffff;
+
+  border: 1px solid #e3e0ed;
+
+  border-radius: 8px;
+
+  box-shadow:
+    0 3px 10px rgba(49, 43, 90, 0.035);
+
+  box-sizing: border-box;
+}
+
+
+/* =
+   SECTION TITLE
+= */
+
+.profile-section-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.profile-section-title h2 {
+  margin: 0;
+
+  color: #474452;
+
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.profile-section-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 21px;
+  height: 21px;
+
+  border-radius: 6px;
+
+  background: #eeecff;
+
+  color: #594ce1;
+
+  font-size: 10px;
+}
+
+
+/* =
+   DIVIDER
+= */
+
+.profile-divider {
+  width: 100%;
+
+  height: 1px;
+
+  margin: 11px 0 14px;
+
+  background: #ece9f2;
+}
+
+
+/* =
+   INFORMATION GRID
+= */
+
+.profile-info-grid {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  column-gap: 14px;
+  row-gap: 12px;
+}
+
+
+/* =
+   FIELD
+= */
+
+.profile-field {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.profile-field label,
+.profile-document label {
+  color: #9996a5;
+
+  font-size: 6.5px;
+  font-weight: 600;
+}
+
+
+/* =
+   INPUT
+= */
+
+.profile-input-wrapper {
+  display: flex;
+
+  align-items: center;
+
+  height: 30px;
+
+  border-radius: 5px;
+
+  background: #f5f2fd;
+
+  box-sizing: border-box;
+}
+
+.profile-input-wrapper input {
+  flex: 1;
+
+  min-width: 0;
+
+  height: 100%;
+
+  padding: 0 9px;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  color: #555262;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 8px;
+}
+
+.profile-input-wrapper input:focus {
+  background: #f0edfc;
+}
+
+.field-icon {
+  padding-right: 9px;
+
+  color: #aaa6b6;
+
+  font-size: 8px;
+}
+
+
+/* =
+   DOCUMENT
+= */
+
+.profile-document {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+
+  margin-top: 13px;
+}
+
+.document-box {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  height: 31px;
+
+  padding: 0 9px;
+
+  border-radius: 5px;
+
+  background: #f5f2fd;
+
+  box-sizing: border-box;
+}
+
+.document-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+}
+
+.document-icon {
+  color: #594ce1;
+
+  font-size: 10px;
+}
+
+.document-left span {
+  color: #595665;
+
+  font-size: 8px;
+}
+
+.download-document {
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #9895a4;
+
+  font-size: 13px;
+
+  cursor: pointer;
+}
+
+.download-document:hover {
+  color: #594ce1;
+}
+
+
+/* =
+   PASSWORD OVERLAY
+= */
+
+.password-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(34, 31, 55, 0.35);
+
+  backdrop-filter: blur(3px);
+}
+
+
+/* =
+   PASSWORD MODAL
+= */
+
+.password-modal {
+  width: 100%;
+  max-width: 390px;
+
+  padding: 20px;
+
+  background: #ffffff;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 15px 40px rgba(39, 33, 75, 0.2);
+
+  box-sizing: border-box;
+}
+
+
+/* =
+   MODAL HEADER
+= */
+
+.password-modal-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: flex-start;
+
+  margin-bottom: 18px;
+}
+
+.password-modal-header h2 {
+  margin: 0;
+
+  color: #312e43;
+
+  font-size: 16px;
+}
+
+.password-modal-header p {
+  margin: 4px 0 0;
+
+  color: #9693a2;
+
+  font-size: 8px;
+}
+
+.password-modal-header button {
+  width: 25px;
+  height: 25px;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background: #f3f1f8;
+
+  color: #6c6977;
+
+  font-size: 16px;
+
+  cursor: pointer;
+}
+
+
+/* =
+   PASSWORD FORM
+= */
+
+.password-form {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.password-form label {
+  margin-top: 4px;
+
+  color: #8c8998;
+
+  font-size: 7px;
+  font-weight: 600;
+}
+
+.password-form input {
+  height: 34px;
+
+  padding: 0 10px;
+
+  border: 1px solid #dedbe8;
+
+  border-radius: 6px;
+
+  outline: none;
+
+  color: #4e4b5a;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 9px;
+
+  box-sizing: border-box;
+}
+
+.password-form input:focus {
+  border-color: #5a4be7;
+}
+
+
+/* =
+   SAVE PASSWORD
+= */
+
+.save-password-btn {
+  height: 35px;
+
+  margin-top: 10px;
+
+  border: none;
+
+  border-radius: 6px;
+
+  background: #5a4be7;
+
+  color: #ffffff;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.save-password-btn:hover {
+  background: #493bc8;
+}
+
+
+/* =
+   RESPONSIVE
+= */
+
+@media (max-width: 900px) {
+
+  .profile-eo-main {
+    margin-left: 200px;
+  }
+
+  .profile-eo-content {
+    padding: 25px 24px 50px;
+  }
+}
+
+
+@media (max-width: 700px) {
+
+  .profile-main-card {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 15px;
+  }
+
+  .profile-actions {
+    width: 100%;
+  }
+
+  .profile-actions button {
+    flex: 1;
+  }
+
+  .profile-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (max-width: 600px) {
+
+  .profile-eo-main {
+    margin-left: 0;
+  }
+
+  .profile-eo-content {
+    padding: 20px 15px 45px;
+  }
+
+  .profile-page-header h1 {
+    font-size: 22px;
+  }
+
+  .profile-actions {
+    flex-direction: column;
+  }
+
+  .profile-actions button {
+    width: 100%;
+  }
+}

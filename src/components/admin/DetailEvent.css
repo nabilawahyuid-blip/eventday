@@ -1,0 +1,1073 @@
+@import url(
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+);
+
+
+/* =====
+   RESET
+===== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/* =====
+   BODY
+===== */
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+
+  font-family: "Inter", sans-serif;
+
+  background: #f7f6fc;
+
+  color: #29263a;
+}
+
+
+/* =====
+   MAIN PAGE
+===== */
+
+.detail-event-page {
+  width: 100%;
+  min-height: 100vh;
+
+  background: #f7f6fc;
+}
+
+
+/* =====
+   MAIN AREA
+
+   Sidebar berada di kiri dengan width 220px.
+   Karena Sidebar sudah dipisah ke Sidebar.jsx,
+   area utama harus memberi ruang 220px.
+===== */
+
+.detail-main {
+  width: calc(100% - 220px);
+  min-height: 100vh;
+
+  margin-left: 220px;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #f7f6fc;
+}
+
+
+/* =====
+   CONTENT WRAPPER
+===== */
+
+.detail-content {
+  width: 100%;
+  max-width: 1400px;
+
+  margin: 0 auto;
+
+  padding: 28px 34px 45px;
+}
+
+
+/* =====
+   PAGE HEADER
+===== */
+
+.detail-page-header {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 18px;
+}
+
+.detail-page-header h2 {
+  margin: 0;
+
+  color: #29263a;
+
+  font-size: 24px;
+  line-height: 1.3;
+  font-weight: 800;
+}
+
+
+/* =====
+   BACK BUTTON
+===== */
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 12px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #584bdd;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back-button:hover {
+  background: #eeecff;
+
+  color: #4034c3;
+
+  transform: translateX(-2px);
+}
+
+
+/* =====
+   DETAIL CARD
+===== */
+
+.detail-card {
+  width: 100%;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #e7e3f0;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 8px 30px rgba(54, 47, 90, 0.06);
+}
+
+
+/* =====
+   HERO
+===== */
+
+.detail-hero {
+  position: relative;
+
+  width: 100%;
+  height: 290px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      #565fd0 0%,
+      #6267dc 45%,
+      #7560df 100%
+    );
+}
+
+
+/* =====
+   HERO DECORATION
+===== */
+
+.detail-hero::before {
+  content: "";
+
+  position: absolute;
+
+  width: 430px;
+  height: 430px;
+
+  top: -300px;
+  left: -80px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.detail-hero::after {
+  content: "";
+
+  position: absolute;
+
+  width: 430px;
+  height: 430px;
+
+  right: -180px;
+  bottom: -330px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.08);
+}
+
+
+/* =====
+   HERO STATUS
+===== */
+
+.event-status {
+  position: absolute;
+
+  top: 18px;
+  right: 20px;
+
+  z-index: 10;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 7px 12px;
+
+  border-radius: 20px;
+
+  background: #d8f7e8;
+
+  color: #15845b;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.event-status.draft {
+  background: #fff0d5;
+
+  color: #b67819;
+}
+
+
+/* =====
+   HERO CATEGORY
+===== */
+
+.hero-category {
+  position: absolute;
+
+  left: 22px;
+  bottom: 18px;
+
+  z-index: 10;
+
+  padding: 6px 11px;
+
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.14);
+
+  color: #ffffff;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  backdrop-filter: blur(8px);
+}
+
+
+/* =====
+   HERO VISUAL
+===== */
+
+.hero-visual {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* =====
+   HERO CIRCLES
+===== */
+
+.hero-circle {
+  position: absolute;
+
+  border: 1px solid rgba(255, 255, 255, 0.13);
+
+  border-radius: 50%;
+}
+
+.circle-one {
+  width: 390px;
+  height: 390px;
+}
+
+.circle-two {
+  width: 275px;
+  height: 275px;
+}
+
+
+/* =====
+   STAGE
+===== */
+
+.hero-stage {
+  position: relative;
+
+  width: 260px;
+  height: 135px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius:
+    12px 12px 45px 45px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(32, 29, 82, 0.72),
+      rgba(42, 38, 91, 0.38)
+    );
+
+  box-shadow:
+    0 20px 40px rgba(31, 27, 85, 0.25);
+}
+
+
+/* =====
+   STAGE SCREEN
+===== */
+
+.stage-screen {
+  width: 110px;
+  height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  background: rgba(255, 255, 255, 0.94);
+
+  color: #574bd4;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+
+/* =====
+   STAGE LIGHT
+===== */
+
+.stage-light {
+  position: absolute;
+
+  top: -38px;
+
+  width: 4px;
+  height: 72px;
+
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.72);
+
+  filter: blur(1px);
+}
+
+.stage-light:first-child {
+  left: 62px;
+
+  transform: rotate(16deg);
+}
+
+.stage-light:last-child {
+  right: 62px;
+
+  transform: rotate(-16deg);
+}
+
+
+/* =====
+   DETAIL BODY
+===== */
+
+.detail-body {
+  width: 100%;
+
+  padding: 28px 30px 30px;
+}
+
+
+/* =====
+   EVENT TITLE
+===== */
+
+.event-title-section {
+  width: 100%;
+}
+
+.event-title-section h1 {
+  margin: 0;
+
+  color: #29263a;
+
+  font-size: 28px;
+  line-height: 1.3;
+
+  font-weight: 800;
+}
+
+
+/* =====
+   EVENT META
+===== */
+
+.event-meta {
+  display: flex;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 22px;
+
+  margin-top: 13px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #716d7d;
+
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.meta-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #5a52d7;
+
+  font-size: 12px;
+}
+
+
+/* =====
+   DIVIDER
+===== */
+
+.detail-divider {
+  width: 100%;
+  height: 1px;
+
+  margin: 22px 0;
+
+  background: #e8e5ee;
+}
+
+
+/* =====
+   DESCRIPTION
+===== */
+
+.description-section {
+  width: 100%;
+}
+
+.description-section h3 {
+  margin: 0;
+
+  color: #403c4c;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.description-section p {
+  max-width: 1100px;
+
+  margin-top: 8px;
+
+  color: #767180;
+
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+
+/* =====
+   TICKET SECTION
+===== */
+
+.ticket-section {
+  width: 100%;
+
+  margin-top: 22px;
+
+  padding: 18px 20px;
+
+  border: 1px solid #e3dff0;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f6f4fc,
+      #efedf9
+    );
+}
+
+
+/* =====
+   TICKET HEADER
+===== */
+
+.ticket-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.ticket-header h3 {
+  margin: 0;
+
+  color: #454052;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.ticket-header p {
+  margin-top: 4px;
+
+  color: #8c8797;
+
+  font-size: 9px;
+}
+
+
+/* =====
+   TICKET COUNT
+===== */
+
+.ticket-count {
+  display: flex;
+  align-items: baseline;
+
+  white-space: nowrap;
+}
+
+.ticket-count strong {
+  color: #574bdc;
+
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.ticket-count span {
+  margin-left: 4px;
+
+  color: #858090;
+
+  font-size: 10px;
+}
+
+
+/* =====
+   PROGRESS BAR
+===== */
+
+.progress-wrapper {
+  width: 100%;
+
+  margin-top: 15px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 7px;
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: #dcd8eb;
+}
+
+.progress-fill {
+  height: 100%;
+
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #5867ec,
+      #7350dc
+    );
+
+  transition: width 0.4s ease;
+}
+
+
+/* =====
+   PROGRESS INFO
+===== */
+
+.progress-info {
+  display: flex;
+  justify-content: flex-end;
+
+  margin-top: 6px;
+}
+
+.progress-info span {
+  color: #817c8d;
+
+  font-size: 9px;
+}
+
+
+/* =====
+   EXTRA INFORMATION
+===== */
+
+.event-extra-info {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-top: 20px;
+}
+
+
+/* =====
+   EXTRA ITEM
+===== */
+
+.extra-item {
+  min-width: 0;
+
+  padding: 14px;
+
+  border: 1px solid #e9e5f0;
+
+  border-radius: 10px;
+
+  background: #fbfafc;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.extra-item:hover {
+  transform: translateY(-2px);
+
+  border-color: #dcd6ee;
+
+  box-shadow:
+    0 7px 18px rgba(54, 47, 90, 0.06);
+}
+
+.extra-item span {
+  display: block;
+
+  color: #92909e;
+
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.extra-item strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #474251;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  word-break: break-word;
+}
+
+
+/* =====
+   ACTION BUTTONS
+===== */
+
+.detail-actions {
+  width: 100%;
+
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+.edit-button,
+.delete-button {
+  min-height: 39px;
+
+  padding: 0 17px;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* =====
+   EDIT
+===== */
+
+.edit-button {
+  border: none;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5968ec,
+      #7050dc
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 7px 16px rgba(91, 89, 225, 0.18);
+}
+
+.edit-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 22px rgba(91, 89, 225, 0.25);
+}
+
+
+/* =====
+   DELETE
+===== */
+
+.delete-button {
+  border: 1px solid #ead6d9;
+
+  background: #fff8f8;
+
+  color: #c45e68;
+}
+
+.delete-button:hover {
+  transform: translateY(-2px);
+
+  background: #fff0f1;
+
+  box-shadow:
+    0 7px 16px rgba(196, 94, 104, 0.08);
+}
+
+
+/* =====
+   TABLET
+===== */
+
+@media (max-width: 1100px) {
+
+  .detail-main {
+    width: calc(100% - 220px);
+
+    margin-left: 220px;
+  }
+
+  .detail-content {
+    padding: 24px 25px 35px;
+  }
+
+  .detail-body {
+    padding: 25px;
+  }
+
+  .detail-hero {
+    height: 270px;
+  }
+
+  .event-title-section h1 {
+    font-size: 25px;
+  }
+
+  .event-extra-info {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* =====
+   SMALL TABLET
+===== */
+
+@media (max-width: 850px) {
+
+  .detail-content {
+    padding: 22px 18px 30px;
+  }
+
+  .detail-body {
+    padding: 22px;
+  }
+
+  .detail-hero {
+    height: 245px;
+  }
+
+  .event-meta {
+    gap: 14px;
+  }
+
+  .description-section p {
+    font-size: 10px;
+  }
+}
+
+
+/* =====
+   MOBILE
+===== */
+
+@media (max-width: 700px) {
+
+  .detail-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+  .detail-content {
+    padding: 18px 15px 30px;
+  }
+
+  .detail-page-header {
+    align-items: center;
+
+    margin-bottom: 14px;
+  }
+
+  .detail-page-header h2 {
+    font-size: 20px;
+  }
+
+  .back-button {
+    padding: 7px 8px;
+
+    font-size: 9px;
+  }
+
+  .detail-hero {
+    height: 220px;
+  }
+
+  .circle-one {
+    width: 300px;
+    height: 300px;
+  }
+
+  .circle-two {
+    width: 210px;
+    height: 210px;
+  }
+
+  .hero-stage {
+    width: 205px;
+    height: 105px;
+  }
+
+  .stage-screen {
+    width: 90px;
+    height: 38px;
+
+    font-size: 8px;
+  }
+
+  .detail-body {
+    padding: 22px 18px;
+  }
+
+  .event-title-section h1 {
+    font-size: 22px;
+  }
+
+  .event-meta {
+    flex-direction: column;
+    align-items: flex-start;
+
+    gap: 8px;
+  }
+
+  .description-section p {
+    font-size: 10px;
+
+    line-height: 1.7;
+  }
+
+  .ticket-section {
+    padding: 16px;
+  }
+
+  .event-extra-info {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .edit-button,
+  .delete-button {
+    width: 100%;
+  }
+}
+
+
+/* =====
+   SMALL MOBILE
+===== */
+
+@media (max-width: 450px) {
+
+  .detail-content {
+    padding: 15px 12px 25px;
+  }
+
+  .detail-page-header h2 {
+    font-size: 18px;
+  }
+
+  .back-button {
+    font-size: 8px;
+  }
+
+  .detail-hero {
+    height: 190px;
+  }
+
+  .event-status {
+    top: 13px;
+    right: 13px;
+
+    padding: 6px 9px;
+
+    font-size: 8px;
+  }
+
+  .hero-category {
+    left: 13px;
+    bottom: 13px;
+
+    padding: 5px 9px;
+
+    font-size: 8px;
+  }
+
+  .circle-one {
+    width: 250px;
+    height: 250px;
+  }
+
+  .circle-two {
+    width: 175px;
+    height: 175px;
+  }
+
+  .hero-stage {
+    width: 165px;
+    height: 85px;
+  }
+
+  .stage-screen {
+    width: 80px;
+    height: 34px;
+
+    font-size: 7px;
+  }
+
+  .detail-body {
+    padding: 18px 15px;
+  }
+
+  .event-title-section h1 {
+    font-size: 20px;
+  }
+
+  .ticket-header {
+    align-items: flex-start;
+  }
+
+  .ticket-count strong {
+    font-size: 18px;
+  }
+
+  .extra-item {
+    padding: 12px;
+  }
+}

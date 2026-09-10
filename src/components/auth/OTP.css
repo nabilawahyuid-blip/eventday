@@ -1,0 +1,627 @@
+/* =
+   RESET
+= */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+/* =
+   OTP PAGE
+= */
+
+.otp-page {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background: #f7f8fc;
+
+  overflow-x: hidden;
+}
+
+
+/* =
+   HEADER
+= */
+
+.otp-header {
+  width: 100%;
+  height: 82px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f7f8fc;
+}
+
+.otp-header h1 {
+  margin: 0;
+
+  font-size: 30px;
+  font-weight: 700;
+
+  letter-spacing: -1px;
+
+  color: #20212b;
+}
+
+.otp-header h1 span {
+  color: #5146e5;
+}
+
+
+/* =
+   CONTENT
+= */
+
+.otp-content {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  padding: 38px 20px 50px;
+}
+
+
+/* =
+   OTP CARD
+= */
+
+.otp-card {
+  width: 100%;
+  max-width: 400px;
+
+  position: relative;
+
+  padding: 40px 32px 38px;
+
+  background: #ffffff;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =
+   CLOSE BUTTON
+= */
+
+.otp-close {
+  position: absolute;
+
+  top: 20px;
+  right: 20px;
+
+  width: 24px;
+  height: 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #77798a;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 25px;
+  font-weight: 300;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition: color 0.2s ease;
+}
+
+.otp-close:hover {
+  color: #5146e5;
+}
+
+
+/* =
+   TITLE
+= */
+
+.otp-title {
+  width: 100%;
+
+  text-align: center;
+
+  padding-top: 8px;
+}
+
+.otp-title h2 {
+  margin: 0 0 10px;
+
+  color: #15283b;
+
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.otp-title p {
+  margin: 0;
+
+  color: #565866;
+
+  font-size: 14px;
+
+  line-height: 1.45;
+}
+
+
+/* =
+   DIVIDER
+= */
+
+.otp-divider {
+  width: 100%;
+
+  height: 1px;
+
+  margin: 43px 0 43px;
+
+  background: #d9dbe5;
+}
+
+
+/* =
+   FORM
+= */
+
+.otp-card form {
+  width: 100%;
+}
+
+
+/* =
+   OTP LABEL
+= */
+
+.otp-label {
+  display: block;
+
+  width: 100%;
+
+  margin-bottom: 16px;
+
+  text-align: center;
+
+  color: #4e5060;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.5px;
+}
+
+
+/* =
+   OTP INPUT WRAPPER
+= */
+
+.otp-input-wrapper {
+  width: 100%;
+
+  display: flex;
+  justify-content: center;
+
+  gap: 7px;
+
+  margin-bottom: 38px;
+}
+
+
+/* =
+   OTP INPUT
+= */
+
+.otp-input {
+  width: 48px;
+  height: 58px;
+
+  flex: 0 0 48px;
+
+  padding: 0;
+
+  border: 1px solid #c5c8dc;
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #f8f9ff;
+
+  color: #292a35;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 23px;
+  font-weight: 500;
+
+  text-align: center;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.otp-input:hover {
+  border-color: #aeb2c9;
+}
+
+.otp-input:focus,
+.otp-input-active {
+  border: 2px solid #5146e5;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 2px rgba(81, 70, 229, 0.04);
+}
+
+
+/* =
+   VERIFY BUTTON
+= */
+
+.otp-verify-button {
+  display: flex;
+
+  width: 100%;
+  height: 46px;
+
+  align-items: center;
+  justify-content: center;
+
+  margin: 0;
+
+  border: none;
+  border-radius: 6px;
+
+  background: #5146e5;
+
+  color: #ffffff;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  outline: none;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.otp-verify-button:hover {
+  background: #453bd0;
+
+  transform: translateY(-1px);
+}
+
+.otp-verify-button:active {
+  background: #4036c9;
+
+  transform: translateY(0);
+}
+
+
+/* =
+   RESEND BUTTON
+= */
+
+.otp-resend-button {
+  display: flex;
+
+  width: 100%;
+  height: 46px;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-top: 40px;
+
+  border: 1px solid #5146e5;
+  border-radius: 6px;
+
+  background: #ffffff;
+
+  color: #5146e5;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  outline: none;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.otp-resend-button:hover {
+  background: #f5f4ff;
+
+  color: #453bd0;
+}
+
+.otp-resend-button:active {
+  background: #eeedff;
+}
+
+
+/* =
+   TABLET
+= */
+
+@media (max-width: 768px) {
+  .otp-content {
+    padding: 35px 24px 45px;
+  }
+
+  .otp-card {
+    max-width: 400px;
+  }
+}
+
+
+/* =
+   MOBILE
+= */
+
+@media (max-width: 480px) {
+  .otp-header {
+    height: 78px;
+  }
+
+  .otp-header h1 {
+    font-size: 28px;
+  }
+
+  .otp-content {
+    padding: 30px 16px 40px;
+  }
+
+  .otp-card {
+    width: 100%;
+    max-width: 400px;
+
+    padding: 36px 24px 32px;
+
+    border-radius: 12px;
+  }
+
+  .otp-close {
+    top: 18px;
+    right: 18px;
+
+    font-size: 24px;
+  }
+
+  .otp-title {
+    padding-top: 5px;
+  }
+
+  .otp-title h2 {
+    font-size: 23px;
+
+    margin-bottom: 9px;
+  }
+
+  .otp-title p {
+    font-size: 13px;
+  }
+
+  .otp-divider {
+    margin: 38px 0 42px;
+  }
+
+  .otp-label {
+    font-size: 11px;
+
+    margin-bottom: 15px;
+  }
+
+  .otp-input-wrapper {
+    gap: 6px;
+
+    margin-bottom: 36px;
+  }
+
+  .otp-input {
+    width: 45px;
+    height: 56px;
+
+    flex: 0 0 45px;
+
+    font-size: 21px;
+  }
+
+  .otp-verify-button {
+    height: 46px;
+  }
+
+  .otp-resend-button {
+    height: 46px;
+
+    margin-top: 36px;
+  }
+}
+
+
+/* =
+   SMALL MOBILE
+= */
+
+@media (max-width: 360px) {
+  .otp-header {
+    height: 70px;
+  }
+
+  .otp-header h1 {
+    font-size: 25px;
+  }
+
+  .otp-content {
+    padding: 25px 12px 35px;
+  }
+
+  .otp-card {
+    padding: 32px 20px 28px;
+  }
+
+  .otp-close {
+    top: 15px;
+    right: 15px;
+
+    font-size: 22px;
+  }
+
+  .otp-title h2 {
+    font-size: 21px;
+  }
+
+  .otp-title p {
+    font-size: 12px;
+  }
+
+  .desktop-break {
+    display: none;
+  }
+
+  .otp-divider {
+    margin: 32px 0 35px;
+  }
+
+  .otp-label {
+    font-size: 10px;
+
+    margin-bottom: 13px;
+  }
+
+  .otp-input-wrapper {
+    gap: 5px;
+
+    margin-bottom: 30px;
+  }
+
+  .otp-input {
+    width: 39px;
+    height: 50px;
+
+    flex: 0 0 39px;
+
+    border-radius: 7px;
+
+    font-size: 19px;
+  }
+
+  .otp-verify-button {
+    height: 44px;
+
+    font-size: 13px;
+  }
+
+  .otp-resend-button {
+    height: 44px;
+
+    margin-top: 30px;
+
+    font-size: 13px;
+  }
+}
+
+
+/* =
+   VERY SMALL MOBILE
+= */
+
+@media (max-width: 320px) {
+  .otp-card {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .otp-input-wrapper {
+    gap: 4px;
+  }
+
+  .otp-input {
+    width: 37px;
+    height: 48px;
+
+    flex-basis: 37px;
+  }
+}
+
+
+/* =
+   LANDSCAPE MOBILE
+= */
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .otp-content {
+    padding-top: 20px;
+    padding-bottom: 25px;
+  }
+
+  .otp-card {
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+
+  .otp-title h2 {
+    margin-bottom: 6px;
+  }
+
+  .otp-divider {
+    margin: 25px 0 25px;
+  }
+
+  .otp-input {
+    height: 48px;
+  }
+
+  .otp-input-wrapper {
+    margin-bottom: 25px;
+  }
+
+  .otp-resend-button {
+    margin-top: 25px;
+  }
+}
