@@ -29,6 +29,8 @@ import TicketSuccess from "./components/customer/TicketSuccess";
 import MyTicket from "./components/customer/MyTicket";
 import RefundRequest from "./components/customer/RefundRequest";
 import RefundList from "./components/customer/RefundList";
+import TransaksiCustomer from "./components/customer/TransaksiCustomer";
+import ProfileCustomer from "./components/customer/ProfileCustomer";
 
 import DashboardEO from "./components/eo/DashboardEO";
 import EventEO from "./components/eo/EventEO";
@@ -214,10 +216,19 @@ function App() {
   path="/customer/refund"
   element={<RefundRequest />}
 />
+<Route
+  path="/customer/history"
+  element={<TransaksiCustomer />}
+/>
+<Route
+  path="/customer/profile"
+  element={<ProfileCustomer />}
+/>
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>
   );
 }
+
 
 export default App;

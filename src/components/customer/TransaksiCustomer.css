@@ -1,0 +1,497 @@
+.transaction-page {
+  min-height: 100vh;
+  background: #f7f8fc;
+  display: flex;
+  flex-direction: column;
+}
+
+.transaction-container {
+  width: min(1180px, calc(100% - 68px));
+  margin-left: auto;
+  margin-right: auto;
+  padding: 30px 0 40px;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+.transaction-header {
+  margin-bottom: 34px;
+}
+
+.transaction-header h1 {
+  margin: 0 0 8px;
+  color: #111827;
+  font-size: 32px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.transaction-header p {
+  margin: 0;
+  color: #667795;
+  font-size: 14px;
+}
+
+/* TAB */
+
+.transaction-tabs {
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 12px 25px;
+  width: calc(100% - 24px);
+  box-sizing: border-box;
+}
+
+.transaction-tabs button {
+  border: none;
+  background: #edf1f7;
+  color: #53627b;
+  padding: 8px 17px;
+  border-radius: 18px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.transaction-tabs button:hover {
+  background: #e3e8f2;
+}
+
+.transaction-tabs button.active {
+  background: #5a52f2;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(90, 82, 242, 0.2);
+}
+
+/* TRANSACTION GRID */
+
+.transaction-list {
+  width: calc(100% - 24px);
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+/* CARD */
+
+.transaction-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  box-sizing: border-box;
+  min-height: 295px;
+  box-shadow: 0 7px 25px rgba(30, 42, 70, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.transaction-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-label {
+  color: #8a9bb8;
+  font-size: 11px;
+}
+
+.order-info strong {
+  color: #26344b;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+}
+
+/* STATUS */
+
+.transaction-status {
+  flex-shrink: 0;
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.transaction-status.waiting {
+  background: #fff1a8;
+  border: 1px solid #f3d23e;
+  color: #936600;
+}
+
+.transaction-status.success {
+  background: #bdf5d0;
+  border: 1px solid #78d99b;
+  color: #237348;
+}
+
+.transaction-status.failed {
+  background: #ffd1d1;
+  border: 1px solid #ff9b9b;
+  color: #bb2d2d;
+}
+
+.transaction-status.cancelled {
+  background: #e9edf3;
+  border: 1px solid #d6dce6;
+  color: #667085;
+}
+
+/* EVENT */
+
+.transaction-event {
+  margin-top: 17px;
+}
+
+.transaction-event h2 {
+  margin: 0 0 12px;
+  color: #15243b;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.ticket-summary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #687995;
+  font-size: 11px;
+}
+
+.ticket-type {
+  color: #4e46ef;
+  background: #eef0ff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.ticket-dot {
+  color: #687995;
+}
+
+/* DETAIL */
+
+.transaction-detail {
+  margin-top: 12px;
+  padding: 10px 11px;
+  background: #f6f8fb;
+  border: 1px solid #edf0f5;
+  border-radius: 11px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  min-height: 22px;
+  color: #6d7e9a;
+  font-size: 11px;
+}
+
+.detail-row strong {
+  color: #35445d;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.detail-row .expired-date {
+  color: #ff334d;
+}
+
+.detail-row.total-row {
+  padding-top: 6px;
+  margin-top: 4px;
+  border-top: 1px solid #dfe4eb;
+  color: #26344b;
+}
+
+.detail-row.total-row span {
+  font-weight: 700;
+}
+
+.detail-row.total-row strong {
+  color: #4d45ed;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.detail-row.total-row strong:last-child {
+  color: #4d45ed;
+}
+
+/* CARD FOOTER */
+
+.transaction-card-footer {
+  margin-top: auto;
+  padding-top: 11px;
+  border-top: 1px solid #e5e8ef;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.primary-transaction-button,
+.outline-transaction-button {
+  height: 37px;
+  padding: 0 17px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.primary-transaction-button {
+  border: none;
+  background: #5047e9;
+  color: #ffffff;
+}
+
+.primary-transaction-button:hover {
+  background: #433bd5;
+}
+
+.outline-transaction-button {
+  border: 1px solid #4e46f2;
+  background: #ffffff;
+  color: #4e46f2;
+}
+
+.outline-transaction-button:hover {
+  background: #f2f1ff;
+}
+
+/* EMPTY */
+
+.empty-transaction {
+  grid-column: 1 / -1;
+  background: #ffffff;
+  border-radius: 14px;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.empty-transaction h3 {
+  margin: 0 0 8px;
+  color: #1c2a40;
+  font-size: 18px;
+}
+
+.empty-transaction p {
+  margin: 0;
+  color: #7a89a2;
+  font-size: 13px;
+}
+
+/* TABLET */
+
+@media (max-width: 900px) {
+  .transaction-container {
+    width: min(100% - 40px, 700px);
+  }
+
+  .transaction-list {
+    grid-template-columns: 1fr;
+  }
+
+  .transaction-tabs {
+    margin-bottom: 30px;
+  }
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .transaction-page {
+    min-height: 100vh;
+    padding-bottom: 74px;
+  }
+
+  .transaction-container {
+    width: calc(100% - 24px);
+    padding: 24px 0 25px;
+  }
+
+  .transaction-header {
+    margin: 0 12px 10px;
+  }
+
+  .transaction-header h1 {
+    font-size: 25px;
+    letter-spacing: -0.5px;
+    margin-bottom: 0;
+  }
+
+  .transaction-header p {
+    display: none;
+  }
+
+  /* TAB MOBILE */
+
+  .transaction-tabs {
+    margin: 0 12px 25px;
+    width: calc(100% - 24px);
+    min-height: 36px;
+    padding: 4px 4px;
+    gap: 7px;
+    border-radius: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    background: #ffffff;
+  }
+
+  .transaction-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .transaction-tabs button {
+    padding: 7px 14px;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* LIST */
+
+  .transaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin: 0 12px;
+  }
+
+  /* CARD */
+
+  .transaction-card {
+    width: 100%;
+    min-height: 0;
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .transaction-card-top {
+    gap: 8px;
+  }
+
+  .order-label {
+    font-size: 10px;
+  }
+
+  .order-info strong {
+    font-size: 11px;
+  }
+
+  .transaction-status {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+
+  .transaction-event {
+    margin-top: 17px;
+  }
+
+  .transaction-event h2 {
+    font-size: 19px;
+    margin-bottom: 12px;
+  }
+
+  .ticket-summary {
+    font-size: 11px;
+  }
+
+  .transaction-detail {
+    margin-top: 12px;
+    padding: 9px 10px;
+  }
+
+  .detail-row {
+    min-height: 22px;
+    font-size: 10px;
+  }
+
+  .detail-row strong {
+    font-size: 10px;
+  }
+
+  .detail-row.total-row strong {
+    font-size: 11px;
+  }
+
+  .transaction-card-footer {
+    margin-top: 10px;
+    padding-top: 11px;
+  }
+
+  .primary-transaction-button,
+  .outline-transaction-button {
+    height: 37px;
+    font-size: 12px;
+    padding: 0 15px;
+  }
+
+  .empty-transaction {
+    min-height: 180px;
+  }
+}
+
+/* SMALL MOBILE */
+
+@media (max-width: 400px) {
+  .transaction-container {
+    width: calc(100% - 16px);
+  }
+
+  .transaction-header {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+
+  .transaction-header h1 {
+    font-size: 23px;
+  }
+
+  .transaction-tabs {
+    margin-left: 8px;
+    margin-right: 8px;
+    width: calc(100% - 16px);
+  }
+
+  .transaction-list {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+
+  .transaction-card {
+    padding: 15px;
+  }
+
+  .transaction-status {
+    padding: 5px 9px;
+  }
+}

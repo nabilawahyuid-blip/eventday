@@ -1,0 +1,252 @@
+.profile-mobile-page {
+  min-height: 100vh;
+  background: #f7f8fc;
+}
+
+/* DESKTOP
+   Profile page tidak digunakan sebagai sidebar.
+   Sidebar dibuka langsung dari NavbarCustomer.
+*/
+
+.profile-mobile-container {
+  display: none;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  .profile-mobile-page {
+    min-height: 100vh;
+    padding-bottom: 76px;
+    background: #f7f8fc;
+  }
+
+  .profile-mobile-container {
+    width: 100%;
+    display: block;
+    padding: 23px 0 25px;
+    box-sizing: border-box;
+  }
+
+  /* USER CARD */
+
+  .profile-mobile-user-card {
+    width: calc(100% - 48px);
+    margin: 0 auto 31px;
+    padding: 27px 16px 24px;
+    box-sizing: border-box;
+    background: #ffffff;
+    border-radius: 13px;
+    text-align: center;
+    box-shadow: 0 5px 18px rgba(28, 41, 66, 0.04);
+  }
+
+  .profile-mobile-avatar {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: #edf0ff;
+    color: #4e46e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    font-weight: 800;
+  }
+
+  .profile-mobile-user-card h1 {
+    margin: 0;
+    color: #14213a;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .profile-mobile-user-card p {
+    margin: 8px 0 17px;
+    color: #505567;
+    font-size: 16px;
+  }
+
+  .profile-mobile-edit {
+    height: 40px;
+    min-width: 120px;
+    padding: 0 22px;
+    border: none;
+    border-radius: 7px;
+    background: #5148e9;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* SECTION */
+
+  .profile-mobile-section {
+    width: calc(100% - 48px);
+    margin: 0 auto 17px;
+    background: #ffffff;
+    border-radius: 13px;
+    overflow: hidden;
+    box-shadow: 0 5px 18px rgba(28, 41, 66, 0.035);
+  }
+
+  .profile-mobile-section-title {
+    min-height: 54px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    border-bottom: 1px solid #e2e7ef;
+    color: #4039df;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .profile-mobile-menu-list {
+    padding: 8px 0;
+  }
+
+  /* MENU */
+
+  .profile-mobile-menu-item,
+  .profile-mobile-general button {
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 18px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-sizing: border-box;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .profile-mobile-menu-item:hover,
+  .profile-mobile-general button:hover {
+    background: #f8f9fc;
+  }
+
+  .profile-mobile-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    border-radius: 50%;
+    background: #e8efff;
+    color: #443ce4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .profile-mobile-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .profile-mobile-menu-item > span:nth-child(2),
+  .profile-mobile-general button > span:nth-child(2) {
+    flex: 1;
+    color: #15243b;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .profile-mobile-arrow {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4d5361;
+  }
+
+  .profile-mobile-arrow svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* GENERAL */
+
+  .profile-mobile-general {
+    width: calc(100% - 48px);
+    margin: 0 auto;
+    padding: 7px 0;
+    background: #ffffff;
+    border-radius: 13px;
+    overflow: hidden;
+    box-shadow: 0 5px 18px rgba(28, 41, 66, 0.035);
+  }
+
+  .profile-mobile-general button {
+    min-height: 69px;
+  }
+
+  .profile-mobile-logout
+    > span:nth-child(2) {
+    color: #d5292e !important;
+  }
+
+  .profile-mobile-logout .profile-mobile-icon {
+    background: #fff1f1;
+    color: #df2932;
+  }
+}
+
+/* SMALL MOBILE */
+
+@media (max-width: 400px) {
+  .profile-mobile-container {
+    padding-top: 18px;
+  }
+
+  .profile-mobile-user-card,
+  .profile-mobile-section,
+  .profile-mobile-general {
+    width: calc(100% - 32px);
+  }
+
+  .profile-mobile-user-card {
+    padding-top: 24px;
+  }
+
+  .profile-mobile-avatar {
+    width: 70px;
+    height: 70px;
+  }
+
+  .profile-mobile-user-card p {
+    font-size: 14px;
+  }
+
+  .profile-mobile-menu-item,
+  .profile-mobile-general button {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .profile-mobile-icon {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+
+  .profile-mobile-menu-item > span:nth-child(2),
+  .profile-mobile-general button > span:nth-child(2) {
+    font-size: 14px;
+  }
+}
