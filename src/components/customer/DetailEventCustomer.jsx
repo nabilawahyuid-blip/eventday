@@ -83,15 +83,13 @@ function DetailEventCustomer() {
 
   const selectedTicketPrice = tickets[selectedTierIndex]?.price || 0;
 
-  const totalPrice = useMemo(() => {
-    return selectedTicketPrice * quantity;
-  }, [selectedTicketPrice, quantity]);
+  const subtotal = selectedTicketData.price * quantity;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
-      maximumFractionDigits: 0,
+      minimumFractionDigits: 0,
     }).format(price);
   };
 
@@ -156,14 +154,14 @@ function DetailEventCustomer() {
       <NavbarCustomer />
 
       <main className="detail-event-container">
-        <div className="detail-event-main">
-          <section className="event-poster-section">
-            <img
-              src={event.image}
-              alt={event.title}
-              className="event-poster"
-            />
-          </section>
+        <div className="detail-event-left">
+          {/* POSTER */}
+
+          <div className="event-poster-card">
+            <img src={event.image} alt={event.title} />
+          </div>
+
+          {/* EVENT INFORMATION */}
 
           <section className="event-basic-card">
             <div className="event-title-row">
@@ -185,31 +183,60 @@ function DetailEventCustomer() {
                 <span>{event.categoryLabel || event.category}</span>
               </div>
 
-              <div className="basic-info-item">
-                <span className="info-icon">
-                  <svg viewBox="0 0 24 24">
-                    <rect x="4" y="5" width="16" height="15" rx="2" />
-                    <path d="M8 3v4M16 3v4M4 10h16" />
-                  </svg>
-                </span>
+              <div className="event-info-item">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
+
+                  <path
+                    d="M12 7V12L15 14"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+
+                <div>
+                  <span className="event-info-label">Waktu</span>
 
                 <span>{event.dateDisplay || event.date}</span>
               </div>
 
-              <div className="basic-info-item">
-                <span className="info-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                    <circle cx="12" cy="10" r="2.5" />
-                  </svg>
-                </span>
+              <div className="event-info-item">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M20 10C20 15.5 12 21 12 21C12 21 4 15.5 4 10C4 5.58 7.58 2 12 2C16.42 2 20 5.58 20 10Z"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
 
-                <span>{event.location}</span>
+                  <circle
+                    cx="12"
+                    cy="10"
+                    r="2.5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                  />
+                </svg>
+
+                <div>
+                  <span className="event-info-label">Lokasi</span>
+
+                  <strong>{event.location}</strong>
+
+                  <small>{event.address}</small>
+                </div>
               </div>
             </div>
           </section>
 
-          <div className="mobile-divider"></div>
+          {/* DESCRIPTION */}
 
           <section className="event-description-card">
             <h2>Deskripsi Event</h2>
