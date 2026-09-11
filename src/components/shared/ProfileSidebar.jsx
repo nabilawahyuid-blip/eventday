@@ -59,7 +59,7 @@ function ProfileSidebar({ open, onClose }) {
 
   const handlePrivacy = () => {
     onClose();
-    alert("Halaman Kebijakan Privasi belum dibuat.");
+    navigate("/customer/privacy");
   };
 
   const handleLogout = () => {
