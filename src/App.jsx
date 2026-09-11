@@ -12,6 +12,7 @@ import ResetPassword from "./components/auth/ResetPassword";
 // ==================== ADMIN ====================
 import DashboardAdmin from "./components/admin/DashboardAdmin";
 import EventManagement from "./components/admin/EventManagement";
+import TambahEvent from "./components/admin/TambahEvent";
 import DetailEvent from "./components/admin/DetailEvent";
 import UserManagement from "./components/admin/UserManagement";
 import DetailUser from "./components/admin/DetailUser";
@@ -108,6 +109,11 @@ function App() {
             path="/admin/users"
             element={<UserManagement />}
           />
+
+          <Route 
+            path="/admin/tambah-event"
+            element={<TambahEvent />}
+            />
 
           <Route
             path="/admin/users/:id"
