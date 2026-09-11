@@ -152,6 +152,18 @@
   font-weight: 800;
 }
 
+.profile-chevron {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* MOBILE HEADER */
+
 .mobile-header-icons {
   display: none;
   align-items: center;
@@ -180,35 +192,68 @@
   stroke-linejoin: round;
 }
 
-.mobile-menu {
+/* MOBILE MENU */
+
+.mobile-navbar-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 20px;
-  width: 190px;
+  width: 200px;
   padding: 8px;
   background: #ffffff;
   border: 1px solid #e9ecf3;
   border-radius: 14px;
   box-shadow: 0 15px 40px rgba(30, 40, 70, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
-.mobile-menu button {
+.mobile-navbar-menu button {
   width: 100%;
-  padding: 12px 14px;
+  min-height: 42px;
+  padding: 11px 14px;
   border: none;
   border-radius: 9px;
   background: transparent;
   color: #374158;
   text-align: left;
+  font-family: inherit;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: 0.2s ease;
 }
 
-.mobile-menu button:hover {
+.mobile-navbar-menu button:hover {
   background: #f3f1ff;
   color: #4938df;
 }
+
+/* BACK BUTTON */
+
+.mobile-back-button {
+  display: none;
+  border: none;
+  background: transparent;
+  color: #273149;
+  cursor: pointer;
+  padding: 0;
+}
+
+.mobile-back-button svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* TABLET */
 
 @media (max-width: 1100px) {
   .customer-navbar {
@@ -232,6 +277,8 @@
     max-width: 300px;
   }
 }
+
+/* MOBILE */
 
 @media (max-width: 850px) {
   .customer-navbar {
@@ -262,7 +309,23 @@
   .customer-logo {
     font-size: 20px;
   }
+
+  /*
+    Menu tetap absolute terhadap navbar.
+    Jadi ketika garis tiga ditekan,
+    menu turun ke bawah navbar.
+  */
+
+  .mobile-navbar-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 20px;
+    width: 200px;
+    z-index: 1000;
+  }
 }
+
+/* SMALL MOBILE */
 
 @media (max-width: 480px) {
   .customer-navbar {
@@ -282,8 +345,14 @@
     height: 35px;
   }
 
-  .mobile-menu {
+  .mobile-navbar-menu {
     right: 16px;
     width: 200px;
+    padding: 8px;
+  }
+
+  .mobile-navbar-menu button {
+    min-height: 42px;
+    font-size: 13px;
   }
 }

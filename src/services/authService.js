@@ -1,16 +1,11 @@
-// AUTH SERVICE - EVENTDAY
-// Sync with backend API.md 2026-09-09 (port 8082, wrapper {msg,status,data})
-
-// BACKEND — supports both localhost and ngrok
-// Priority: VITE_API_URL env > ngrok (teman) > localhost 8082
-// Canonical per API.md:3 is http://localhost:8082
-// Ngrok teman: https://9538-2400-9800-264-e7e4-18d3-656d-b87c-b0ad.ngrok-free.app
-// Legacy alias /api/auth/** also permit, canonical is /api/v1/auth
-
 const API_URL =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
-  (typeof process !== 'undefined' && process.env?.VITE_API_URL) ||
-  "https://d85c-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app/api/v1/auth";
+  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+  (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
+  "https://bad1-2400-9800-3cd-197d-a978-b26a-d2bf-6e8.ngrok-free.app/api/v1/auth";
+
+export const getApiBaseUrl = () => {
+  return API_URL.replace("/auth", "");
+};
 
 const getHeaders = () => ({
   "Content-Type": "application/json",
@@ -18,12 +13,9 @@ const getHeaders = () => ({
   "ngrok-skip-browser-warning": "true",
 });
 
-// HELPER - BACA RESPONSE BACKEND (support wrapper {msg,status,data})
-
 const getResponseData = async (response) => {
   const text = await response.text();
 
-  // Kalau backend tidak mengirim body
   if (!text) {
     return {};
   }
@@ -31,7 +23,6 @@ const getResponseData = async (response) => {
   try {
     return JSON.parse(text);
   } catch {
-    // Kalau response bukan JSON
     return {
       message: text,
     };
@@ -47,8 +38,11 @@ const isWrappedResponse = (obj) =>
 
 const extractErrorMessage = (result, fallback) => {
   if (!result) return fallback;
-  if (typeof result === "string") return result;
-  // wrapper msg takes priority, fallback to message/error
+
+  if (typeof result === "string") {
+    return result;
+  }
+
   return (
     result.msg ||
     result.message ||
@@ -65,22 +59,32 @@ const normalizeSuccess = (result) => {
     const payload = result.data;
     const msg = result.msg;
     const status = result.status;
+
     if (payload && typeof payload === "object") {
-      // attach compatibility fields so callers can use .message or .msg
-      if (!payload.message && msg) payload.message = msg;
-      if (!payload.msg && msg) payload.msg = msg;
+      if (!payload.message && msg) {
+        payload.message = msg;
+      }
+
+      if (!payload.msg && msg) {
+        payload.msg = msg;
+      }
+
       payload._status = status;
       payload._msg = msg;
+
       return payload;
     } else {
-      // data null (verify-otp, resend-otp, reset-password) -> return object with message
-      return { message: msg, msg, status, data: payload };
+      return {
+        message: msg,
+        msg,
+        status,
+        data: payload,
+      };
     }
   }
+
   return result;
 };
-
-// REGISTER
 
 export const register = async (data) => {
   try {
@@ -100,8 +104,6 @@ export const register = async (data) => {
       nik,
       role,
     });
-
-    // VALIDASI FRONTEND
 
     if (!name) {
       throw new Error("Nama wajib diisi.");
@@ -123,13 +125,9 @@ export const register = async (data) => {
       throw new Error("Password minimal 6 karakter.");
     }
 
-    // REQUEST REGISTER
-
     const response = await fetch(`${API_URL}/register`, {
       method: "POST",
-
       headers: getHeaders(),
-
       body: JSON.stringify({
         name,
         username,
@@ -146,11 +144,12 @@ export const register = async (data) => {
     console.log("REGISTER STATUS:", response.status);
     console.log("REGISTER RESPONSE:", result);
 
-    // HANDLE ERROR - backend now returns {msg,status,data}
-
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(result, `Registrasi gagal. Status: ${response.status}`)
+        extractErrorMessage(
+          result,
+          `Registrasi gagal. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -161,8 +160,6 @@ export const register = async (data) => {
   }
 };
 
-// VERIFY OTP REGISTER
-
 export const verifyOtp = async (data) => {
   try {
     const email = data.email?.trim().toLowerCase();
@@ -170,8 +167,6 @@ export const verifyOtp = async (data) => {
 
     console.log("VERIFY OTP EMAIL:", email);
     console.log("VERIFY OTP CODE:", otpCode);
-
-    // VALIDASI
 
     if (!email) {
       throw new Error("Email wajib diisi.");
@@ -181,13 +176,9 @@ export const verifyOtp = async (data) => {
       throw new Error("Kode OTP wajib diisi.");
     }
 
-    // REQUEST VERIFY OTP
-
     const response = await fetch(`${API_URL}/verify-otp`, {
       method: "POST",
-
       headers: getHeaders(),
-
       body: JSON.stringify({
         email,
         otpCode,
@@ -199,11 +190,12 @@ export const verifyOtp = async (data) => {
     console.log("VERIFY OTP STATUS:", response.status);
     console.log("VERIFY OTP RESPONSE:", result);
 
-    // HANDLE ERROR
-
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(result, `Verifikasi OTP gagal. Status: ${response.status}`)
+        extractErrorMessage(
+          result,
+          `Verifikasi OTP gagal. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -213,8 +205,6 @@ export const verifyOtp = async (data) => {
     throw error;
   }
 };
-
-// RESEND OTP REGISTER
 
 export const resendOtp = async (data) => {
   try {
@@ -226,13 +216,9 @@ export const resendOtp = async (data) => {
       throw new Error("Email wajib diisi.");
     }
 
-    // REQUEST RESEND OTP
-
     const response = await fetch(`${API_URL}/resend-otp`, {
       method: "POST",
-
       headers: getHeaders(),
-
       body: JSON.stringify({
         email,
       }),
@@ -245,7 +231,10 @@ export const resendOtp = async (data) => {
 
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(result, `Gagal mengirim ulang OTP. Status: ${response.status}`)
+        extractErrorMessage(
+          result,
+          `Gagal mengirim ulang OTP. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -256,9 +245,6 @@ export const resendOtp = async (data) => {
   }
 };
 
-// LOGIN
-// Bisa menggunakan USERNAME atau EMAIL
-
 export const login = async (data) => {
   try {
     const identifier = data.identifier?.trim();
@@ -268,8 +254,6 @@ export const login = async (data) => {
       password: "********",
     });
 
-    // VALIDASI
-
     if (!identifier) {
       throw new Error("Username atau email wajib diisi.");
     }
@@ -278,18 +262,14 @@ export const login = async (data) => {
       throw new Error("Password wajib diisi.");
     }
 
-    // TENTUKAN EMAIL ATAU USERNAME
-
     let payload;
 
     if (identifier.includes("@")) {
-      // Login menggunakan email
       payload = {
         email: identifier.toLowerCase(),
         password: data.password,
       };
     } else {
-      // Login menggunakan username
       payload = {
         username: identifier,
         password: data.password,
@@ -301,13 +281,9 @@ export const login = async (data) => {
       password: "********",
     });
 
-    // REQUEST LOGIN
-
     const response = await fetch(`${API_URL}/login`, {
       method: "POST",
-
       headers: getHeaders(),
-
       body: JSON.stringify(payload),
     });
 
@@ -316,11 +292,9 @@ export const login = async (data) => {
     console.log("LOGIN STATUS:", response.status);
     console.log("LOGIN RESPONSE:", result);
 
-    // HANDLE ERROR
-
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(result, `Login gagal. Status: ${response.status}`)
+        extractErrorMessage(result, `Login gagal. Status: ${response.status}`),
       );
     }
 
@@ -331,8 +305,6 @@ export const login = async (data) => {
   }
 };
 
-// GOOGLE LOGIN
-
 export const loginGoogle = async (data) => {
   try {
     console.log("GOOGLE LOGIN DIMULAI...");
@@ -341,13 +313,9 @@ export const loginGoogle = async (data) => {
       throw new Error("ID Token Google tidak ditemukan.");
     }
 
-    // REQUEST GOOGLE LOGIN
-
     const response = await fetch(`${API_URL}/google`, {
       method: "POST",
-
       headers: getHeaders(),
-
       body: JSON.stringify({
         idToken: data.idToken,
       }),
@@ -358,11 +326,12 @@ export const loginGoogle = async (data) => {
     console.log("GOOGLE LOGIN STATUS:", response.status);
     console.log("GOOGLE LOGIN RESPONSE:", result);
 
-    // HANDLE ERROR
-
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(result, `Login Google gagal. Status: ${response.status}`)
+        extractErrorMessage(
+          result,
+          `Login Google gagal. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -373,37 +342,19 @@ export const loginGoogle = async (data) => {
   }
 };
 
-// FORGOT PASSWORD
-
-// Body:
-// {
-//   email: "user@gmail.com"
-// }
-//
-// Backend akan:
-// 1. mencari user
-// 2. membuat code 6-digit reset (disimpan di auth.reset_token, exp 15 menit)
-// 3. mengirim via EmailService (Mailtrap)
-
 export const forgotPassword = async (data) => {
   try {
     const email = data.email?.trim().toLowerCase();
 
     console.log("FORGOT PASSWORD EMAIL:", email);
 
-    // VALIDASI
-
     if (!email) {
       throw new Error("Email wajib diisi.");
     }
 
-    // REQUEST FORGOT PASSWORD
-
     const response = await fetch(`${API_URL}/reset-password`, {
       method: "POST",
-
       headers: getHeaders(),
-
       body: JSON.stringify({
         email,
       }),
@@ -414,11 +365,12 @@ export const forgotPassword = async (data) => {
     console.log("SEND RESET OTP STATUS:", response.status);
     console.log("SEND RESET OTP RESPONSE:", result);
 
-    // HANDLE ERROR
-
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(result, `Gagal mengirim kode OTP. Status: ${response.status}`)
+        extractErrorMessage(
+          result,
+          `Gagal mengirim kode OTP. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -428,20 +380,6 @@ export const forgotPassword = async (data) => {
     throw error;
   }
 };
-
-// RESET PASSWORD
-
-// Body:
-// {
-//   email: "user@gmail.com",
-//   code: "123456",        // alias token/otp di backend via @JsonAlias
-//   newPassword: "passwordbaru" // alias password/new_password
-// }
-//
-// Backend akan:
-// 1. mengecek email
-// 2. mengecek auth.resetToken == code && not expired via getEffectiveCode()
-// 3. update BCrypt + clear resetToken
 
 export const resetPassword = async (data) => {
   try {
@@ -454,8 +392,6 @@ export const resetPassword = async (data) => {
       code,
       newPassword: "********",
     });
-
-    // VALIDASI
 
     if (!email) {
       throw new Error("Email wajib diisi.");
@@ -473,13 +409,9 @@ export const resetPassword = async (data) => {
       throw new Error("Password minimal 6 karakter.");
     }
 
-    // REQUEST RESET PASSWORD
-
     const response = await fetch(`${API_URL}/reset-password`, {
       method: "POST",
-
       headers: getHeaders(),
-
       body: JSON.stringify({
         email,
         code,
@@ -492,11 +424,12 @@ export const resetPassword = async (data) => {
     console.log("RESET PASSWORD STATUS:", response.status);
     console.log("RESET PASSWORD RESPONSE:", result);
 
-    // HANDLE ERROR
-
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(result, `Reset password gagal. Status: ${response.status}`)
+        extractErrorMessage(
+          result,
+          `Reset password gagal. Status: ${response.status}`,
+        ),
       );
     }
 

@@ -21,10 +21,10 @@ npm run preview      # serve built dist/
   - `auth/` — `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `OTP.jsx`, `ResetPassword.jsx`
   - `admin/` — `DashboardAdmin.jsx`, `EventManagement.jsx`, `DetailEvent.jsx`, `UserManagement.jsx`, `DetailUser.jsx`, `PengajuanAkunEO.jsx`, `Transaksi.jsx`, `Tiket.jsx`
   - `eo/` — `DashboardEO.jsx`, `EventEO.jsx`, `AddEvent.jsx`, `TransaksiEO.jsx`, `DetailTransaksiEO.jsx`, `RefundEO.jsx`, `ProfileEO.jsx`
-  - `customer/` — `CustomerDashboard.jsx`, `DetailEventCustomer.jsx`, `Checkout.jsx`, `TicketSuccess.jsx`, `MyTicket.jsx`, `RefundRequest.jsx`, `RefundList.jsx` (**semua masih mock data**, menunggu backend `API.md` §8-13)
+  - `customer/` — `CustomerDashboard.jsx` (sudah terhubung BE via `eventService.js`), `DetailEventCustomer.jsx`, `Checkout.jsx`, `TicketSuccess.jsx`, `MyTicket.jsx`, `RefundRequest.jsx`, `RefundList.jsx` (sisanya masih mock, `API.md` §8-9 sudah live di BE, §10-19 masih SCHEMA ONLY)
   - `shared/` — `Navbar.jsx`, `NavbarEO.jsx`, `NavbarCustomer.jsx`, `Sidebar.jsx`, `SidebarEO.jsx`, `Button.jsx`, `FormInput.jsx`
-- `src/services/authService.js:12` — all auth API calls; base `API_URL` hardcoded (canonical per `API.md:3` is `http://localhost:8082` — sync backend 2026-09-09, port 8082, wrapper `{msg,status,data}`). Helpers `isWrappedResponse`/`normalizeSuccess`/`extractErrorMessage` unwrap `msg` for toast. **Belum ada `eventService.js`/`orderService.js` — perlu dibuat saat integrasi customer.**
-- `API.md:1` — canonical REST contract. Status 2026-09-10: **Auth aktif**, **Customer spek lengkap (§8-13) siap untuk backend**, Admin/EO masih SCHEMA ONLY. Response `{msg,status,data}`, register `201`, JWT 24h, OTP 5min, reset code 15min, order expiry 15min.
+- `src/services/authService.js:10` — all auth API calls; `API_BASE=https://a2c2-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app` (ngrok → localhost:8082, override via `VITE_API_URL`), `fetchWithAuth` pakai `credentials:'include'` agar `Set-Cookie: access_token` HttpOnly dari BE terkirim (BE `@JsonIgnore` hide `data.token`). Helpers `isWrappedResponse`/`normalizeSuccess`/`extractErrorMessage` unwrap `msg`. **Baru:** `eventService.js` (getEvents/getFeatured/getEventById) sudah ada, `order/ticket/refundService` masih TODO.
+- `API.md:1` — canonical REST contract. Status 2026-09-10: **Auth aktif + Customer Event Catalog 7-9 aktif di BE**, **10-19 SCHEMA ONLY** (FE lebih lengkap mock). Response `{msg,status,data}`, register `201`, JWT 24h HttpOnly cookie, OTP 5min, reset code 15min, order expiry 15min.
 
 ## Routing
 Centralized in `src/App.jsx:49`. Groups:
@@ -34,11 +34,11 @@ Centralized in `src/App.jsx:49`. Groups:
 - Customer (`/customer/dashboard`, `/customer/event/:id`, `/checkout/:id`, `/customer/ticket-success`, `/customer/tickets`, `/customer/refund`, `/customer/refund-list`) — **duplikat route terdeteksi** di `src/App.jsx:158-216`: `/customer/dashboard`, `/customer/event/:id`, `/checkout/:id`, `/customer/ticket-success`, `/customer/tickets`, `/customer/refund` didefinisikan 2× (React Router pakai entri terakhir, tidak error tapi perlu dirapikan). Belum ada `/customer/history`, `/customer/profile`, `/customer/refund/:id` padahal di-link dari `CustomerDashboard.jsx:199,204,210`, `NavbarCustomer.jsx:110,122`, `RefundList.jsx:41` (akan 404).
 
 ## Backend / Env
-- No `.env` files, no env loading. Backend URL and Google Client ID are hardcoded strings — must be edited directly in `src/services/authService.js:12` and `src/App.jsx:42`.
-- ngrok URL (`9538-...ngrok-free.app`) is ephemeral; expect it to be dead and need replacement. Canonical is now `http://localhost:8082`. `API_URL` di `authService.js:13` fallback ke ngrok lama — **ganti ke `http://localhost:8082/api/v1/auth` saat testing lokal**.
+- No `.env` files, no env loading. Backend URL and Google Client ID are hardcoded strings — must be edited directly in `src/services/authService.js:10` and `src/App.jsx:42`.
+- ngrok URL `https://a2c2-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app` **aktif** → `http://localhost:8082` (`API.md:3`). FE `authService.js:10` + `eventService.js:5` pakai `API_BASE` ini + `fetchWithAuth` `credentials:'include'` + header `ngrok-skip-browser-warning`. Untuk lokal tanpa ngrok set `VITE_API_URL=http://localhost:8082`.
 - `forgotPassword` and `resetPassword` both `POST` to the same endpoint `/reset-password` (`src/services/authService.js:402,478`) — differentiated by payload (`{email}` vs `{email, code, newPassword}`). Backend `ResetPasswordRequest` supports aliases `code`/`token`/`otp` + `newPassword`/`password`.
-- JWT via `Authorization: Bearer <token>` (`API.md:7`). Only Auth endpoints are public; others return 401/403 with `{msg,status,data}` (`API.md:7`). `google.client-id` filled `875040780549-...apps.googleusercontent.com`.
-- Customer endpoints (§8-13) design: `GET /api/v1/events?category=&search=&page=&size=`, `GET /api/v1/events/{id}`, `POST /api/v1/orders`, `GET /api/v1/tickets/me`, `GET /api/v1/orders/{id}/tickets`, `POST /api/v1/refunds`, `GET /api/v1/refunds`. Semua paginated, semua `{msg,status,data}`.
+- JWT via **HttpOnly Cookie `access_token` + `Authorization: Bearer` fallback** (`API.md:7`, `Downloads/AGENTS.md:177`). BE `AuthResponse.token` `@JsonIgnore` — token tidak ada di JSON, hanya `Set-Cookie`. FE `authService.js:10` `fetchWithAuth` kirim keduanya (`credentials:'include'` + header jika ada `localStorage token`). Only Auth public, lainnya `401/403` `{msg,status,data}`. `google.client-id` `875040780549-...`.
+- Customer: `7-9` (`GET /api/v1/events`, `/featured`, `/{id}`) sudah **Live** di BE (`EventController.java`), FE `CustomerDashboard.jsx` sudah fetch via `eventService.js`. `10-19` (orders/payments/tickets/refunds) masih **SCHEMA ONLY** di BE — FE spek lengkap sebagai kontrak di `API.md` §10-13.
 
 ## Endpoint Status Matrix (FE vs BE) — untuk sinkron AI backend
 
@@ -52,9 +52,9 @@ Centralized in `src/App.jsx:49`. Groups:
 | 4 | `POST /api/v1/auth/login` | ✅ Done — `Login.jsx:26` | ✅ Live | `identifier` email/username |
 | 5 | `POST /api/v1/auth/google` | ✅ Done — GIS | ✅ Live |  |
 | 6 | `POST /api/v1/auth/reset-password` | ✅ Done — `ForgotPassword.jsx` + `ResetPassword.jsx` | ✅ Live | 2 tahap 1 endpoint |
-| 7 | `GET /api/v1/events` | 🎨 UI Done / Mock | ⏳ Spek siap — belum implement | `CustomerDashboard.jsx:33,102` 6 event hardcode |
-| 8 | `GET /api/v1/events/featured` | 🎨 UI Done / Mock | ⏳ Spek siap | `CustomerDashboard.jsx:12` 3 hero |
-| 9 | `GET /api/v1/events/{id}` | 🎨 UI Done / Mock | ⏳ Spek siap | `DetailEventCustomer.jsx:14` quantity lokal |
+| 7 | `GET /api/v1/events` | ✅ Terhubung — `eventService.js:getEvents()` | ✅ Live BE | `CustomerDashboard.jsx:33` sudah fetch `credentials:include` |
+| 8 | `GET /api/v1/events/featured` | ✅ Terhubung — `eventService.js:getFeaturedEvents()` | ✅ Live BE | `CustomerDashboard.jsx:12` sudah fetch |
+| 9 | `GET /api/v1/events/{id}` | 🎨 UI Done / Mock — `getEventById()` siap | ✅ Live BE | `DetailEventCustomer.jsx:14` siap di-wire |
 | 10 | `POST /api/v1/orders` | 🎨 UI Done / Mock | ⏳ Spek siap | `Checkout.jsx:135` `alert()` saja |
 | 11 | `GET /api/v1/orders` | ⚠️ Link ada, Page 404 | ⏳ Spek siap | `NavbarCustomer.jsx:110` → `/customer/history` belum ada route |
 | 12 | `GET /api/v1/orders/{id}` | 🎨 Mock | ⏳ Spek siap | `Checkout.jsx:30` |
@@ -69,12 +69,12 @@ Centralized in `src/App.jsx:49`. Groups:
 **Legenda:** ✅ Done = UI + fetch + JWT sudah terhubung | 🎨 UI Done / Mock = UI jadi, data hardcode, belum `fetch` | ⚠️ Link ada, Route 404 = tombol `navigate()` ada tapi `App.jsx:158-216` belum ada `<Route>` | ⏳ Spek siap = kontrak ada di `API.md §8-13`, backend tinggal implement | **PR selanjutnya FE:** buat `src/services/eventService.js`, `orderService.js`, `ticketService.js`, `refundService.js` lalu ganti semua hardcode ke `fetch` + `Authorization`.
 
 ## State & Auth Flow
-- Auth persistence: `localStorage` keys `token`, `userId`, `name`, `username`, `email`, `role` (`src/components/auth/Login.jsx:26`, `src/components/auth/Register.jsx:36`).
+- Auth persistence: `localStorage` keys `token`, `userId`, `name`, `username`, `email`, `role` (`src/components/auth/Login.jsx:26`, `src/components/auth/Register.jsx:36`). **Update:** BE hide token (`@JsonIgnore`), `token` di `localStorage` hanya untuk fallback `Authorization` — utama adalah `Cookie: access_token` HttpOnly via `fetchWithAuth credentials:'include'` (`authService.js:10`).
 - OTP flow uses `sessionStorage` `otpEmail` + `otpFlow="register"` (`src/components/auth/Register.jsx:202`) and query param `?email=` on `/otp`.
 - `login` accepts `identifier` (email if contains `@`, else username) — see `src/services/authService.js:274`.
 - Google login sends `idToken` (credential) to `POST /google` (`src/services/authService.js:351`).
 - Customer mock state (belum terhubung backend):
-  - `CustomerDashboard.jsx:8,33` — `activeCategory` + `events` hardcode 6 item, `heroEvents` 3 item, `categoryMap` `Semua→ALL` etc., `handleBuyTicket` → `navigate(/customer/event/:id)`
+  - `CustomerDashboard.jsx:8,33` — **`Terhubung`** via `eventService.js:getEvents()` / `getFeaturedEvents()` dengan `credentials:include`, `activeCategory` → `?category=MUSIC_FESTIVAL`, `search` live, `handleBuyTicket` → `navigate(/customer/event/:id)`. Fallback ke mock 6 item jika BE mati.
   - `DetailEventCustomer.jsx:12,14` — `quantity` lokal, `event` hardcode, `TicketBox` Early Bird/Regular, `navigate(/checkout/:id)` bawa qty via state (belum ada `eventService`)
   - `Checkout.jsx:10,17,30` — timer `14*60+57` (15min expiry), `buyers` array per `quantity`, `location.state` untuk event, `adminFee=5000`, `ticketTotal=price*quantity`
   - `MyTicket.jsx:9` — `tickets` hardcode 3 status `used/unused/expired` → `GET /api/v1/tickets/me`
@@ -90,7 +90,8 @@ Centralized in `src/App.jsx:49`. Groups:
 ## Gotchas
 - No error boundaries; API errors are `alert()` + `console.error`.
 - `vite preview` requires a prior `vite build`.
-- **Customer masih mock:** semua `src/components/customer/*.jsx` pakai data hardcode, belum fetch. Jangan demo ke backend tanpa ganti ke `fetch` + `Authorization` header. Timer checkout hardcode, bukan dari `expiredAt` backend.
+- **Customer masih mock (kecuali dashboard):** `CustomerDashboard.jsx` sudah fetch, tapi `DetailEventCustomer/Checkout/MyTicket/TicketSuccess/Refund*` masih hardcode. Jangan demo tanpa `credentials:'include'` — akan `401` meski token valid. Timer checkout hardcode, bukan dari `expiredAt` backend.
+- **Penyebab tidak tersambung (sudah diperbaiki):** `API_URL` ngrok mati `a2c2-...` + `fetch` tanpa `credentials:'include'` + FE expect `data.token` yang BE hide via `@JsonIgnore`. Fix di `authService.js:10` (`API_BASE=http://localhost:8082`, `fetchWithAuth`).
 - **Duplikat route** di `src/App.jsx:158-216` — bersihkan agar tidak bingung AI backend baca routing. Missing routes `/customer/history`, `/customer/profile`, `/customer/refund/:id` akan 404.
-- **Belum ada service layer customer:** `src/services/` hanya `authService.js`. Saat integrasi buat `eventService.js`, `orderService.js`, `ticketService.js`, `refundService.js` dengan helper yang sama (`getResponseData`, `normalizeSuccess`, `extractErrorMessage`).
-- **Enum mismatch risiko:** frontend `MUSIC FESTIVAL` (spasi) vs backend kemungkinan `MUSIC_FESTIVAL` (underscore) — sepakati di `API.md` §8-9 pakai display string dengan spasi.
+- **Service layer customer:** baru `eventService.js` ada, `orderService.js`/`ticketService.js`/`refundService.js` masih TODO — buat dengan helper yang sama (`getResponseData`, `normalizeSuccess`, `extractErrorMessage`).
+- **Enum mismatch risiko:** frontend `MUSIC FESTIVAL` (spasi) vs BE `MUSIC_FESTIVAL` (underscore) — BE sudah return keduanya (`category` + `categoryLabel`), FE normalisasi `replace(/_/g," ")`.

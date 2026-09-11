@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
+import FooterCustomer from "../shared/FooterCustomer";
 import "./MyTicket.css";
 
 function MyTicket() {
@@ -46,10 +47,6 @@ function MyTicket() {
     navigate(`/customer/ticket-success?ticket=${ticket.id}`);
   };
 
-  const handleBottomNavigation = (path) => {
-    navigate(path);
-  };
-
   return (
     <div className="my-ticket-page">
       <NavbarCustomer />
@@ -67,7 +64,12 @@ function MyTicket() {
 
           <button
             className="all-ticket-button"
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            onClick={() =>
+              window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+              })
+            }
           >
             Semua Tiket
           </button>
@@ -84,68 +86,7 @@ function MyTicket() {
         </section>
       </main>
 
-      <nav className="my-ticket-mobile-bottom-nav">
-        <button
-          className="bottom-nav-item"
-          onClick={() => handleBottomNavigation("/customer/dashboard")}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" />
-          </svg>
-
-          <span>Beranda</span>
-        </button>
-
-        <button className="bottom-nav-item active">
-          <svg viewBox="0 0 24 24">
-            <path d="M5 7.5A2.5 2.5 0 0 1 7.5 5h9A2.5 2.5 0 0 1 19 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 16.5v-9Z" />
-            <path d="M8 9h8M8 12h8M8 15h5" />
-          </svg>
-
-          <span>Tiket</span>
-        </button>
-
-        <button
-          className="bottom-nav-item"
-          onClick={() => handleBottomNavigation("/eo/event/create")}
-        >
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="8.5" />
-            <path d="M12 8v8M8 12h8" />
-          </svg>
-
-          <span>Buat Event</span>
-        </button>
-
-        <button
-          className="bottom-nav-item"
-          onClick={() => handleBottomNavigation("/customer/history")}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M4 12a8 8 0 1 0 2.35-5.65" />
-            <path d="M4 5v5h5" />
-            <path d="M12 8v4l3 2" />
-          </svg>
-
-          <span>Transaksi</span>
-        </button>
-
-        <button
-          className="bottom-nav-item"
-          onClick={() => handleBottomNavigation("/customer/profile")}
-        >
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="8" r="3.2" />
-            <path d="M5 20c.8-3.4 3.1-5.2 7-5.2s6.2 1.8 7 5.2" />
-          </svg>
-
-          <span>Profile</span>
-        </button>
-      </nav>
-
-      <footer className="my-ticket-footer">
-        © 2027 EVENTDAY. Hak cipta dilindungi undang-undang.
-      </footer>
+      <FooterCustomer />
     </div>
   );
 }
@@ -184,6 +125,7 @@ function TicketCard({ ticket, onDetail }) {
                 height="15"
                 rx="2"
               />
+
               <path d="M8 3v4M16 3v4M4 10h16" />
             </svg>
 
@@ -193,7 +135,12 @@ function TicketCard({ ticket, onDetail }) {
           <div className="ticket-info-item">
             <svg viewBox="0 0 24 24">
               <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
-              <circle cx="12" cy="9" r="2.3" />
+
+              <circle
+                cx="12"
+                cy="9"
+                r="2.3"
+              />
             </svg>
 
             <span>{ticket.location}</span>
@@ -203,7 +150,9 @@ function TicketCard({ ticket, onDetail }) {
         <div className="ticket-card-divider"></div>
 
         <div className="ticket-card-action">
-          <button onClick={() => onDetail(ticket)}>
+          <button
+            onClick={() => onDetail(ticket)}
+          >
             Detail Tiket
           </button>
         </div>
