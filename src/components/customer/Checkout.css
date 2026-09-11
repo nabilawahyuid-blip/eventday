@@ -12,6 +12,11 @@
   font-family: inherit;
 }
 
+
+/* ================================
+   CHECKOUT NAVBAR
+================================ */
+
 .checkout-navbar {
   height: 76px;
   background: #ffffff;
@@ -160,12 +165,22 @@
   font-size: 11px;
 }
 
+
+/* ================================
+   MAIN CONTAINER
+================================ */
+
 .checkout-container {
   width: calc(100% - 60px);
   max-width: 1240px;
   margin: 0 auto;
   flex: 1;
 }
+
+
+/* ================================
+   HEADING
+================================ */
 
 .checkout-heading {
   min-height: 92px;
@@ -191,6 +206,11 @@
   font-size: 12px;
 }
 
+
+/* ================================
+   TIMER
+================================ */
+
 .checkout-timer {
   min-width: 183px;
   height: 35px;
@@ -214,6 +234,11 @@
   stroke-width: 1.8;
 }
 
+
+/* ================================
+   CHECKOUT CONTENT
+================================ */
+
 .checkout-content {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(340px, 1fr);
@@ -226,11 +251,28 @@
   min-width: 0;
 }
 
+.checkout-sidebar {
+  min-width: 0;
+}
+
+
+/* ================================
+   SECTION HEADING
+================================ */
+
 .section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
   margin-bottom: 25px;
+}
+
+.section-heading > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .section-heading h2 {
@@ -240,44 +282,146 @@
   color: #141d32;
 }
 
-.section-heading span {
+.section-heading > div > span {
   color: #69758b;
   font-size: 11px;
   font-weight: 500;
 }
 
+
+/* ================================
+   TAMBAH PEMESAN
+================================ */
+
+.add-buyer-button {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #dcd9fb;
+  border-radius: 9px;
+  background: #f7f6ff;
+  color: #5548dc;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.add-buyer-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.add-buyer-button:hover {
+  background: #eeecff;
+  border-color: #c9c4f7;
+  box-shadow: 0 4px 12px rgba(85, 72, 220, 0.08);
+}
+
+.add-buyer-button:active {
+  transform: scale(0.97);
+}
+
+
+/* ================================
+   BUYER FORM LIST
+================================ */
+
+.buyer-form-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+
+/* ================================
+   BUYER CARD
+================================ */
+
 .buyer-card {
+  width: 100%;
   background: #ffffff;
   border: 1px solid #dce5ff;
   border-radius: 15px;
   overflow: hidden;
-  margin-bottom: 24px;
   box-shadow: 0 2px 7px rgba(42, 58, 93, 0.025);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+
+.buyer-card:hover {
+  border-color: #d2dcfa;
 }
 
 .buyer-card-open {
   border-color: #ccd9ff;
+  box-shadow: 0 4px 14px rgba(42, 58, 93, 0.04);
 }
+
+
+/* ================================
+   BUYER CARD HEADER
+================================ */
 
 .buyer-card-header {
   width: 100%;
-  min-height: 51px;
-  padding: 0 23px;
-  border: none;
-  border-bottom: 1px solid transparent;
-  background: #ffffff;
+  min-height: 58px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  text-align: left;
+  background: #ffffff;
+  border-bottom: 1px solid transparent;
 }
 
 .buyer-card-open .buyer-card-header {
   border-bottom-color: #e7ecf8;
 }
 
+
+/* ================================
+   TOGGLE
+================================ */
+
+.buyer-card-toggle {
+  flex: 1;
+  min-width: 0;
+  min-height: 58px;
+  padding: 0 18px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease;
+}
+
+.buyer-card-toggle:hover {
+  background: #fbfcff;
+}
+
+
+/* ================================
+   BUYER TITLE
+================================ */
+
 .buyer-title {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 13px;
@@ -303,6 +447,11 @@
   font-weight: 800;
 }
 
+
+/* ================================
+   ACCORDION
+================================ */
+
 .accordion-icon {
   width: 27px;
   height: 27px;
@@ -311,7 +460,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: 0.2s ease;
+  flex-shrink: 0;
+  transition:
+    background 0.2s ease,
+    transform 0.25s ease;
 }
 
 .accordion-icon svg {
@@ -320,15 +472,84 @@
   fill: none;
   stroke: #657187;
   stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.25s ease;
+}
+
+.accordion-icon.open svg {
+  transform: rotate(0deg);
 }
 
 .accordion-icon:not(.open) svg {
   transform: rotate(180deg);
 }
 
-.buyer-form {
-  padding: 23px 23px 19px;
+
+/* ================================
+   DELETE PEMESAN
+================================ */
+
+.delete-buyer-button {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  margin-right: 12px;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #a0a7b4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
 }
+
+.delete-buyer-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.delete-buyer-button:hover {
+  background: #fff0f0;
+  color: #e05252;
+}
+
+.delete-buyer-button:active {
+  transform: scale(0.9);
+}
+
+
+/* ================================
+   BUYER FORM
+================================ */
+
+.buyer-form {
+  padding: 23px 23px 20px;
+  animation: buyerFormAppear 0.22s ease;
+}
+
+@keyframes buyerFormAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ================================
+   INPUT
+================================ */
 
 .input-group {
   margin-bottom: 20px;
@@ -362,11 +583,18 @@
   background: #eff3ff;
   color: #313c54;
   font-size: 12px;
-  transition: 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .input-group input::placeholder {
   color: #9aa5ba;
+}
+
+.input-group input:hover {
+  border-color: #aab8d6;
 }
 
 .input-group input:focus {
@@ -375,9 +603,57 @@
   box-shadow: 0 0 0 3px rgba(81, 67, 230, 0.08);
 }
 
-.checkout-sidebar {
-  min-width: 0;
+
+/* ================================
+   TAMBAH PEMESAN BAGIAN BAWAH
+================================ */
+
+.add-buyer-button-bottom {
+  width: 100%;
+  min-height: 45px;
+  margin-top: 2px;
+  padding: 0 14px;
+  border: 1px dashed #c8c4ee;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #5548dc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
 }
+
+.add-buyer-button-bottom svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+.add-buyer-button-bottom:hover {
+  background: #faf9ff;
+  border-color: #9d97e8;
+  box-shadow: 0 4px 12px rgba(85, 72, 220, 0.06);
+}
+
+.add-buyer-button-bottom:active {
+  transform: scale(0.99);
+}
+
+
+/* ================================
+   EVENT SUMMARY
+================================ */
 
 .event-summary-card {
   position: relative;
@@ -418,6 +694,11 @@
   font-weight: 600;
 }
 
+
+/* ================================
+   EVENT INFO
+================================ */
+
 .event-summary-info {
   margin-top: 16px;
   padding-bottom: 15px;
@@ -447,6 +728,11 @@
   font-size: 11px;
   line-height: 1.4;
 }
+
+
+/* ================================
+   SELECTED TICKET
+================================ */
 
 .selected-ticket {
   margin-top: 15px;
@@ -491,6 +777,11 @@
   font-weight: 800;
   white-space: nowrap;
 }
+
+
+/* ================================
+   PAYMENT SUMMARY
+================================ */
 
 .payment-summary-card {
   margin-top: 24px;
@@ -554,6 +845,11 @@
   white-space: nowrap;
 }
 
+
+/* ================================
+   CHECKOUT BUTTON
+================================ */
+
 .checkout-submit-button {
   width: 100%;
   height: 45px;
@@ -569,16 +865,21 @@
   cursor: pointer;
   font-size: 12px;
   font-weight: 700;
-  transition: 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .checkout-submit-button:hover {
   background: #3524c2;
   transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(63, 46, 212, 0.18);
 }
 
 .checkout-submit-button:active {
   transform: translateY(0);
+  box-shadow: none;
 }
 
 .checkout-submit-button svg {
@@ -589,14 +890,20 @@
   stroke-width: 1.8;
 }
 
+
+/* ================================
+   MOBILE SUMMARY DEFAULT
+================================ */
+
 .mobile-event-summary,
 .mobile-payment-summary {
   display: none;
 }
 
-.hidden-submit {
-  display: none;
-}
+
+/* ================================
+   FOOTER
+================================ */
 
 .checkout-footer {
   height: 84px;
@@ -609,6 +916,11 @@
   font-size: 11px;
   flex-shrink: 0;
 }
+
+
+/* ================================
+   TABLET 1100
+================================ */
 
 @media (max-width: 1100px) {
   .checkout-navbar {
@@ -633,20 +945,47 @@
   }
 
   .checkout-content {
-    grid-template-columns: minmax(0, 1.5fr) minmax(310px, 1fr);
+    grid-template-columns:
+      minmax(0, 1.5fr)
+      minmax(310px, 1fr);
     gap: 22px;
   }
 
   .payment-total span {
     font-size: 21px;
   }
+
+  .section-heading {
+    gap: 15px;
+  }
+
+  .add-buyer-button {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
 }
 
+
+/* ================================
+   MOBILE 850
+================================ */
+
 @media (max-width: 850px) {
+  /*
+    Ini penting.
+
+    Payment summary berada fixed di bawah.
+    Jadi halaman diberi ruang ekstra agar
+    tombol "Tambah Data Pemesan" tidak tertutup.
+  */
+
   .checkout-page {
     min-height: 100vh;
-    padding-bottom: 178px;
+    padding-bottom: 250px;
   }
+
+
+  /* NAVBAR */
 
   .checkout-navbar {
     height: 66px;
@@ -694,10 +1033,16 @@
     display: none;
   }
 
+
+  /* CONTAINER */
+
   .checkout-container {
     width: calc(100% - 32px);
     margin: 0 auto;
   }
+
+
+  /* HEADING */
 
   .checkout-heading {
     min-height: auto;
@@ -727,11 +1072,17 @@
     font-size: 10px;
   }
 
+
+  /* CONTENT */
+
   .checkout-content {
     display: block;
     padding-top: 0;
-    padding-bottom: 20px;
+    padding-bottom: 30px;
   }
+
+
+  /* EVENT SUMMARY */
 
   .mobile-event-summary {
     display: block;
@@ -781,30 +1132,58 @@
     font-size: 14px;
   }
 
+
+  /* SECTION */
+
   .section-heading {
     margin: 0 8px 15px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .section-heading h2 {
     font-size: 19px;
   }
 
-  .section-heading span {
+  .section-heading > div > span {
     font-size: 10px;
   }
 
+
+  /* ADD BUTTON TOP */
+
+  .add-buyer-button {
+    width: 100%;
+    min-height: 42px;
+  }
+
+
+  /* BUYER LIST */
+
+  .buyer-form-list {
+    gap: 14px;
+  }
+
+
+  /* BUYER CARD */
+
   .buyer-card {
-    margin: 0 8px 17px;
+    margin: 0 8px;
     border-radius: 15px;
   }
 
   .buyer-card-header {
-    min-height: 53px;
-    padding: 0 17px;
+    min-height: 55px;
+  }
+
+  .buyer-card-toggle {
+    min-height: 55px;
+    padding: 0 13px 0 16px;
   }
 
   .buyer-title {
-    gap: 11px;
+    gap: 10px;
   }
 
   .buyer-number {
@@ -813,11 +1192,38 @@
   }
 
   .buyer-title strong {
-    font-size: 14px;
+    font-size: 13px;
   }
 
+
+  /* DELETE */
+
+  .delete-buyer-button {
+    width: 35px;
+    height: 35px;
+    flex-basis: 35px;
+    margin-right: 8px;
+  }
+
+  .delete-buyer-button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+
+  /* ACCORDION */
+
+  .accordion-icon {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+  }
+
+
+  /* FORM */
+
   .buyer-form {
-    padding: 25px 24px 21px;
+    padding: 24px 24px 21px;
   }
 
   .input-group {
@@ -835,32 +1241,65 @@
     font-size: 12px;
   }
 
+
+  /* ADD BUTTON BOTTOM */
+
+  .add-buyer-button-bottom {
+    width: calc(100% - 16px);
+    margin: 0 8px 35px;
+    min-height: 44px;
+  }
+
+
+  /* SIDEBAR */
+
   .checkout-sidebar {
     display: none;
   }
+
+
+  /* DESKTOP FOOTER */
 
   .checkout-footer {
     display: none;
   }
 
+
+  /* ================================
+     FIXED PAYMENT MOBILE
+  ================================= */
+
   .mobile-payment-summary {
     display: block;
     position: fixed;
-    z-index: 100;
+    z-index: 1000;
     left: 0;
     right: 0;
     bottom: 0;
+
     background: #ffffff;
-    box-shadow: 0 -8px 30px rgba(33, 48, 78, 0.15);
+
+    box-shadow:
+      0 -8px 30px rgba(33, 48, 78, 0.15);
+
     padding: 0 0 env(safe-area-inset-bottom);
   }
 
   .mobile-payment-summary .payment-summary-card {
     margin: 0;
+
     padding: 15px 24px 14px;
+
     border: none;
+
     border-radius: 22px 22px 0 0;
-    background: linear-gradient(180deg, #d9e9ff 0%, #cfe2ff 100%);
+
+    background: linear-gradient(
+      180deg,
+      #d9e9ff 0%,
+      #cfe2ff 100%
+    );
+
     box-shadow: none;
   }
 
@@ -899,9 +1338,17 @@
   }
 }
 
+
+/* ================================
+   MOBILE 560
+================================ */
+
 @media (max-width: 560px) {
   .checkout-page {
-    padding-bottom: 180px;
+    /*
+      Ruang ekstra untuk payment fixed.
+    */
+    padding-bottom: 255px;
   }
 
   .checkout-navbar {
@@ -915,6 +1362,9 @@
   .checkout-navbar-left {
     left: 18px;
   }
+
+
+  /* HEADING */
 
   .checkout-heading {
     padding: 31px 8px 16px;
@@ -931,6 +1381,9 @@
   .checkout-timer {
     margin-top: 10px;
   }
+
+
+  /* EVENT SUMMARY */
 
   .mobile-event-summary {
     margin-left: 25px;
@@ -971,10 +1424,16 @@
     font-size: 13px;
   }
 
+
+  /* SECTION */
+
   .section-heading {
     margin-left: 8px;
     margin-right: 8px;
   }
+
+
+  /* BUYER CARD */
 
   .buyer-card {
     margin-left: 8px;
@@ -982,14 +1441,65 @@
   }
 
   .buyer-card-header {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 0;
+    padding-right: 0;
   }
+
+  .buyer-card-toggle {
+    padding-left: 15px;
+    padding-right: 12px;
+  }
+
+  .buyer-title {
+    gap: 9px;
+  }
+
+  .buyer-number {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+    font-size: 11px;
+  }
+
+  .buyer-title strong {
+    font-size: 12px;
+  }
+
+
+  /* DELETE */
+
+  .delete-buyer-button {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    margin-right: 6px;
+  }
+
+  .delete-buyer-button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+
+  /* FORM */
 
   .buyer-form {
     padding-left: 24px;
     padding-right: 24px;
   }
+
+
+  /* ADD BUTTON */
+
+  .add-buyer-button-bottom {
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-bottom: 40px;
+    width: calc(100% - 16px);
+  }
+
+
+  /* PAYMENT */
 
   .mobile-payment-summary .payment-summary-card {
     padding-left: 24px;
@@ -997,7 +1507,16 @@
   }
 }
 
+
+/* ================================
+   VERY SMALL MOBILE 390
+================================ */
+
 @media (max-width: 390px) {
+  .checkout-page {
+    padding-bottom: 260px;
+  }
+
   .checkout-container {
     width: calc(100% - 20px);
   }
@@ -1017,20 +1536,77 @@
     padding-right: 20px;
   }
 
-  .buyer-card {
-    margin-left: 0;
-    margin-right: 0;
-  }
+
+  /* SECTION */
 
   .section-heading {
     margin-left: 0;
     margin-right: 0;
   }
 
+
+  /* BUYER */
+
+  .buyer-card {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .buyer-card-toggle {
+    padding-left: 13px;
+    padding-right: 10px;
+  }
+
+  .buyer-title {
+    gap: 8px;
+  }
+
+  .buyer-title strong {
+    font-size: 11px;
+  }
+
+  .buyer-number {
+    width: 26px;
+    height: 26px;
+    flex-basis: 26px;
+  }
+
+
+  /* DELETE */
+
+  .delete-buyer-button {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+    margin-right: 4px;
+  }
+
+
+  /* FORM */
+
   .buyer-form {
     padding-left: 19px;
     padding-right: 19px;
   }
+
+
+  /* ADD BUTTON */
+
+  .add-buyer-button-bottom {
+    margin-left: 0;
+    margin-right: 0;
+
+    /*
+      Jarak ekstra supaya benar-benar
+      tidak tertutup payment.
+    */
+    margin-bottom: 45px;
+
+    width: 100%;
+  }
+
+
+  /* PAYMENT */
 
   .mobile-payment-summary .payment-summary-card {
     padding-left: 19px;
