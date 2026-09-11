@@ -1,0 +1,909 @@
+/* =========================================================
+   REGISTER EO
+   CLEAN MODERN DESIGN
+========================================================= */
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.eo-page {
+  position: fixed;
+  inset: 0;
+
+  width: 100vw;
+  height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  background: #f6f7fc;
+
+  font-family: Arial, Helvetica, sans-serif;
+
+  color: #14213d;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  z-index: 99999;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.eo-header {
+  width: 100%;
+  height: 68px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 16px;
+
+  padding: 0 45px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e8e9f0;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.eo-back-button {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  margin: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #14213d;
+
+  font-size: 28px;
+  font-weight: 300;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.eo-back-button:hover {
+  color: #5144e8;
+  transform: translateX(-3px);
+}
+
+
+/* =========================================================
+   HEADER TITLE
+========================================================= */
+
+.eo-header h1 {
+  margin: 0;
+  padding: 0;
+
+  font-size: 21px;
+  font-weight: 600;
+
+  color: #111c32;
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.eo-main {
+  width: 100%;
+
+  min-height: calc(100vh - 68px);
+
+  padding: 50px 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #f6f7fc;
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.eo-card {
+  width: 100%;
+  max-width: 600px;
+
+  margin: 0 auto;
+
+  padding: 42px 45px 45px;
+
+  position: relative;
+
+  background: #ffffff;
+
+  border: 1px solid #e7e8f0;
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 15px 45px rgba(37, 42, 74, 0.08);
+}
+
+
+/* =========================================================
+   TOP PURPLE LINE
+========================================================= */
+
+.eo-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 42px;
+  right: 42px;
+
+  height: 4px;
+
+  background: #5144e8;
+
+  border-radius: 0 0 8px 8px;
+}
+
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.eo-logo {
+  width: 100%;
+
+  margin: 2px 0 30px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   EVENTDAY
+========================================================= */
+
+.eo-logo-main {
+  display: flex;
+
+  justify-content: center;
+  align-items: baseline;
+
+  margin: 0;
+
+  font-size: 31px;
+
+  line-height: 1;
+
+  font-weight: 800;
+
+  letter-spacing: -1.5px;
+}
+
+
+/* EVENT */
+
+.eo-event {
+  color: #5144e8;
+}
+
+
+/* DAY */
+
+.eo-day {
+  color: #111c32;
+}
+
+
+/* =========================================================
+   SUBTITLE
+========================================================= */
+
+.eo-logo-subtitle {
+  margin-top: 7px;
+
+  display: flex;
+
+  justify-content: center;
+
+  gap: 4px;
+
+  font-size: 12px;
+
+  line-height: 1;
+
+  letter-spacing: 0.7px;
+
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   ORGANIZER
+========================================================= */
+
+.eo-organizer {
+  color: #111c32;
+}
+
+
+/* =========================================================
+   TITLE
+========================================================= */
+
+.eo-title {
+  width: 100%;
+
+  margin: 0 0 28px;
+
+  text-align: left;
+}
+
+.eo-title h2 {
+  margin: 0;
+
+  font-size: 24px;
+
+  line-height: 1.3;
+
+  font-weight: 700;
+
+  color: #14213d;
+}
+
+.eo-title p {
+  margin: 7px 0 0;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+
+  color: #858b9b;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.eo-card form {
+  width: 100%;
+
+  margin: 0;
+  padding: 0;
+}
+
+
+/* =========================================================
+   FORM GROUP
+========================================================= */
+
+.eo-form-group {
+  width: 100%;
+
+  margin: 0 0 17px;
+}
+
+
+/* =========================================================
+   LABEL
+========================================================= */
+
+.eo-form-group label,
+.eo-upload-section > label {
+  display: block;
+
+  margin: 0 0 7px;
+
+  font-size: 13px;
+
+  line-height: 1.4;
+
+  font-weight: 600;
+
+  color: #404858;
+}
+
+
+/* OPTIONAL */
+
+.eo-form-group label span,
+.eo-upload-section label span {
+  color: #8b91a1;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+.eo-form-group input {
+  display: block;
+
+  width: 100%;
+  height: 46px;
+
+  padding: 0 14px;
+
+  margin: 0;
+
+  border: 1px solid #d5d8e5;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #fafaff;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  color: #20263a;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+
+/* INPUT HOVER */
+
+.eo-form-group input:hover {
+  border-color: #bfc3d5;
+}
+
+
+/* INPUT FOCUS */
+
+.eo-form-group input:focus {
+  border-color: #5144e8;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px rgba(81, 68, 232, 0.08);
+}
+
+
+/* PLACEHOLDER */
+
+.eo-form-group input::placeholder {
+  color: #a3a8b8;
+}
+
+
+/* =========================================================
+   UPLOAD SECTION
+========================================================= */
+
+.eo-upload-section {
+  width: 100%;
+
+  margin-top: 23px;
+}
+
+
+/* =========================================================
+   IMPORTANT:
+   HIDE NATIVE FILE INPUT
+========================================================= */
+
+.eo-upload-box input[type="file"] {
+  display: none !important;
+
+  width: 0 !important;
+  height: 0 !important;
+
+  opacity: 0 !important;
+
+  position: absolute !important;
+
+  pointer-events: none !important;
+}
+
+
+/* =========================================================
+   UPLOAD BOX
+========================================================= */
+
+.eo-upload-box {
+  width: 100%;
+
+  min-height: 138px;
+
+  padding: 22px 20px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border: 1.5px dashed #cdd1e2;
+
+  border-radius: 12px;
+
+  background: #fcfcff;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* =========================================================
+   HOVER
+========================================================= */
+
+.eo-upload-box:hover {
+  border-color: #5144e8;
+
+  background: #faf9ff;
+
+  box-shadow:
+    0 5px 18px rgba(81, 68, 232, 0.07);
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   DRAGGING
+========================================================= */
+
+.eo-upload-box.eo-dragging {
+  border-color: #5144e8;
+
+  background: #f4f2ff;
+
+  box-shadow:
+    0 0 0 4px rgba(81, 68, 232, 0.08);
+}
+
+
+/* =========================================================
+   HAS FILE
+========================================================= */
+
+.eo-upload-box.eo-has-file {
+  border-color: #5144e8;
+
+  background: #f8f7ff;
+}
+
+
+/* =========================================================
+   UPLOAD ICON
+========================================================= */
+
+.eo-upload-icon {
+  width: 42px;
+  height: 42px;
+
+  margin-bottom: 10px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ecebff;
+
+  color: #5144e8;
+
+  font-size: 22px;
+
+  font-weight: 400;
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   UPLOAD TITLE
+========================================================= */
+
+.eo-upload-box strong {
+  display: block;
+
+  max-width: 90%;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  font-size: 13px;
+
+  line-height: 1.4;
+
+  font-weight: 600;
+
+  color: #18253c;
+}
+
+
+/* =========================================================
+   UPLOAD DESCRIPTION
+========================================================= */
+
+.eo-upload-box p {
+  margin: 5px 0 0;
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+  color: #777e90;
+}
+
+
+/* =========================================================
+   BUTTON CONTAINER
+========================================================= */
+
+.eo-buttons {
+  width: 100%;
+
+  margin-top: 28px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 9px;
+}
+
+
+/* =========================================================
+   BUTTON
+========================================================= */
+
+.eo-buttons button {
+  width: 100%;
+
+  height: 46px;
+
+  padding: 0;
+
+  border: none;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* =========================================================
+   SUBMIT
+========================================================= */
+
+.eo-submit {
+  background: #5144e8;
+
+  color: #ffffff;
+}
+
+.eo-submit:hover {
+  background: #4336d4;
+
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 7px 18px rgba(81, 68, 232, 0.20);
+}
+
+.eo-submit:active {
+  transform: translateY(0);
+}
+
+
+/* =========================================================
+   CANCEL
+========================================================= */
+
+.eo-cancel {
+  background: #e4efff;
+
+  color: #475169;
+}
+
+.eo-cancel:hover {
+  background: #d6e7fc;
+}
+
+
+/* =========================================================
+   DESKTOP BESAR
+========================================================= */
+
+@media (min-width: 1200px) {
+
+  .eo-main {
+    padding: 45px 20px;
+  }
+
+  .eo-card {
+    max-width: 600px;
+  }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+  .eo-main {
+    padding: 35px 25px;
+  }
+
+  .eo-card {
+    max-width: 580px;
+
+    padding: 38px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .eo-header {
+    height: 64px;
+
+    padding: 0 20px;
+
+    gap: 12px;
+  }
+
+  .eo-header h1 {
+    font-size: 19px;
+  }
+
+
+  /* BACK */
+
+  .eo-back-button {
+    width: 34px;
+    height: 34px;
+
+    font-size: 26px;
+  }
+
+
+  /* MAIN */
+
+  .eo-main {
+    min-height: auto;
+
+    padding: 25px 0 40px;
+
+    align-items: flex-start;
+  }
+
+
+  /* CARD */
+
+  .eo-card {
+    width: calc(100% - 40px);
+
+    max-width: 520px;
+
+    padding: 28px 22px 30px;
+
+    border-radius: 14px;
+
+    box-shadow:
+      0 8px 25px rgba(35, 38, 70, 0.05);
+  }
+
+
+  /* TOP LINE */
+
+  .eo-card::before {
+    left: 23px;
+
+    right: 23px;
+
+    height: 3px;
+  }
+
+
+  /* LOGO */
+
+  .eo-logo {
+    margin-bottom: 27px;
+  }
+
+  .eo-logo-main {
+    font-size: 25px;
+  }
+
+  .eo-logo-subtitle {
+    margin-top: 6px;
+
+    font-size: 11px;
+  }
+
+
+  /* TITLE */
+
+  .eo-title {
+    margin-bottom: 25px;
+  }
+
+  .eo-title h2 {
+    font-size: 20px;
+  }
+
+  .eo-title p {
+    display: none;
+  }
+
+
+  /* FORM */
+
+  .eo-form-group {
+    margin-bottom: 12px;
+  }
+
+
+  /* LABEL */
+
+  .eo-form-group label,
+  .eo-upload-section > label {
+    margin-bottom: 6px;
+
+    font-size: 12px;
+  }
+
+
+  /* INPUT */
+
+  .eo-form-group input {
+    height: 43px;
+
+    padding: 0 12px;
+
+    border-radius: 8px;
+
+    font-size: 13px;
+  }
+
+
+  /* UPLOAD */
+
+  .eo-upload-section {
+    margin-top: 21px;
+  }
+
+  .eo-upload-box {
+    min-height: 145px;
+
+    padding: 18px;
+
+    border-radius: 11px;
+  }
+
+
+  /* ICON */
+
+  .eo-upload-icon {
+    width: 39px;
+    height: 39px;
+
+    margin-bottom: 9px;
+
+    font-size: 20px;
+  }
+
+
+  /* TEXT */
+
+  .eo-upload-box strong {
+    font-size: 12px;
+  }
+
+  .eo-upload-box p {
+    font-size: 11px;
+  }
+
+
+  /* BUTTON */
+
+  .eo-buttons {
+    margin-top: 28px;
+
+    gap: 9px;
+  }
+
+  .eo-buttons button {
+    height: 44px;
+
+    font-size: 12px;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .eo-header {
+    padding: 0 15px;
+  }
+
+  .eo-card {
+    width: calc(100% - 28px);
+
+    padding: 25px 18px 28px;
+  }
+
+  .eo-card::before {
+    left: 19px;
+    right: 19px;
+  }
+
+  .eo-logo-main {
+    font-size: 23px;
+  }
+
+  .eo-title h2 {
+    font-size: 19px;
+  }
+}
