@@ -1030,3 +1030,70 @@
     font-size: 9px;
   }
 }
+.detail-event-loading,
+.detail-event-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 60vh;
+  padding: 24px;
+  color: #6b7280;
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  text-align: center;
+}
+
+.detail-event-error h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #17233d;
+}
+
+.detail-event-error p {
+  margin: 0;
+  max-width: 420px;
+}
+
+.ticket-remaining {
+  margin-left: auto;
+  margin-right: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.ticket-empty {
+  padding: 16px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.event-facilities-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  margin: 16px 0 0;
+}
+
+.event-facilities-card h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.facilities-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.facility-item {
+  padding: 10px 12px;
+  background: #f3f4f7;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #374151;
+}

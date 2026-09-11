@@ -9,6 +9,7 @@ function NavbarCustomer() {
 
   const [profileOpen, setProfileOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
 
   const isProfilePage =
     location.pathname === "/customer/profile";
@@ -31,6 +32,20 @@ function NavbarCustomer() {
   const handleMobileMenu = (path) => {
     setMenuOpen(false);
     navigate(path);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+
+    const keyword = searchValue.trim();
+
+    if (!keyword) {
+      navigate("/customer/dashboard");
+      return;
+    }
+
+    navigate(`/customer/dashboard?search=${encodeURIComponent(keyword)}`);
+    setSearchValue("");
   };
 
   const handleBack = () => {
@@ -79,7 +94,7 @@ function NavbarCustomer() {
           </button>
         </div>
 
-        <div className="navbar-search">
+        <form className="navbar-search" onSubmit={handleSearchSubmit}>
           <svg viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="7" />
             <path d="m20 20-4-4" />
@@ -88,8 +103,10 @@ function NavbarCustomer() {
           <input
             type="text"
             placeholder="Cari artis, genre, acara, atau venue..."
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
           />
-        </div>
+        </form>
 
         <nav className="desktop-navigation">
           <button

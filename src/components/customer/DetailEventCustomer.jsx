@@ -1,54 +1,87 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
+import { getEventDetail } from "../../services/eventService";
 import "./DetailEventCustomer.css";
+
+const FALLBACK_EVENT = {
+  id: "",
+  title: "Judul Event",
+  categoryLabel: "Kategori Event",
+  dateDisplay: "02 Februari 2027",
+  location: "Lokasi/Venue Event",
+  description: "Deskripsi event belum tersedia.",
+  image:
+    "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1400&q=85",
+  statusLabel: "Tersedia",
+  lineup: [],
+  facilities: [],
+  tickets: [
+    { name: "Presale", price: 0, remaining: 0 },
+    { name: "Regular", price: 0, remaining: 0 },
+  ],
+};
 
 function DetailEventCustomer() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [earlyBirdOpen, setEarlyBirdOpen] = useState(true);
-  const [regularOpen, setRegularOpen] = useState(false);
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [openTierIndex, setOpenTierIndex] = useState(0);
+  const [selectedTierIndex, setSelectedTierIndex] = useState(0);
   const [quantity, setQuantity] = useState(0);
 
-  const event = {
-    id: id || 1,
-    title: "Judul Event",
-    category: "Kategori Event",
-    date: "02 Februari 2027",
-    location: "Lokasi/Venue Event",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-    image:
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1400&q=85",
-    status: "Tersedia",
-    lineup: [
-      {
-        name: "Bintang Tamu",
-        image: "",
-      },
-      {
-        name: "Bintang Tamu",
-        image: "",
-      },
-      {
-        name: "Bintang Tamu",
-        image: "",
-      },
-    ],
-    tickets: {
-      earlyBird: {
-        name: "Presale",
-        price: 200000,
-      },
-      regular: {
-        name: "Regular",
-        price: 300000,
-      },
-    },
-  };
+  useEffect(() => {
+    let cancelled = false;
 
-  const selectedTicketPrice = event.tickets.earlyBird.price;
+    setLoading(true);
+    setError("");
+
+    const load = async () => {
+      try {
+        const res = await getEventDetail(id);
+
+        if (!cancelled) {
+          setEvent(res?.data || null);
+        }
+      } catch (err) {
+        console.error("Gagal memuat detail event:", err);
+
+        if (!cancelled) {
+          setError(err?.message || "Event tidak ditemukan.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  const tickets = useMemo(() => {
+    const list =
+      event?.tickets && Array.isArray(event.tickets)
+        ? event.tickets
+        : FALLBACK_EVENT.tickets;
+
+    return list.map((t, i) => ({
+      id: t?.id,
+      name: t?.label || t?.name || (i === 0 ? "Presale" : "Regular"),
+      price: Number(t?.price) || 0,
+      remaining: t?.remaining,
+    }));
+  }, [event]);
+
+  const selectedTicketPrice = tickets[selectedTierIndex]?.price || 0;
 
   const totalPrice = useMemo(() => {
     return selectedTicketPrice * quantity;
@@ -62,11 +95,13 @@ function DetailEventCustomer() {
     }).format(price);
   };
 
-  const increaseQuantity = () => {
+  const increaseQuantity = (index) => {
+    setSelectedTierIndex(index);
     setQuantity((prev) => prev + 1);
   };
 
-  const decreaseQuantity = () => {
+  const decreaseQuantity = (index) => {
+    setSelectedTierIndex(index);
     setQuantity((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
@@ -76,12 +111,45 @@ function DetailEventCustomer() {
       return;
     }
 
-    alert(
-      `Kamu memilih ${quantity} tiket dengan total ${formatPrice(
-        totalPrice
-      )}.`
-    );
+    const ticket = tickets[selectedTierIndex];
+
+    navigate(`/checkout/${event?.id || id}`, {
+      state: {
+        eventId: event?.id || id,
+        eventTitle: event?.title,
+        eventDate: event?.dateDisplay || event?.date,
+        eventLocation: event?.location,
+        ticketName: ticket?.name,
+        ticketId: ticket?.id,
+        quantity,
+        price: ticket?.price,
+      },
+    });
   };
+
+  if (loading) {
+    return (
+      <div className="detail-event-page">
+        <NavbarCustomer />
+        <main className="detail-event-loading">Memuat detail event...</main>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="detail-event-page">
+        <NavbarCustomer />
+        <main className="detail-event-error">
+          <h1>Event Tidak Ditemukan</h1>
+          <p>{error || "Event yang kamu cari tidak tersedia."}</p>
+        </main>
+      </div>
+    );
+  }
+
+  const lineup = event.lineup || [];
+  const facilities = event.facilities || [];
 
   return (
     <div className="detail-event-page">
@@ -100,7 +168,9 @@ function DetailEventCustomer() {
           <section className="event-basic-card">
             <div className="event-title-row">
               <h1>{event.title}</h1>
-              <span className="event-status">{event.status}</span>
+              <span className="event-status">
+                {event.statusLabel || event.status || "Tersedia"}
+              </span>
             </div>
 
             <div className="event-basic-info">
@@ -112,7 +182,7 @@ function DetailEventCustomer() {
                   </svg>
                 </span>
 
-                <span>{event.category}</span>
+                <span>{event.categoryLabel || event.category}</span>
               </div>
 
               <div className="basic-info-item">
@@ -123,7 +193,7 @@ function DetailEventCustomer() {
                   </svg>
                 </span>
 
-                <span>{event.date}</span>
+                <span>{event.dateDisplay || event.date}</span>
               </div>
 
               <div className="basic-info-item">
@@ -143,77 +213,91 @@ function DetailEventCustomer() {
 
           <section className="event-description-card">
             <h2>Deskripsi Event</h2>
-
             <p>{event.description}</p>
-
-            <p className="description-second">
-              Duis aute irure dolor in reprehenderit in voluptate velit esse
-              cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-              cupidatat non proident, sunt in culpa qui officia deserunt
-              mollit anim id est laborum.
-            </p>
           </section>
 
-          <div className="mobile-divider"></div>
+          {facilities.length > 0 && (
+            <>
+              <div className="mobile-divider"></div>
 
-          <section className="event-lineup-card">
-            <h2>LineUp</h2>
+              <section className="event-facilities-card">
+                <h2>Fasilitas</h2>
 
-            <div className="lineup-list">
-              {event.lineup.map((person, index) => (
-                <div className="lineup-item" key={index}>
-                  <div className="lineup-avatar">
-                    {person.image ? (
-                      <img src={person.image} alt={person.name} />
-                    ) : (
-                      <svg viewBox="0 0 24 24">
-                        <circle cx="12" cy="8" r="3" />
-                        <path d="M5 20c.8-3.2 3.2-5 7-5s6.2 1.8 7 5" />
-                      </svg>
-                    )}
-                  </div>
+                <ul className="facilities-list">
+                  {facilities.map((facility, index) => (
+                    <li className="facility-item" key={index}>
+                      {facility}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
 
-                  <span>
-                    {person.name.split(" ").map((word, i) => (
-                      <React.Fragment key={i}>
-                        {word}
-                        {i < person.name.split(" ").length - 1 && <br />}
-                      </React.Fragment>
-                    ))}
-                  </span>
+          {lineup.length > 0 && (
+            <>
+              <div className="mobile-divider"></div>
+
+              <section className="event-lineup-card">
+                <h2>LineUp</h2>
+
+                <div className="lineup-list">
+                  {lineup.map((person, index) => (
+                    <div className="lineup-item" key={index}>
+                      <div className="lineup-avatar">
+                        {person.image ? (
+                          <img src={person.image} alt={person.name} />
+                        ) : (
+                          <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="8" r="3" />
+                            <path d="M5 20c.8-3.2 3.2-5 7-5s6.2 1.8 7 5" />
+                          </svg>
+                        )}
+                      </div>
+
+                      <span>
+                        {person.name.split(" ").map((word, i) => (
+                          <React.Fragment key={i}>
+                            {word}
+                            {i < person.name.split(" ").length - 1 && <br />}
+                          </React.Fragment>
+                        ))}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </section>
+              </section>
+            </>
+          )}
 
           <div className="mobile-divider"></div>
 
           <section className="mobile-ticket-section">
             <TicketBox
-              event={event}
-              earlyBirdOpen={earlyBirdOpen}
-              setEarlyBirdOpen={setEarlyBirdOpen}
-              regularOpen={regularOpen}
-              setRegularOpen={setRegularOpen}
+              tickets={tickets}
+              openTierIndex={openTierIndex}
+              setOpenTierIndex={setOpenTierIndex}
+              selectedTierIndex={selectedTierIndex}
               quantity={quantity}
               increaseQuantity={increaseQuantity}
               decreaseQuantity={decreaseQuantity}
               formatPrice={formatPrice}
+              onBuy={handleBuyTicket}
             />
           </section>
         </div>
 
         <aside className="desktop-ticket-section">
           <TicketBox
-            event={event}
-            earlyBirdOpen={earlyBirdOpen}
-            setEarlyBirdOpen={setEarlyBirdOpen}
-            regularOpen={regularOpen}
-            setRegularOpen={setRegularOpen}
+            tickets={tickets}
+            openTierIndex={openTierIndex}
+            setOpenTierIndex={setOpenTierIndex}
+            selectedTierIndex={selectedTierIndex}
             quantity={quantity}
             increaseQuantity={increaseQuantity}
             decreaseQuantity={decreaseQuantity}
             formatPrice={formatPrice}
+            onBuy={handleBuyTicket}
           />
         </aside>
       </main>
@@ -223,7 +307,7 @@ function DetailEventCustomer() {
           <span>Mulai Dari</span>
           <strong>
             {formatPrice(
-              quantity > 0 ? totalPrice : selectedTicketPrice
+              quantity > 0 ? totalPrice : selectedTicketPrice,
             )}
           </strong>
         </div>
@@ -239,28 +323,18 @@ function DetailEventCustomer() {
 }
 
 function TicketBox({
-  event,
-  earlyBirdOpen,
-  setEarlyBirdOpen,
-  regularOpen,
-  setRegularOpen,
+  tickets = [],
+  openTierIndex,
+  setOpenTierIndex,
+  selectedTierIndex,
   quantity,
   increaseQuantity,
   decreaseQuantity,
   formatPrice,
+  onBuy,
 }) {
-  const navigate = useNavigate();
-
-  const totalPrice = event.tickets.earlyBird.price * quantity;
-
-  const handleBuy = () => {
-    if (quantity === 0) {
-      alert("Silakan pilih jumlah tiket terlebih dahulu.");
-      return;
-    }
-
-    navigate(`/checkout/${event.id}`);
-  };
+  const selectedTicketPrice = tickets[selectedTierIndex]?.price || 0;
+  const totalPrice = selectedTicketPrice * quantity;
 
   return (
     <div className="ticket-card">
@@ -268,93 +342,70 @@ function TicketBox({
 
       <div className="ticket-divider"></div>
 
-      <div
-        className={`ticket-type ${
-          earlyBirdOpen ? "ticket-type-open" : ""
-        }`}
-      >
-        <button
-          className="ticket-type-header"
-          onClick={() => setEarlyBirdOpen(!earlyBirdOpen)}
-        >
-          <strong>Early Bird</strong>
+      {tickets.length === 0 && (
+        <div className="ticket-empty">
+          Tiket untuk event ini belum tersedia.
+        </div>
+      )}
 
-          <svg
-            className={earlyBirdOpen ? "rotate" : ""}
-            viewBox="0 0 24 24"
+      {tickets.map((ticket, index) => {
+        const isOpen = openTierIndex === index;
+
+        return (
+          <div
+            key={index}
+            className={`ticket-type ${isOpen ? "ticket-type-open" : ""}`}
           >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </button>
+            <button
+              className="ticket-type-header"
+              onClick={() => setOpenTierIndex(isOpen ? null : index)}
+            >
+              <strong>{ticket.name}</strong>
 
-        {earlyBirdOpen && (
-          <div className="ticket-option">
-            <div className="ticket-option-info">
-              <strong>{event.tickets.earlyBird.name}</strong>
+              {typeof ticket.remaining === "number" && (
+                <span className="ticket-remaining">
+                  Sisa {ticket.remaining}
+                </span>
+              )}
 
-              <span>
-                {formatPrice(event.tickets.earlyBird.price)}
-              </span>
-            </div>
-
-            <div className="quantity-control">
-              <button
-                onClick={decreaseQuantity}
-                aria-label="Kurangi tiket"
+              <svg
+                className={isOpen ? "rotate" : ""}
+                viewBox="0 0 24 24"
               >
-                −
-              </button>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
 
-              <span>{quantity}</span>
+            {isOpen && (
+              <div className="ticket-option">
+                <div className="ticket-option-info">
+                  <strong>{ticket.name}</strong>
 
-              <button
-                onClick={increaseQuantity}
-                aria-label="Tambah tiket"
-              >
-                +
-              </button>
-            </div>
+                  <span>{formatPrice(ticket.price)}</span>
+                </div>
+
+                <div className="quantity-control">
+                  <button
+                    onClick={() => decreaseQuantity(index)}
+                    aria-label="Kurangi tiket"
+                  >
+                    −
+                  </button>
+
+                  <span>{selectedTierIndex === index ? quantity : 0}</span>
+
+                  <button
+                    onClick={() => increaseQuantity(index)}
+                    aria-label="Tambah tiket"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-
-      <div
-        className={`ticket-type ${
-          regularOpen ? "ticket-type-open" : ""
-        }`}
-      >
-        <button
-          className="ticket-type-header"
-          onClick={() => setRegularOpen(!regularOpen)}
-        >
-          <strong>Regular</strong>
-
-          <svg
-            className={regularOpen ? "rotate" : ""}
-            viewBox="0 0 24 24"
-          >
-            <path d="m6 9 6 6 6-6" />
-          </svg>
-        </button>
-
-        {regularOpen && (
-          <div className="ticket-option">
-            <div className="ticket-option-info">
-              <strong>{event.tickets.regular.name}</strong>
-
-              <span>
-                {formatPrice(event.tickets.regular.price)}
-              </span>
-            </div>
-
-            <div className="quantity-control">
-              <button>−</button>
-              <span>0</span>
-              <button>+</button>
-            </div>
-          </div>
-        )}
-      </div>
+        );
+      })}
 
       <div className="desktop-ticket-summary">
         <div>
@@ -362,14 +413,12 @@ function TicketBox({
 
           <strong>
             {formatPrice(
-              quantity > 0
-                ? totalPrice
-                : event.tickets.earlyBird.price
+              quantity > 0 ? totalPrice : selectedTicketPrice,
             )}
           </strong>
         </div>
 
-        <button onClick={handleBuy}>Beli Tiket</button>
+        <button onClick={onBuy}>Beli Tiket</button>
       </div>
     </div>
   );
