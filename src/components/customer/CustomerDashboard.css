@@ -812,3 +812,9 @@
     font-size: 6.5px;
   }
 }
+.dashboard-loading {
+  padding: 40px 0;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
