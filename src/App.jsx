@@ -31,6 +31,7 @@ import RefundRequest from "./components/customer/RefundRequest";
 import RefundList from "./components/customer/RefundList";
 import TransaksiCustomer from "./components/customer/TransaksiCustomer";
 import ProfileCustomer from "./components/customer/ProfileCustomer";
+import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
 
 import DashboardEO from "./components/eo/DashboardEO";
 import EventEO from "./components/eo/EventEO";
@@ -223,6 +224,10 @@ function App() {
 <Route
   path="/customer/profile"
   element={<ProfileCustomer />}
+/>
+<Route
+  path="/customer/privacy"
+  element={<KebijakanPrivasi />}
 />
         </Routes>
       </BrowserRouter>
