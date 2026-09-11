@@ -10,7 +10,7 @@
 const API_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
   (typeof process !== 'undefined' && process.env?.VITE_API_URL) ||
-  "https://9538-2400-9800-264-e7e4-18d3-656d-b87c-b0ad.ngrok-free.app/api/v1/auth";
+  "https://d85c-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app/api/v1/auth";
 
 const getHeaders = () => ({
   "Content-Type": "application/json",
