@@ -32,6 +32,7 @@ import RefundList from "./components/customer/RefundList";
 import TransaksiCustomer from "./components/customer/TransaksiCustomer";
 import ProfileCustomer from "./components/customer/ProfileCustomer";
 import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
+import SyaratKetentuan from "./components/customer/SyaratKetentuan";
 
 import DashboardEO from "./components/eo/DashboardEO";
 import EventEO from "./components/eo/EventEO";
@@ -228,6 +229,10 @@ function App() {
 <Route
   path="/customer/privacy"
   element={<KebijakanPrivasi />}
+/>
+<Route
+  path="/customer/terms"
+  element={<SyaratKetentuan />}
 />
         </Routes>
       </BrowserRouter>

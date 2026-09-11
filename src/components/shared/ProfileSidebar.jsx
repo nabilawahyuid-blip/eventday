@@ -54,7 +54,7 @@ function ProfileSidebar({ open, onClose }) {
 
   const handleTerms = () => {
     onClose();
-    alert("Halaman Syarat dan Ketentuan belum dibuat.");
+    navigate("/customer/terms");
   };
 
   const handlePrivacy = () => {
