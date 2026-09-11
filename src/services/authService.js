@@ -1,7 +1,7 @@
 const API_URL =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
   (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
-  "https://d85c-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app/api/v1/auth";
+  "https://bad1-2400-9800-3cd-197d-a978-b26a-d2bf-6e8.ngrok-free.app/api/v1/auth";
 
 export const getApiBaseUrl = () => {
   return API_URL.replace("/auth", "");
@@ -148,8 +148,8 @@ export const register = async (data) => {
       throw new Error(
         extractErrorMessage(
           result,
-          `Registrasi gagal. Status: ${response.status}`
-        )
+          `Registrasi gagal. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -194,8 +194,8 @@ export const verifyOtp = async (data) => {
       throw new Error(
         extractErrorMessage(
           result,
-          `Verifikasi OTP gagal. Status: ${response.status}`
-        )
+          `Verifikasi OTP gagal. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -233,8 +233,8 @@ export const resendOtp = async (data) => {
       throw new Error(
         extractErrorMessage(
           result,
-          `Gagal mengirim ulang OTP. Status: ${response.status}`
-        )
+          `Gagal mengirim ulang OTP. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -294,10 +294,7 @@ export const login = async (data) => {
 
     if (!response.ok) {
       throw new Error(
-        extractErrorMessage(
-          result,
-          `Login gagal. Status: ${response.status}`
-        )
+        extractErrorMessage(result, `Login gagal. Status: ${response.status}`),
       );
     }
 
@@ -333,8 +330,8 @@ export const loginGoogle = async (data) => {
       throw new Error(
         extractErrorMessage(
           result,
-          `Login Google gagal. Status: ${response.status}`
-        )
+          `Login Google gagal. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -372,8 +369,8 @@ export const forgotPassword = async (data) => {
       throw new Error(
         extractErrorMessage(
           result,
-          `Gagal mengirim kode OTP. Status: ${response.status}`
-        )
+          `Gagal mengirim kode OTP. Status: ${response.status}`,
+        ),
       );
     }
 
@@ -431,8 +428,8 @@ export const resetPassword = async (data) => {
       throw new Error(
         extractErrorMessage(
           result,
-          `Reset password gagal. Status: ${response.status}`
-        )
+          `Reset password gagal. Status: ${response.status}`,
+        ),
       );
     }
 
