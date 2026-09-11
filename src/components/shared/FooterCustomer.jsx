@@ -46,11 +46,11 @@ function FooterCustomer() {
 
         <button
           className={`customer-bottom-nav-item ${
-            location.pathname.startsWith("/eo/event/create")
+            location.pathname.startsWith("../register-eo")
               ? "active"
               : ""
           }`}
-          onClick={() => navigate("/eo/event/create")}
+          onClick={() => navigate("../register-eo")}
         >
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="8.5" />
