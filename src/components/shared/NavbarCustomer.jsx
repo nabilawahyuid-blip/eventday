@@ -123,13 +123,13 @@ function NavbarCustomer() {
           <button
             className={`nav-link ${
               location.pathname.startsWith(
-                "/eo/event/create"
+                "../register-eo"
               )
                 ? "active"
                 : ""
             }`}
             onClick={() =>
-              navigate("/eo/event/create")
+              navigate("../register-eo")
             }
           >
             Buat Event
@@ -227,7 +227,7 @@ function NavbarCustomer() {
             <button
               onClick={() =>
                 handleMobileMenu(
-                  "/eo/event/create"
+                  "../register-eo"
                 )
               }
             >
