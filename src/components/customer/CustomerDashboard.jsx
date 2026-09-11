@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
 import "./CustomerDashboard.css";
 
@@ -8,7 +9,6 @@ function DashboardCustomer() {
 
   const [activeCategory, setActiveCategory] = useState("Semua");
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   const heroEvents = [
@@ -97,7 +97,7 @@ function DashboardCustomer() {
       location: "ICE BSD City",
       price: "Rp 200.000",
       image:
-        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=85",
+        "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=900&q=80",
     },
   ];
 
@@ -153,130 +153,11 @@ function DashboardCustomer() {
 
   return (
     <div className="customer-dashboard">
-      <header className="customer-navbar">
-        <div className="navbar-left">
-          <div
-            className="customer-logo"
-            onClick={() => navigate("/customer/dashboard")}
-          >
-            EVENT<span>DAY</span>
-          </div>
 
-          <button className="location-button">
-            <svg viewBox="0 0 24 24">
-              <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-              <circle cx="12" cy="10" r="2.5" />
-            </svg>
-
-            <span>Jakarta, ID</span>
-            <span className="location-arrow">⌄</span>
-          </button>
-        </div>
-
-        <div className="navbar-search">
-          <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-4-4" />
-          </svg>
-
-          <input
-            type="text"
-            placeholder="Cari artis, genre, acara, atau venue..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <nav className="desktop-navigation">
-          <button
-            className="nav-link active"
-            onClick={() => navigate("/customer/dashboard")}
-          >
-            Beranda
-          </button>
-
-          <button
-            className="nav-link"
-            onClick={() => navigate("/customer/tickets")}
-          >
-            Tiket Saya
-          </button>
-
-          <button
-            className="nav-link"
-            onClick={handleCreateEvent}
-          >
-            Buat Event
-          </button>
-
-          <button
-            className="nav-link"
-            onClick={() => navigate("/customer/history")}
-          >
-            Riwayat
-          </button>
-
-          <button
-            className="profile-button"
-            onClick={() => navigate("/customer/profile")}
-          >
-            <span className="profile-avatar">JD</span>
-            <span>John D.</span>
-          </button>
-        </nav>
-
-        <div className="mobile-header-icons">
-          <button aria-label="Cari">
-            <svg viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7" />
-              <path d="m20 20-4-4" />
-            </svg>
-          </button>
-
-          <button
-            aria-label="Menu"
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg>
-          </button>
-        </div>
-
-        {menuOpen && (
-          <div className="mobile-menu">
-            <button
-              onClick={() => navigate("/customer/dashboard")}
-            >
-              Beranda
-            </button>
-
-            <button
-              onClick={() => navigate("/customer/tickets")}
-            >
-              Tiket Saya
-            </button>
-
-            <button onClick={handleCreateEvent}>
-              Buat Event
-            </button>
-
-            <button
-              onClick={() => navigate("/customer/history")}
-            >
-              Riwayat
-            </button>
-
-            <button
-              onClick={() => navigate("/customer/profile")}
-            >
-              Profil
-            </button>
-          </div>
-        )}
-      </header>
+      <NavbarCustomer />
 
       <main className="customer-content">
+
         <div className="mobile-location">
           <button className="location-button">
             <svg viewBox="0 0 24 24">
@@ -346,6 +227,7 @@ function DashboardCustomer() {
         </section>
 
         <section className="latest-section">
+
           <div className="latest-header">
             <div>
               <h2>Terkini</h2>
@@ -386,6 +268,7 @@ function DashboardCustomer() {
                 key={event.id}
               >
                 <div className="event-image-wrapper">
+
                   <img
                     src={event.image}
                     alt={event.title}
@@ -398,11 +281,15 @@ function DashboardCustomer() {
 
                     <h3>{event.title}</h3>
                   </div>
+
                 </div>
 
                 <div className="event-card-content">
+
                   <div className="event-info">
+
                     <div className="event-info-row">
+
                       <svg viewBox="0 0 24 24">
                         <rect
                           x="4"
@@ -418,9 +305,11 @@ function DashboardCustomer() {
                       <span>
                         {event.date} • {event.time}
                       </span>
+
                     </div>
 
                     <div className="event-info-row">
+
                       <svg viewBox="0 0 24 24">
                         <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
 
@@ -432,10 +321,13 @@ function DashboardCustomer() {
                       </svg>
 
                       <span>{event.location}</span>
+
                     </div>
+
                   </div>
 
                   <div className="event-card-bottom">
+
                     <span className="event-price">
                       {event.price}
                     </span>
@@ -448,7 +340,9 @@ function DashboardCustomer() {
                     >
                       Beli Tiket
                     </button>
+
                   </div>
+
                 </div>
               </article>
             ))}
@@ -464,10 +358,13 @@ function DashboardCustomer() {
               </p>
             </div>
           )}
+
         </section>
+
       </main>
 
       <FooterCustomer />
+
     </div>
   );
 }
