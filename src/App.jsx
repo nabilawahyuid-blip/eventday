@@ -20,6 +20,7 @@ import DetailUser from "./components/admin/DetailUser";
 import PengajuanAkunEO from "./components/admin/PengajuanAkunEO";
 import Transaksi from "./components/admin/Transaksi";
 import Tiket from "./components/admin/Tiket";
+import PengaturanPlatform from "./components/admin/PengaturanPlatform";
 
 // ==================== CUSTOMER ====================
 import CustomerDashboard from "./components/customer/CustomerDashboard";
@@ -142,6 +143,10 @@ function App() {
             element={<Tiket />}
           />
 
+          <Route
+            path="/admin/pengaturan"
+            element={<PengaturanPlatform />}
+          />
 
           {/* ==================== EO ==================== */}
 
