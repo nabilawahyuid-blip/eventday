@@ -14,6 +14,7 @@ import DashboardAdmin from "./components/admin/DashboardAdmin";
 import EventManagement from "./components/admin/EventManagement";
 import TambahEvent from "./components/admin/TambahEvent";
 import DetailEvent from "./components/admin/DetailEvent";
+import EditEvent from './components/admin/EditEvent';
 import UserManagement from "./components/admin/UserManagement";
 import DetailUser from "./components/admin/DetailUser";
 import PengajuanAkunEO from "./components/admin/PengajuanAkunEO";
@@ -105,6 +106,10 @@ function App() {
           <Route
             path="/admin/event/:id"
             element={<DetailEvent />}
+          />
+          <Route 
+          path="/admin/event/edit/:id" 
+          element={<EditEvent />}
           />
 
           <Route
