@@ -39,10 +39,9 @@ body {
 ===== */
 
 .user-management-page {
-  width: 100%;
+  display: flex;
   min-height: 100vh;
-
-  background: #f7f6fc;
+  background-color: #f8fafc; /* Sesuaikan warna background jika perlu */
 }
 
 
@@ -53,15 +52,15 @@ body {
 ===== */
 
 .user-main {
-  width: calc(100% - 220px);
+  flex: 1;
   min-height: 100vh;
-
-  margin-left: 220px;
-
+  min-width: 0;
   display: flex;
   flex-direction: column;
-
   background: #f7f6fc;
+  /* Hapus margin-left manual jika sidebar menggunakan layout flexbox global */
+  margin-left: 220px; /* Kembalikan margin ini agar tidak tertutup sidebar */
+  width: 100%;
 }
 
 
@@ -71,11 +70,10 @@ body {
 
 .user-content {
   width: 100%;
-  max-width: 1450px;
-
+  max-width: 100%; /* Biarkan mengikuti grid atau batasan layout utama */
   margin: 0 auto;
-
-  padding: 28px 34px 45px;
+  padding: 32px 40px; /* Jarak atas-bawah (32px) dan kiri-kanan (40px) seragam */
+  box-sizing: border-box;
 }
 
 
@@ -92,7 +90,7 @@ body {
 
   gap: 30px;
 
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .user-heading h1 {
@@ -109,7 +107,7 @@ body {
 
   color: #898493;
 
-  font-size: 10px;
+  font-size: 14px;
   line-height: 1.5;
 }
 
