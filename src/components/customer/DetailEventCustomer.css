@@ -1,19 +1,28 @@
 .detail-event-page {
   min-height: 100vh;
-  background: #f8f9fc;
+  background-color: #f7f9fd;
   color: #172033;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
 }
 
+.detail-event-loading,
+.detail-event-error {
+  max-width: 1200px;
+  margin: 60px auto;
+  text-align: center;
+  color: #64748b;
+}
 
-/* MAIN */
-
+/* MAIN CONTAINER */
 .detail-event-container {
-  width: calc(100% - 56px);
-  max-width: 1260px;
-  margin: 34px auto 70px;
+  width: calc(100% - 80px);
+  max-width: 1200px;
+  margin: 32px auto 60px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
-  gap: 34px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 32px;
   align-items: start;
 }
 
@@ -21,15 +30,13 @@
   min-width: 0;
 }
 
-
-/* POSTER */
-
+/* POSTER EVENT */
 .event-poster-card {
   width: 100%;
-  height: 470px;
+  height: 420px;
   overflow: hidden;
-  border-radius: 16px;
-  background: #e9edf4;
+  border-radius: 12px;
+  background: #e2e8f0;
 }
 
 .event-poster-card img {
@@ -37,1086 +44,446 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 0.5s ease;
 }
 
-.event-poster-card:hover img {
-  transform: scale(1.015);
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #e5e7eb;
+  color: #838e9e;
+  gap: 12px;
 }
 
+.poster-placeholder svg {
+  width: 56px;
+  height: 56px;
+  stroke-width: 1.2;
+}
 
-/* EVENT BASIC */
+.poster-placeholder span {
+  font-size: 14px;
+  font-weight: 500;
+}
 
-.event-basic-card {
-  margin-top: 22px;
+/* CARD KELOMPOK UTAMA */
+.event-basic-card,
+.event-description-card,
+.event-facilities-card,
+.event-lineup-card {
+  margin-top: 24px;
   padding: 24px;
   background: #ffffff;
-  border: 1px solid #edf0f4;
-  border-radius: 14px;
-  box-shadow: 0 2px 7px rgba(29, 39, 63, 0.04);
+  border-radius: 16px;
+  border: 1px solid #f0f3f8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
-.event-category {
-  display: inline-flex;
+/* BASIC CARD (JUDUL & KETERANGAN Singkat) */
+.event-title-row {
+  display: flex;
   align-items: center;
-  padding: 6px 11px;
-  border-radius: 6px;
-  background: #f0edff;
-  color: #4b3fdb;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.event-basic-card h1 {
-  margin: 13px 0 22px;
-  color: #172033;
-  font-size: 30px;
-  line-height: 1.2;
-  font-weight: 800;
-  letter-spacing: -0.7px;
+.event-title-row h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 20px;
+  font-weight: 700;
 }
 
-
-/* EVENT INFO */
+.event-status {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #eeedff;
+  color: #6355ff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
 .event-info-list {
   display: flex;
   flex-direction: column;
-  gap: 17px;
+  gap: 14px;
 }
 
 .event-info-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .event-info-item svg {
-  width: 21px;
-  height: 21px;
-  flex: 0 0 21px;
-  margin-top: 2px;
-  color: #5c50dc;
+  width: 18px;
+  height: 18px;
+  color: #6355ff;
 }
 
-.event-info-item > div {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.event-info-label {
-  color: #929aaa;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.event-info-item strong {
-  color: #343d50;
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.4;
-}
-
-.event-info-item small {
-  color: #858d9e;
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-
-/* DESCRIPTION */
-
-.event-description-card {
-  margin-top: 28px;
-  padding: 17px 14px 20px;
-  background: #ffffff;
-  border: 1px solid #edf0f4;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(29, 39, 63, 0.04);
-}
-
-.event-description-card h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-}
-
-.event-description-card p {
-  margin: 17px 0 0;
-  color: #5b6579;
-  font-size: 13px;
-  line-height: 1.55;
-}
-
-
-/* LINE UP */
-
-.event-lineup-card {
-  margin-top: 28px;
-  padding: 17px 14px 20px;
-  background: #ffffff;
-  border: 1px solid #edf0f4;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(29, 39, 63, 0.04);
-}
-
+/* JUDUL & PARAGRAF UMUM */
+.event-description-card h2,
+.event-facilities-card h2,
 .event-lineup-card h2 {
-  margin: 0 0 20px;
-  color: #172033;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 700;
 }
 
-.lineup-list {
+.event-description-card p,
+.event-facilities-card p {
+  margin: 0 0 10px;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.event-description-card p:last-child,
+.event-facilities-card p:last-child {
+  margin-bottom: 0;
+}
+
+/* LINEUP (LAYOUT HORIZONTAL KE SAMPING) */
+.lineup-list-horizontal {
   display: flex;
-  flex-direction: row !important;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 25px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 36px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .lineup-item {
-  flex: 0 0 70px;
-  width: 70px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
-.lineup-image {
-  width: 70px;
-  height: 70px;
-  overflow: hidden;
+.lineup-avatar {
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: #edf0f5;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  overflow: hidden;
 }
 
-.lineup-image img {
+.lineup-avatar img {
   width: 100%;
   height: 100%;
-  display: block;
   object-fit: cover;
 }
 
+.lineup-avatar svg {
+  width: 28px;
+  height: 28px;
+}
+
 .lineup-item span {
-  width: 100%;
-  margin-top: 9px;
-  color: #424b5e;
-  font-size: 11px;
-  line-height: 1.35;
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* SIDEBAR TIKET DESKTOP */
+.ticket-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid #f0f3f8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.ticket-card h2 {
+  margin: 0 0 20px;
+  color: #0f172a;
+  font-size: 18px;
   font-weight: 700;
 }
 
-
-/* FACILITIES */
-
-.event-facilities-card {
-  margin-top: 28px;
-  padding: 17px 14px 20px;
-  background: #ffffff;
-  border: 1px solid #edf0f4;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(29, 39, 63, 0.04);
-}
-
-.event-facilities-card h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-}
-
-.event-facilities-card p {
-  margin: 17px 0 0;
-  color: #5b6579;
+.ticket-empty {
   font-size: 13px;
-  line-height: 1.55;
+  color: #94a3b8;
 }
 
-
-/* TICKET CARD */
-
-.ticket-card {
-  position: sticky;
-  top: 95px;
-  padding: 22px;
-  background: #ffffff;
-  border: 1px solid #edf0f4;
-  border-radius: 16px;
-  box-shadow: 0 5px 18px rgba(29, 39, 63, 0.06);
-  transition:
-    box-shadow 0.25s ease,
-    transform 0.25s ease;
-}
-
-.ticket-card:hover {
-  box-shadow: 0 8px 25px rgba(29, 39, 63, 0.08);
-}
-
-.ticket-card-heading {
-  margin-bottom: 20px;
-}
-
-.ticket-card-heading h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.ticket-card-heading p {
-  margin: 5px 0 0;
-  color: #8b93a3;
-  font-size: 11px;
-}
-
-
-/* TICKET OPTIONS */
-
-.ticket-options {
+.ticket-accordion-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.ticket-option {
-  width: 100%;
-  padding: 15px;
-  box-sizing: border-box;
-  border: 1px solid #e5e8ef;
+.ticket-accordion-item {
+  border: 1px solid #f1f5f9;
   border-radius: 12px;
-  background: #ffffff;
-  cursor: pointer;
-  transition:
-    border-color 0.22s ease,
-    background 0.22s ease,
-    transform 0.18s ease,
-    box-shadow 0.22s ease;
-}
-
-.ticket-option:hover {
-  border-color: #c7c2f4;
-  background: #fbfaff;
-  transform: translateY(-1px);
-}
-
-.ticket-option:active {
-  transform: scale(0.99);
-}
-
-.ticket-option.selected {
-  border-color: #5548dc;
-  background: #f8f7ff;
-  box-shadow: 0 3px 12px rgba(85, 72, 220, 0.08);
-}
-
-
-/* TICKET MAIN */
-
-.ticket-option-main {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.ticket-option-text {
-  min-width: 0;
-  flex: 1;
-}
-
-.ticket-name-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.ticket-option h3 {
-  margin: 0;
-  color: #273044;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.ticket-selected-label {
-  padding: 3px 7px;
-  border-radius: 5px;
-  background: #e9e6ff;
-  color: #5548dc;
-  font-size: 8px;
-  font-weight: 800;
-}
-
-.ticket-option p {
-  margin: 5px 0 0;
-  color: #8991a2;
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-
-/* QUANTITY CONTROL */
-
-.ticket-quantity-control {
-  flex: 0 0 auto;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  border: 1px solid #e1e4eb;
-  border-radius: 9px;
-  background: #ffffff;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(30, 40, 70, 0.04);
+  background: #ffffff;
 }
 
-.ticket-option.selected .ticket-quantity-control {
-  border-color: #d4d0fa;
+.ticket-accordion-item.open {
+  border-color: #e0e7ff;
 }
 
-.ticket-quantity-control button {
-  width: 32px;
-  height: 100%;
-  padding: 0;
+.ticket-accordion-header {
+  width: 100%;
+  padding: 16px 20px;
+  background: #ffffff;
   border: none;
-  background: transparent;
-  color: #4f46d8;
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   cursor: pointer;
-  transition:
-    background 0.18s ease,
-    color 0.18s ease,
-    transform 0.15s ease;
+  text-align: left;
 }
 
-.ticket-quantity-control button:hover:not(:disabled) {
-  background: #f0eeff;
+.ticket-accordion-item.open .ticket-accordion-header {
+  background: #f8fafc;
 }
 
-.ticket-quantity-control button:active:not(:disabled) {
-  transform: scale(0.85);
-}
-
-.ticket-quantity-control button:disabled {
-  color: #c8ccd5;
-  cursor: not-allowed;
-}
-
-.ticket-quantity-control span {
-  min-width: 30px;
-  text-align: center;
-  color: #20283a;
-  font-size: 13px;
-  font-weight: 800;
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease;
-}
-
-
-/* TICKET BOTTOM */
-
-.ticket-option-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.ticket-option-bottom strong {
-  color: #4035c8;
+.ticket-accordion-header strong {
+  color: #0f172a;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
-.ticket-option-bottom span {
-  color: #9299a8;
-  font-size: 10px;
+.arrow-icon {
+  width: 18px;
+  height: 18px;
+  color: #64748b;
+  transition: transform 0.2s ease;
 }
 
-
-/* PURCHASE SUMMARY */
-
-.ticket-purchase-section {
-  margin-top: 20px;
-  padding-top: 18px;
-  border-top: 1px solid #edf0f4;
+.arrow-icon.rotate {
+  transform: rotate(180deg);
 }
 
-.ticket-summary-top {
+.ticket-accordion-body {
+  padding: 16px 20px;
+  background: #ffffff;
+}
+
+.ticket-sub-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 13px;
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 10px;
 }
 
-.ticket-summary-top span:first-child {
-  color: #30394c;
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.ticket-summary-top span:last-child {
-  color: #8a92a2;
-  font-size: 10px;
-}
-
-.ticket-summary-line {
+.ticket-sub-info {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.ticket-summary-line span {
-  color: #858d9e;
-  font-size: 11px;
-}
-
-.ticket-summary-line strong {
-  color: #343c4d;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.price-divider {
-  height: 1px;
-  margin: 13px 0;
-  background: #edf0f4;
-}
-
-.total-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.total-row span {
-  color: #4b5363;
+.ticket-sub-name {
+  color: #1e293b;
   font-size: 12px;
   font-weight: 600;
 }
 
-.total-row strong {
-  color: #4035c8;
-  font-size: 17px;
-  font-weight: 800;
-  transition:
-    transform 0.18s ease,
-    opacity 0.18s ease;
+.ticket-sub-price {
+  color: #4338ca;
+  font-size: 14px;
+  font-weight: 700;
 }
 
+/* KONTROL JUMLAH TIKET */
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-/* BUY BUTTON */
-
-.buy-ticket-button {
-  width: 100%;
-  min-height: 46px;
-  margin-top: 18px;
-  padding: 12px 16px;
+.quantity-control button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #334155;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: none;
-  border-radius: 10px;
-  background: #5548dc;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 5px 12px rgba(85, 72, 220, 0.18);
-  transition:
-    background 0.2s ease,
-    transform 0.18s ease,
-    box-shadow 0.2s ease;
+  transition: opacity 0.2s;
 }
 
-.buy-ticket-button svg {
-  width: 17px;
-  height: 17px;
-  transition: transform 0.2s ease;
+.quantity-control button:hover {
+  opacity: 0.7;
+}
+
+.quantity-control button svg {
+  width: 22px;
+  height: 22px;
+}
+
+.quantity-control span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  min-width: 12px;
+  text-align: center;
+}
+
+/* FOOTER RINGKASAN TIKET */
+.ticket-summary-footer {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ticket-summary-price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ticket-summary-price span {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.ticket-summary-price strong {
+  color: #4338ca;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.buy-ticket-button {
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .buy-ticket-button:hover {
-  background: #493dc9;
-  box-shadow: 0 7px 17px rgba(85, 72, 220, 0.24);
+  background: #4338ca;
 }
 
-.buy-ticket-button:hover svg {
-  transform: translateX(3px);
+/* FOOTER HALAMAN */
+.detail-event-footer {
+  border-top: 1px solid #f1f5f9;
+  padding: 24px 0;
+  text-align: center;
+  margin-top: 40px;
+  background: #ffffff;
 }
 
-.buy-ticket-button:active {
-  transform: scale(0.98);
+.detail-event-footer p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
 }
 
-
-/* MOBILE BUY BAR */
-
+.mobile-ticket-section,
 .mobile-buy-bar {
   display: none;
 }
 
-
-/* TABLET */
-
-@media (max-width: 1100px) {
+/* RESPONSIVE LAYOUT (LAYAR HP & TABLET) */
+@media (max-width: 900px) {
   .detail-event-container {
-    grid-template-columns: minmax(0, 1fr) 350px;
-    gap: 24px;
-  }
-
-  .ticket-card {
-    padding: 19px;
-  }
-
-  .event-poster-card {
-    height: 430px;
-  }
-
-  .ticket-quantity-control button {
-    width: 29px;
-  }
-
-  .ticket-quantity-control span {
-    min-width: 27px;
-  }
-}
-
-
-/* TABLET */
-
-@media (max-width: 950px) {
-  .detail-event-container {
-    width: calc(100% - 40px);
     grid-template-columns: 1fr;
-    gap: 24px;
-    margin-top: 25px;
-  }
-
-  .ticket-card {
-    position: static;
     width: 100%;
+    max-width: 100%;
+    margin: 0 auto 80px;
+    padding: 0;
+    gap: 0;
   }
 
   .event-poster-card {
-    height: 430px;
-  }
-}
-
-
-/* MOBILE */
-
-@media (max-width: 850px) {
-  .detail-event-page {
-    padding-bottom: 78px;
-  }
-
-  .detail-event-container {
-    width: 100%;
-    margin: 0 auto 40px;
-    display: block;
+    border-radius: 0;
+    height: 300px;
   }
 
   .detail-event-left {
-    width: 100%;
-  }
-
-  .event-poster-card {
-    width: 100%;
-    height: 360px;
-    border-radius: 0;
-  }
-
-  .event-poster-card img {
-    transition: none;
-  }
-
-  .event-basic-card {
-    width: calc(100% - 50px);
-    margin: 20px auto 0;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-
-  .event-basic-card h1 {
-    font-size: 25px;
-  }
-
-  .event-description-card {
-    width: calc(100% - 50px);
-    margin: 24px auto 0;
-    box-sizing: border-box;
-  }
-
-  .event-lineup-card {
-    width: calc(100% - 50px);
-    margin: 24px auto 0;
-    box-sizing: border-box;
-  }
-
-  .event-facilities-card {
-    width: calc(100% - 50px);
-    margin: 24px auto 0;
-    padding: 17px 14px 18px;
-    box-sizing: border-box;
-  }
-
-  .event-facilities-card h2 {
-    font-size: 19px;
-  }
-
-  .event-facilities-card p {
-    font-size: 13px;
-    line-height: 1.48;
-  }
-
-  .lineup-list {
-    gap: 22px;
-  }
-
-  .ticket-card {
-    width: calc(100% - 50px);
-    margin: 24px auto 0;
-    padding: 20px;
-    box-sizing: border-box;
-  }
-
-  .ticket-card-heading h2 {
-    font-size: 19px;
-  }
-
-  .ticket-option {
-    padding: 15px;
-  }
-
-  .ticket-option-main {
-    gap: 10px;
-  }
-
-  .ticket-option h3 {
-    font-size: 13px;
-  }
-
-  .ticket-option p {
-    font-size: 10px;
-  }
-
-  .ticket-quantity-control {
-    height: 35px;
-  }
-
-  .ticket-quantity-control button {
-    width: 30px;
-  }
-
-  .ticket-quantity-control span {
-    min-width: 27px;
-  }
-
-  .buy-ticket-button {
-    display: none;
-  }
-
-
-  /* MOBILE BOTTOM */
-
-  .mobile-buy-bar {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 1000;
-    min-height: 68px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 15px;
-    background: rgba(255, 255, 255, 0.97);
-    border-top: 1px solid #e8ebf1;
-    box-shadow: 0 -5px 20px rgba(29, 39, 63, 0.09);
-    box-sizing: border-box;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    animation: mobileBarAppear 0.25s ease;
-  }
-
-  @keyframes mobileBarAppear {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .mobile-buy-info {
-    min-width: 0;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .mobile-buy-info span {
-    color: #858d9e;
-    font-size: 9px;
-    font-weight: 600;
-  }
-
-  .mobile-buy-info strong {
-    color: #4035c8;
-    font-size: 15px;
-    font-weight: 800;
-    white-space: nowrap;
-  }
-
-  .mobile-buy-quantity {
-    height: 36px;
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    border: 1px solid #e2e5eb;
-    border-radius: 9px;
-    background: #fafbfc;
-    overflow: hidden;
-  }
-
-  .mobile-buy-quantity button {
-    width: 32px;
-    height: 100%;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: #5548dc;
-    font-size: 19px;
-    font-weight: 400;
-    cursor: pointer;
-    transition:
-      background 0.18s ease,
-      transform 0.15s ease;
-  }
-
-  .mobile-buy-quantity button:hover:not(:disabled) {
-    background: #f0eeff;
-  }
-
-  .mobile-buy-quantity button:active:not(:disabled) {
-    transform: scale(0.85);
-  }
-
-  .mobile-buy-quantity button:disabled {
-    color: #c7cbd4;
-    cursor: not-allowed;
-  }
-
-  .mobile-buy-quantity span {
-    min-width: 27px;
-    text-align: center;
-    color: #293144;
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  .mobile-buy-button {
-    min-width: 68px;
-    height: 40px;
     padding: 0 16px;
-    border: none;
-    border-radius: 10px;
-    background: #5548dc;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(85, 72, 220, 0.18);
-    transition:
-      background 0.2s ease,
-      transform 0.15s ease,
-      box-shadow 0.2s ease;
-  }
-
-  .mobile-buy-button:hover {
-    background: #493dc9;
-    box-shadow: 0 6px 14px rgba(85, 72, 220, 0.24);
-  }
-
-  .mobile-buy-button:active {
-    transform: scale(0.96);
-  }
-}
-
-
-/* SMALL MOBILE */
-
-@media (max-width: 560px) {
-  .event-poster-card {
-    height: 320px;
-  }
-
-  .event-basic-card {
-    width: calc(100% - 50px);
-    padding: 18px;
-  }
-
-  .event-basic-card h1 {
-    margin-top: 12px;
-    font-size: 23px;
-  }
-
-  .event-description-card,
-  .event-lineup-card,
-  .event-facilities-card,
-  .ticket-card {
-    width: calc(100% - 50px);
-  }
-
-  .event-description-card p,
-  .event-facilities-card p {
-    font-size: 14px;
-    line-height: 1.47;
-  }
-
-  .lineup-list {
-    gap: 20px;
-  }
-
-  .lineup-item {
-    flex-basis: 65px;
-    width: 65px;
-  }
-
-  .lineup-image {
-    width: 65px;
-    height: 65px;
-  }
-
-  .ticket-card {
-    padding: 18px;
-  }
-
-  .ticket-option {
-    padding: 14px;
-  }
-
-  .ticket-option-main {
-    align-items: center;
-  }
-
-  .ticket-option-bottom {
-    margin-top: 12px;
-  }
-
-  .ticket-quantity-control {
-    height: 34px;
-  }
-
-  .ticket-quantity-control button {
-    width: 28px;
-    font-size: 19px;
-  }
-
-  .ticket-quantity-control span {
-    min-width: 25px;
-    font-size: 12px;
-  }
-
-  .mobile-buy-bar {
-    min-height: 67px;
-    padding: 9px 12px;
-    gap: 7px;
-  }
-
-  .mobile-buy-info strong {
-    font-size: 14px;
-  }
-
-  .mobile-buy-quantity {
-    height: 34px;
-  }
-
-  .mobile-buy-quantity button {
-    width: 30px;
-    font-size: 18px;
-  }
-
-  .mobile-buy-quantity span {
-    min-width: 24px;
-  }
-
-  .mobile-buy-button {
-    min-width: 63px;
-    height: 38px;
-    padding: 0 14px;
-  }
-}
-
-
-/* VERY SMALL PHONE */
-
-@media (max-width: 420px) {
-  .event-poster-card {
-    height: 280px;
   }
 
   .event-basic-card,
   .event-description-card,
-  .event-lineup-card,
   .event-facilities-card,
-  .ticket-card {
-    width: calc(100% - 32px);
+  .event-lineup-card {
+    border-radius: 12px;
+    margin-top: 16px;
+    padding: 20px;
   }
 
-  .event-basic-card h1 {
-    font-size: 21px;
+  .desktop-ticket-section {
+    display: none;
   }
 
-  .event-description-card h2,
-  .event-lineup-card h2,
-  .event-facilities-card h2 {
-    font-size: 18px;
-  }
-
-  .event-description-card p,
-  .event-facilities-card p {
-    font-size: 13px;
-  }
-
-  .lineup-list {
-    gap: 16px;
-  }
-
-  .lineup-item {
-    flex-basis: 60px;
-    width: 60px;
-  }
-
-  .lineup-image {
-    width: 60px;
-    height: 60px;
-  }
-
-  .lineup-item span {
-    font-size: 10px;
-  }
-
-  .ticket-card {
-    padding: 16px;
-  }
-
-  .ticket-option-main {
-    gap: 7px;
-  }
-
-  .ticket-option h3 {
-    font-size: 12px;
-  }
-
-  .ticket-option p {
-    font-size: 9px;
-  }
-
-  .ticket-selected-label {
-    font-size: 7px;
-    padding: 3px 5px;
-  }
-
-  .ticket-quantity-control {
-    height: 32px;
-  }
-
-  .ticket-quantity-control button {
-    width: 26px;
-    font-size: 18px;
-  }
-
-  .ticket-quantity-control span {
-    min-width: 23px;
-    font-size: 11px;
-  }
-
-  .ticket-option-bottom {
-    align-items: flex-end;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .ticket-option-bottom strong {
-    font-size: 13px;
-  }
-
-  .ticket-option-bottom span {
-    font-size: 9px;
-  }
-
-  .ticket-summary-line span {
-    font-size: 10px;
-  }
-
-  .ticket-summary-line strong {
-    font-size: 11px;
-  }
-
-  .total-row span {
-    font-size: 11px;
-  }
-
-  .total-row strong {
-    font-size: 15px;
+  .mobile-ticket-section {
+    display: block;
+    margin-top: 16px;
   }
 
   .mobile-buy-bar {
-    padding: 8px 9px;
-    gap: 6px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    z-index: 99;
+    border-top: 1px solid #f1f5f9;
   }
 
   .mobile-buy-info {
+    display: flex;
+    flex-direction: column;
     gap: 2px;
   }
 
   .mobile-buy-info span {
-    font-size: 8px;
+    font-size: 11px;
+    color: #94a3b8;
   }
 
   .mobile-buy-info strong {
-    font-size: 13px;
-  }
-
-  .mobile-buy-quantity {
-    height: 32px;
-  }
-
-  .mobile-buy-quantity button {
-    width: 27px;
-    font-size: 17px;
-  }
-
-  .mobile-buy-quantity span {
-    min-width: 21px;
-    font-size: 11px;
+    font-size: 16px;
+    color: #4338ca;
+    font-weight: 700;
   }
 
   .mobile-buy-button {
-    min-width: 56px;
-    height: 36px;
-    padding: 0 11px;
-    font-size: 11px;
+    background: #4f46e5;
+    color: #ffffff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .detail-event-footer {
+    display: none;
   }
 }

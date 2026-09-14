@@ -43,6 +43,7 @@ import DetailTransaksiEO from "./components/eo/DetailTransaksiEO";
 import RefundEO from "./components/eo/RefundEO";
 import ProfileEO from "./components/eo/ProfileEO";
 import RegisterEO from "./components/eo/RegisterEO";
+import StatusRegisterEO from "./components/eo/StatusRegisterEO";
 
 
 function App() {
@@ -182,6 +183,10 @@ function App() {
             path="/eo/profil"
             element={<ProfileEO />}
           />
+          <Route
+  path="/register-eo/status"
+  element={<StatusRegisterEO />}
+/>
 
 
           {/* ==================== CUSTOMER ==================== */}

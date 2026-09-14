@@ -1,133 +1,156 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
-import FooterCustomer from "../shared/FooterCustomer";
+import { getEventDetail } from "../../services/eventService";
 import "./DetailEventCustomer.css";
+
+const FALLBACK_EVENT = {
+  id: "",
+  title: "Judul Event",
+  categoryLabel: "Kategori Event",
+  dateDisplay: "02 Februari 2027",
+  location: "Lokasi/Venue Event",
+  description:
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  image: "",
+  statusLabel: "Tersedia",
+  lineup: [
+    { name: "Bintang Tamu" },
+    { name: "Bintang Tamu" },
+    { name: "Bintang Tamu" },
+  ],
+  facilities: [
+    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+  ],
+  tickets: [
+    { name: "Early Bird", price: 200000, remaining: 10 },
+    { name: "Regular", price: 250000, remaining: 50 },
+  ],
+};
 
 function DetailEventCustomer() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [selectedTicket, setSelectedTicket] = useState(0);
-  const [quantity, setQuantity] = useState(1);
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const event = useMemo(
-    () => ({
-      id: id || "event-1",
+  const [openTierIndex, setOpenTierIndex] = useState(0);
+  const [selectedTierIndex, setSelectedTierIndex] = useState(0);
+  const [quantity, setQuantity] = useState(0);
 
-      title: "Neon Nights 2024",
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError("");
 
-      category: "MUSIC FESTIVAL",
+    const load = async () => {
+      try {
+        const res = await getEventDetail(id);
+        if (!cancelled) {
+          setEvent(res?.data || FALLBACK_EVENT);
+        }
+      } catch (err) {
+        console.error("Gagal memuat detail event:", err);
+        if (!cancelled) {
+          setEvent(FALLBACK_EVENT);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
 
-      date: "Sabtu, 15 Agustus 2024",
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
 
-      time: "19:00 - 23:00 WIB",
+  const tickets = useMemo(() => {
+    const list =
+      event?.tickets && Array.isArray(event.tickets) && event.tickets.length > 0
+        ? event.tickets
+        : FALLBACK_EVENT.tickets;
 
-      location: "Stadium Utama Gelora Bung Karno",
+    return list.map((t, i) => ({
+      id: t?.id,
+      name: t?.label || t?.name || (i === 0 ? "Early Bird" : "Regular"),
+      price: Number(t?.price) || 200000,
+      remaining: t?.remaining,
+    }));
+  }, [event]);
 
-      address: "Jl. Pintu Satu Senayan, Jakarta Pusat",
-
-      image:
-        "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1200&q=85",
-
-      description:
-        "Neon Nights 2024 adalah festival musik yang menghadirkan pengalaman musik malam yang penuh warna dan energi. Nikmati penampilan dari berbagai musisi pilihan dengan suasana festival yang seru dan meriah.",
-
-      facilities:
-        "Event ini menyediakan berbagai fasilitas untuk menunjang kenyamanan dan kebutuhan peserta selama acara berlangsung. Tersedia area parkir, toilet, mushola, food and beverage, serta fasilitas keamanan dan P3K.",
-
-      lineup: [
-        {
-          name: "Hindia",
-          image:
-            "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=300&q=80",
-        },
-
-        {
-          name: "Tulus",
-          image:
-            "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=300&q=80",
-        },
-
-        {
-          name: "Nadin Amizah",
-          image:
-            "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=300&q=80",
-        },
-
-        {
-          name: "Pamungkas",
-          image:
-            "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=300&q=80",
-        },
-      ],
-
-      tickets: [
-        {
-          name: "Regular",
-          price: 350000,
-          description: "Akses masuk festival",
-          stock: 100,
-        },
-
-        {
-          name: "VIP",
-          price: 750000,
-          description: "Akses VIP dan fasilitas khusus",
-          stock: 50,
-        },
-      ],
-    }),
-    [id]
-  );
-
-  const selectedTicketData = event.tickets[selectedTicket];
-
-  const subtotal = selectedTicketData.price * quantity;
+  const selectedTicketPrice = tickets[selectedTierIndex]?.price || 0;
+  const totalPrice = selectedTicketPrice * quantity;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
       minimumFractionDigits: 0,
-    }).format(price);
+    })
+      .format(price)
+      .replace("Rp", "Rp. ");
   };
 
-  const handleSelectTicket = (index) => {
-    setSelectedTicket(index);
-    setQuantity(1);
+  const increaseQuantity = (index) => {
+    setSelectedTierIndex(index);
+    setQuantity((prev) => prev + 1);
   };
 
-  const decreaseQuantity = () => {
-    setQuantity((current) => {
-      if (current <= 1) {
-        return 1;
-      }
-
-      return current - 1;
-    });
+  const decreaseQuantity = (index) => {
+    setSelectedTierIndex(index);
+    setQuantity((prev) => (prev > 0 ? prev - 1 : 0));
   };
 
-  const increaseQuantity = () => {
-    setQuantity((current) => {
-      if (current >= selectedTicketData.stock) {
-        return selectedTicketData.stock;
-      }
+  const handleBuyTicket = () => {
+    if (quantity === 0) {
+      alert("Silakan pilih jumlah tiket terlebih dahulu.");
+      return;
+    }
 
-      return current + 1;
-    });
-  };
-
-  const handleBuy = () => {
-    navigate(`/checkout/${event.id}`, {
+    const ticket = tickets[selectedTierIndex];
+    navigate(`/checkout/${event?.id || id}`, {
       state: {
-        event,
-        ticket: selectedTicketData,
+        eventId: event?.id || id,
+        eventTitle: event?.title,
+        eventDate: event?.dateDisplay || event?.date,
+        eventLocation: event?.location,
+        ticketName: ticket?.name,
+        ticketId: ticket?.id,
         quantity,
-        subtotal,
+        price: ticket?.price,
       },
     });
   };
+
+  if (loading) {
+    return (
+      <div className="detail-event-page">
+        <NavbarCustomer />
+        <main className="detail-event-loading">Memuat detail event...</main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="detail-event-page">
+        <NavbarCustomer />
+        <main className="detail-event-error">
+          <h1>Event Tidak Ditemukan</h1>
+          <p>{error}</p>
+        </main>
+      </div>
+    );
+  }
+
+  const currentEvent = event || FALLBACK_EVENT;
+  const lineup = currentEvent.lineup || [];
+  const facilities = currentEvent.facilities || [];
 
   return (
     <div className="detail-event-page">
@@ -136,313 +159,300 @@ function DetailEventCustomer() {
       <main className="detail-event-container">
         <div className="detail-event-left">
           {/* POSTER */}
-
           <div className="event-poster-card">
-            <img src={event.image} alt={event.title} />
+            {currentEvent.image ? (
+              <img src={currentEvent.image} alt={currentEvent.title} />
+            ) : (
+              <div className="poster-placeholder">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <path d="M21 15l-5-5L5 21" />
+                </svg>
+                <span>Contoh Poster Event</span>
+              </div>
+            )}
           </div>
 
-          {/* EVENT INFORMATION */}
-
+          {/* EVENT BASIC INFO */}
           <section className="event-basic-card">
-            <span className="event-category">{event.category}</span>
-
-            <h1>{event.title}</h1>
+            <div className="event-title-row">
+              <h1>{currentEvent.title}</h1>
+              <span className="event-status">
+                {currentEvent.statusLabel || currentEvent.status || "Tersedia"}
+              </span>
+            </div>
 
             <div className="event-info-list">
               <div className="event-info-item">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <rect
-                    x="3"
-                    y="4"
-                    width="18"
-                    height="17"
-                    rx="2"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
-
-                  <path
-                    d="M8 2V6M16 2V6M3 9H21"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                  <line x1="7" y1="7" x2="7.01" y2="7" />
                 </svg>
-
-                <div>
-                  <span className="event-info-label">Tanggal</span>
-
-                  <strong>{event.date}</strong>
-                </div>
+                <span>
+                  {currentEvent.categoryLabel ||
+                    currentEvent.category ||
+                    "Kategori Event"}
+                </span>
               </div>
 
               <div className="event-info-item">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
-
-                  <path
-                    d="M12 7V12L15 14"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
-
-                <div>
-                  <span className="event-info-label">Waktu</span>
-
-                  <strong>{event.time}</strong>
-                </div>
+                <span>
+                  {currentEvent.dateDisplay ||
+                    currentEvent.date ||
+                    "02 Februari 2027"}
+                </span>
               </div>
 
               <div className="event-info-item">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M20 10C20 15.5 12 21 12 21C12 21 4 15.5 4 10C4 5.58 7.58 2 12 2C16.42 2 20 5.58 20 10Z"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
-
-                  <circle
-                    cx="12"
-                    cy="10"
-                    r="2.5"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                  />
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
                 </svg>
-
-                <div>
-                  <span className="event-info-label">Lokasi</span>
-
-                  <strong>{event.location}</strong>
-
-                  <small>{event.address}</small>
-                </div>
+                <span>{currentEvent.location || "Lokasi/Venue Event"}</span>
               </div>
             </div>
           </section>
 
-          {/* DESCRIPTION */}
-
+          {/* DESKRIPSI EVENT */}
           <section className="event-description-card">
             <h2>Deskripsi Event</h2>
-
-            <p>{event.description}</p>
+            {currentEvent.description.split("\n\n").map((para, idx) => (
+              <p key={idx}>{para}</p>
+            ))}
           </section>
 
-          {/* LINE UP */}
-
-          <section className="event-lineup-card">
-            <h2>Line Up</h2>
-
-            <div className="lineup-list">
-              {event.lineup.map((artist, index) => (
-                <div className="lineup-item" key={index}>
-                  <div className="lineup-image">
-                    <img src={artist.image} alt={artist.name} />
-                  </div>
-
-                  <span>{artist.name}</span>
-                </div>
+          {/* FASILITAS (BERBASIS TAMPILAN DESKRIPSI) */}
+          {facilities.length > 0 && (
+            <section className="event-facilities-card">
+              <h2>Fasilitas</h2>
+              {facilities.map((fac, idx) => (
+                <p key={idx}>{fac}</p>
               ))}
-            </div>
-          </section>
+            </section>
+          )}
 
-          {/* FACILITIES */}
+          {/* LINEUP (TAMPILAN HORIZONTAL) */}
+          {lineup.length > 0 && (
+            <section className="event-lineup-card">
+              <h2>LineUp</h2>
+              <div className="lineup-list-horizontal">
+                {lineup.map((person, index) => (
+                  <div className="lineup-item" key={index}>
+                    <div className="lineup-avatar">
+                      {person.image ? (
+                        <img src={person.image} alt={person.name} />
+                      ) : (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        >
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      )}
+                    </div>
+                    <span>{person.name}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
-          <section className="event-facilities-card">
-            <h2>Fasilitas</h2>
-
-            <p>{event.facilities}</p>
+          {/* TIKET UNTUK MOBILE */}
+          <section className="mobile-ticket-section">
+            <TicketBox
+              tickets={tickets}
+              openTierIndex={openTierIndex}
+              setOpenTierIndex={setOpenTierIndex}
+              selectedTierIndex={selectedTierIndex}
+              quantity={quantity}
+              increaseQuantity={increaseQuantity}
+              decreaseQuantity={decreaseQuantity}
+              formatPrice={formatPrice}
+              onBuy={handleBuyTicket}
+              isMobile={true}
+            />
           </section>
         </div>
 
-        {/* TICKET SECTION */}
-
-        <aside className="ticket-card">
-          <div className="ticket-card-heading">
-            <div>
-              <h2>Pilih Tiket</h2>
-
-              <p>Pesan tiket sesuai kebutuhanmu</p>
-            </div>
-          </div>
-
-          <div className="ticket-options">
-            {event.tickets.map((ticket, index) => {
-              const isSelected = selectedTicket === index;
-
-              const currentQuantity = isSelected ? quantity : 0;
-
-              const remainingStock = ticket.stock - currentQuantity;
-
-              return (
-                <div
-                  key={index}
-                  className={`ticket-option ${
-                    isSelected ? "selected" : ""
-                  }`}
-                  onClick={() => handleSelectTicket(index)}
-                >
-                  <div className="ticket-option-main">
-                    <div className="ticket-option-text">
-                      <div className="ticket-name-row">
-                        <h3>{ticket.name}</h3>
-
-                        {isSelected && (
-                          <span className="ticket-selected-label">
-                            Dipilih
-                          </span>
-                        )}
-                      </div>
-
-                      <p>{ticket.description}</p>
-                    </div>
-
-                    <div
-                      className="ticket-quantity-control"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        type="button"
-                        onClick={decreaseQuantity}
-                        disabled={
-                          !isSelected || currentQuantity <= 1
-                        }
-                        aria-label={`Kurangi ${ticket.name}`}
-                      >
-                        −
-                      </button>
-
-                      <span>{currentQuantity}</span>
-
-                      <button
-                        type="button"
-                        onClick={increaseQuantity}
-                        disabled={
-                          !isSelected ||
-                          currentQuantity >= ticket.stock
-                        }
-                        aria-label={`Tambah ${ticket.name}`}
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="ticket-option-bottom">
-                    <strong>{formatPrice(ticket.price)}</strong>
-
-                    <span>
-                      {remainingStock} tiket tersedia
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* PAYMENT SUMMARY */}
-
-          <div className="ticket-purchase-section">
-            <div className="ticket-summary-top">
-              <span>Ringkasan Pesanan</span>
-
-              <span>
-                {quantity} {quantity > 1 ? "tiket" : "tiket"}
-              </span>
-            </div>
-
-            <div className="ticket-summary-line">
-              <span>
-                {selectedTicketData.name} × {quantity}
-              </span>
-
-              <strong>{formatPrice(subtotal)}</strong>
-            </div>
-
-            <div className="price-divider"></div>
-
-            <div className="total-row">
-              <span>Total Pembayaran</span>
-
-              <strong>{formatPrice(subtotal)}</strong>
-            </div>
-
-            <button
-              type="button"
-              className="buy-ticket-button"
-              onClick={handleBuy}
-            >
-              <span>
-                Beli {quantity} {quantity > 1 ? "Tiket" : "Tiket"}
-              </span>
-
-              <svg viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M5 12H19M13 6L19 12L13 18"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
+        {/* TIKET SIDEBAR DESKTOP */}
+        <aside className="desktop-ticket-section">
+          <TicketBox
+            tickets={tickets}
+            openTierIndex={openTierIndex}
+            setOpenTierIndex={setOpenTierIndex}
+            selectedTierIndex={selectedTierIndex}
+            quantity={quantity}
+            increaseQuantity={increaseQuantity}
+            decreaseQuantity={decreaseQuantity}
+            formatPrice={formatPrice}
+            onBuy={handleBuyTicket}
+          />
         </aside>
       </main>
 
-      {/* MOBILE PURCHASE BAR */}
-
+      {/* MOBILE BOTTOM BUY BAR */}
       <div className="mobile-buy-bar">
         <div className="mobile-buy-info">
-          <span>Total Pembayaran</span>
-
-          <strong>{formatPrice(subtotal)}</strong>
+          <span>Mulai Dari</span>
+          <strong>
+            {formatPrice(quantity > 0 ? totalPrice : selectedTicketPrice)}
+          </strong>
         </div>
-
-        <div className="mobile-buy-quantity">
-          <button
-            type="button"
-            onClick={decreaseQuantity}
-            disabled={quantity <= 1}
-            aria-label="Kurangi tiket"
-          >
-            −
-          </button>
-
-          <span>{quantity}</span>
-
-          <button
-            type="button"
-            onClick={increaseQuantity}
-            disabled={
-              quantity >= selectedTicketData.stock
-            }
-            aria-label="Tambah tiket"
-          >
-            +
-          </button>
-        </div>
-
-        <button
-          type="button"
-          className="mobile-buy-button"
-          onClick={handleBuy}
-        >
-          Beli
+        <button className="mobile-buy-button" onClick={handleBuyTicket}>
+          Beli Tiket
         </button>
       </div>
 
-      <FooterCustomer />
+      <footer className="detail-event-footer">
+        <p>© 2027 EVENTDAY. Hak cipta dilindungi undang-undang.</p>
+      </footer>
+    </div>
+  );
+}
+
+function TicketBox({
+  tickets = [],
+  openTierIndex,
+  setOpenTierIndex,
+  selectedTierIndex,
+  quantity,
+  increaseQuantity,
+  decreaseQuantity,
+  formatPrice,
+  onBuy,
+  isMobile = false,
+}) {
+  const selectedTicketPrice = tickets[selectedTierIndex]?.price || 0;
+  const totalPrice = selectedTicketPrice * quantity;
+
+  return (
+    <div className="ticket-card">
+      <h2>Tiket</h2>
+
+      {tickets.length === 0 && (
+        <div className="ticket-empty">
+          Tiket untuk event ini belum tersedia.
+        </div>
+      )}
+
+      <div className="ticket-accordion-list">
+        {tickets.map((ticket, index) => {
+          const isOpen = openTierIndex === index;
+
+          return (
+            <div
+              key={index}
+              className={`ticket-accordion-item ${isOpen ? "open" : ""}`}
+            >
+              <button
+                className="ticket-accordion-header"
+                onClick={() => setOpenTierIndex(isOpen ? null : index)}
+              >
+                <strong>{ticket.name}</strong>
+                <svg
+                  className={`arrow-icon ${isOpen ? "rotate" : ""}`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+
+              {isOpen && (
+                <div className="ticket-accordion-body">
+                  <div className="ticket-sub-row">
+                    <div className="ticket-sub-info">
+                      <span className="ticket-sub-name">Presale</span>
+                      <strong className="ticket-sub-price">
+                        {formatPrice(ticket.price)}
+                      </strong>
+                    </div>
+
+                    <div className="quantity-control">
+                      <button
+                        onClick={() => decreaseQuantity(index)}
+                        aria-label="Kurangi tiket"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="8" y1="12" x2="16" y2="12" />
+                        </svg>
+                      </button>
+                      <span>{selectedTierIndex === index ? quantity : 0}</span>
+                      <button
+                        onClick={() => increaseQuantity(index)}
+                        aria-label="Tambah tiket"
+                      >
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="12" y1="8" x2="12" y2="16" />
+                          <line x1="8" y1="12" x2="16" y2="12" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {!isMobile && (
+        <div className="ticket-summary-footer">
+          <div className="ticket-summary-price">
+            <span>Mulai Dari</span>
+            <strong>
+              {formatPrice(quantity > 0 ? totalPrice : selectedTicketPrice)}
+            </strong>
+          </div>
+          <button className="buy-ticket-button" onClick={onBuy}>
+            Beli Tiket
+          </button>
+        </div>
+      )}
     </div>
   );
 }
