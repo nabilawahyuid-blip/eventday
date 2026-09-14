@@ -126,133 +126,135 @@ function EventManagement() {
       <Sidebar />
 
       {/* MAIN AREA */}
-      <main className="event-main">
+      <div className="dashboard-wrapper" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {/* NAVBAR */}
         <Navbar />
 
-        {/* CONTENT */}
-        <div className="event-content">
-          {/* PAGE HEADING */}
-          <div className="page-heading">
-            <div className="page-heading-text">
-              <h2>Event Management</h2>
-              <p>Kelola dan pantau seluruh event yang tersedia</p>
+        <main className="event-main">
+          {/* CONTENT */}
+          <div className="event-content">
+            {/* PAGE HEADING */}
+            <div className="page-heading">
+              <div className="page-heading-text">
+                <h2>Event Management</h2>
+                <p>Kelola dan pantau seluruh event yang tersedia</p>
+              </div>
+
+              <button
+                type="button"
+                className="add-event-button"
+                onClick={handleAddEvent}
+              >
+                + Tambah Event
+              </button>
             </div>
 
-            <button
-              type="button"
-              className="add-event-button"
-              onClick={handleAddEvent}
-            >
-              + Tambah Event
-            </button>
-          </div>
+            {/* TOOLBAR */}
+            <div className="event-toolbar">
+              {/* SEARCH */}
+              <div className="event-search">
+                <span>⌕</span>
+                <input
+                  type="text"
+                  placeholder="Cari event..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
 
-          {/* TOOLBAR */}
-          <div className="event-toolbar">
-            {/* SEARCH */}
-            <div className="event-search">
-              <span>⌕</span>
-              <input
-                type="text"
-                placeholder="Cari event..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              {/* FILTER STATUS */}
+              <select
+                className="event-filter"
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+              >
+                <option value="Semua Status">Semua Status</option>
+                <option value="Aktif">Aktif</option>
+                <option value="Draft">Draft</option>
+                <option value="Selesai">Selesai</option>
+              </select>
+
+              {/* FILTER KATEGORI */}
+              <select
+                className="event-filter"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+              >
+                <option value="Semua Kategori">Semua Kategori</option>
+                <option value="Music Festival">Music Festival</option>
+                <option value="Technology">Technology</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Community">Community</option>
+                <option value="Art & Culture">Art & Culture</option>
+              </select>
             </div>
 
-            {/* FILTER STATUS */}
-            <select
-              className="event-filter"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-            >
-              <option value="Semua Status">Semua Status</option>
-              <option value="Aktif">Aktif</option>
-              <option value="Draft">Draft</option>
-              <option value="Selesai">Selesai</option>
-            </select>
-
-            {/* FILTER KATEGORI */}
-            <select
-              className="event-filter"
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="Semua Kategori">Semua Kategori</option>
-              <option value="Music Festival">Music Festival</option>
-              <option value="Technology">Technology</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Community">Community</option>
-              <option value="Art & Culture">Art & Culture</option>
-            </select>
-          </div>
-
-          {/* EVENT GRID */}
-          <div className="event-grid">
-            {filteredEvents.length > 0 ? (
-              filteredEvents.map((event) => (
-                <div className="event-card" key={event.id}>
-                  {/* EVENT COVER */}
-                  <div className={`event-cover ${event.imageClass}`}>
-                    <span>{event.category}</span>
-                  </div>
-
-                  {/* EVENT CONTENT */}
-                  <div className="event-card-content">
-                    {/* STATUS */}
-                    <div className="event-card-top">
-                      <span className={`event-status ${event.statusClass}`}>
-                        {event.status}
-                      </span>
+            {/* EVENT GRID */}
+            <div className="event-grid">
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map((event) => (
+                  <div className="event-card" key={event.id}>
+                    {/* EVENT COVER */}
+                    <div className={`event-cover ${event.imageClass}`}>
+                      <span>{event.category}</span>
                     </div>
 
-                    {/* TITLE */}
-                    <h3>{event.title}</h3>
+                    {/* EVENT CONTENT */}
+                    <div className="event-card-content">
+                      {/* STATUS */}
+                      <div className="event-card-top">
+                        <span className={`event-status ${event.statusClass}`}>
+                          {event.status}
+                        </span>
+                      </div>
 
-                    {/* DATE */}
-                    <div className="event-detail">
-                      <span>▣</span>
-                      {event.date}
-                    </div>
+                      {/* TITLE */}
+                      <h3>{event.title}</h3>
 
-                    {/* TIME */}
-                    <div className="event-detail">
-                      <span>◷</span>
-                      {event.time}
-                    </div>
+                      {/* DATE */}
+                      <div className="event-detail">
+                        <span>▣</span>
+                        {event.date}
+                      </div>
 
-                    {/* LOCATION */}
-                    <div className="event-detail">
-                      <span>◉</span>
-                      {event.location}
-                    </div>
+                      {/* TIME */}
+                      <div className="event-detail">
+                        <span>◷</span>
+                        {event.time}
+                      </div>
 
-                    {/* FOOTER */}
-                    <div className="event-card-footer">
-                      <span>{event.tickets} tiket</span>
+                      {/* LOCATION */}
+                      <div className="event-detail">
+                        <span>◉</span>
+                        {event.location}
+                      </div>
 
-                      {/* PANAH → DETAIL EVENT */}
-                      <button
-                        type="button"
-                        className="event-arrow"
-                        onClick={() => handleEventClick(event)}
-                        aria-label={`Lihat detail ${event.title}`}
-                      >
-                        →
-                      </button>
+                      {/* FOOTER */}
+                      <div className="event-card-footer">
+                        <span>{event.tickets} tiket</span>
+
+                        {/* PANAH → DETAIL EVENT */}
+                        <button
+                          type="button"
+                          className="event-arrow"
+                          onClick={() => handleEventClick(event)}
+                          aria-label={`Lihat detail ${event.title}`}
+                        >
+                          →
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            ) : (
-              <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#8d889a" }}>
-                Tidak ada event yang sesuai dengan pencarian.
-              </p>
-            )}
+                ))
+              ) : (
+                <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#8d889a" }}>
+                  Tidak ada event yang sesuai dengan pencarian.
+                </p>
+              )}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

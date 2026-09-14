@@ -17,7 +17,6 @@ function DashboardAdmin() {
     navigate("/event-management");
   };
 
-
   // ======
   // EVENT CLICK
   // ======
@@ -26,7 +25,6 @@ function DashboardAdmin() {
     navigate(`/admin/event/${eventId}`);
   };
 
-
   // ======
   // TRANSACTION CLICK
   // ======
@@ -34,7 +32,6 @@ function DashboardAdmin() {
   const handleTransactionClick = (name) => {
     alert(`Transaksi ${name} dipilih`);
   };
-
 
   return (
     <div className="admin-dashboard">
@@ -55,13 +52,11 @@ function DashboardAdmin() {
 
           <div className="dashboard-content">
 
-
             {/* =
                 STATISTICS
             = */}
 
             <section className="stats-grid">
-
 
               {/* ======
                   EVENT AKTIF
@@ -91,7 +86,6 @@ function DashboardAdmin() {
 
               </div>
 
-
               {/* ======
                   TOTAL USER
               ====== */}
@@ -119,7 +113,6 @@ function DashboardAdmin() {
                 </p>
 
               </div>
-
 
               {/* ======
                   TOTAL PENDAPATAN
@@ -151,14 +144,11 @@ function DashboardAdmin() {
 
             </section>
 
-
-
             {/* =
                 LOWER CONTENT
             = */}
 
             <section className="dashboard-grid">
-
 
               {/* =
                   EVENT TERBARU
@@ -182,9 +172,7 @@ function DashboardAdmin() {
 
                 </div>
 
-
                 <div className="event-list">
-
 
                   {/* ======
                       EVENT 1
@@ -204,7 +192,6 @@ function DashboardAdmin() {
 
                     </div>
 
-
                     <div className="event-info">
 
                       <h4>
@@ -217,19 +204,15 @@ function DashboardAdmin() {
 
                     </div>
 
-
                     <div className="event-status published">
                       Aktif
                     </div>
-
 
                     <span className="event-more">
                       ⋮
                     </span>
 
                   </button>
-
-
 
                   {/* ======
                       EVENT 2
@@ -249,7 +232,6 @@ function DashboardAdmin() {
 
                     </div>
 
-
                     <div className="event-info">
 
                       <h4>
@@ -262,18 +244,15 @@ function DashboardAdmin() {
 
                     </div>
 
-
                     <div className="event-status draft">
                       Draft
                     </div>
-
 
                     <span className="event-more">
                       ⋮
                     </span>
 
                   </button>
-
 
                   {/* ======
                       EVENT 3
@@ -293,7 +272,6 @@ function DashboardAdmin() {
 
                     </div>
 
-
                     <div className="event-info">
 
                       <h4>
@@ -306,11 +284,9 @@ function DashboardAdmin() {
 
                     </div>
 
-
                     <div className="event-status published">
                       Selesai
                     </div>
-
 
                     <span className="event-more">
                       ⋮
@@ -321,8 +297,6 @@ function DashboardAdmin() {
                 </div>
 
               </div>
-
-
 
               {/* =
                   AKTIVITAS TRANSAKSI
@@ -338,9 +312,7 @@ function DashboardAdmin() {
 
                 </div>
 
-
                 <div className="transaction-list">
-
 
                   {/* ======
                       TRANSACTION 1
@@ -357,7 +329,6 @@ function DashboardAdmin() {
                     <div className="transaction-avatar">
                       N1
                     </div>
-
 
                     <div className="transaction-info">
 
@@ -379,21 +350,17 @@ function DashboardAdmin() {
 
                       </p>
 
-
                       <span>
                         2 mins ago
                       </span>
 
                     </div>
 
-
                     <strong className="transaction-price success-badge">
                       Lunas
                     </strong>
 
                   </button>
-
-
 
                   {/* ======
                       TRANSACTION 2
@@ -410,7 +377,6 @@ function DashboardAdmin() {
                     <div className="transaction-avatar">
                       N2
                     </div>
-
 
                     <div className="transaction-info">
 
@@ -432,13 +398,11 @@ function DashboardAdmin() {
 
                       </p>
 
-
                       <span>
                         15 mins ago
                       </span>
 
                     </div>
-
 
                     <strong className="transaction-price pending-badge">
                       Menunggu
