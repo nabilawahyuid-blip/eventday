@@ -198,20 +198,25 @@ function DashboardCustomer() {
 
   const categories = ["Semua", "Musik", "Konferensi", "Pameran", "Kuliner"];
 
-  const nextSlide = () => {
+  const nextSlide = (e) => {
+    e.stopPropagation();
     setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
   };
 
-  const previousSlide = () => {
+  const previousSlide = (e) => {
+    e.stopPropagation();
     setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1));
   };
 
-  const handleBuyTicket = (event) => {
-    navigate(`/customer/event/${event.id}`);
+  const handleGoToDetail = (eventId) => {
+    if (eventId) {
+      navigate(`/customer/event/${eventId}`);
+    }
   };
 
-  const handleCreateEvent = () => {
-    navigate("/eo/event/create");
+  const handleBuyTicket = (e, event) => {
+    e.stopPropagation();
+    handleGoToDetail(event.id);
   };
 
   const currentHero = heroSlides[currentSlide];
@@ -232,12 +237,15 @@ function DashboardCustomer() {
           </button>
         </div>
 
+        {/* HERO SECTION - Klukable ke Event Detail */}
         <section className="hero-section">
           <div
             className="hero-slider"
             style={{
-              backgroundImage: `url(${currentHero.image})`,
+              backgroundImage: `url(${currentHero?.image})`,
+              cursor: "pointer",
             }}
+            onClick={() => handleGoToDetail(currentHero?.id)}
           >
             <div className="hero-overlay"></div>
 
@@ -264,7 +272,7 @@ function DashboardCustomer() {
             <div className="hero-content">
               <span className="hero-badge">SOROTAN UTAMA</span>
 
-              <h1>{currentHero.title}</h1>
+              <h1>{currentHero?.title}</h1>
 
               <div className="hero-location">
                 <svg viewBox="0 0 24 24">
@@ -272,7 +280,7 @@ function DashboardCustomer() {
                   <circle cx="12" cy="10" r="2.5" />
                 </svg>
 
-                <span>{currentHero.location}</span>
+                <span>{currentHero?.location}</span>
               </div>
             </div>
 
@@ -281,7 +289,10 @@ function DashboardCustomer() {
                 <button
                   key={index}
                   className={index === currentSlide ? "active" : ""}
-                  onClick={() => setCurrentSlide(index)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentSlide(index);
+                  }}
                   aria-label={`Slide ${index + 1}`}
                 />
               ))}
@@ -322,7 +333,12 @@ function DashboardCustomer() {
           {!loading && (
             <div className="event-grid">
               {events.map((event) => (
-                <article className="event-card" key={event.id}>
+                <article
+                  className="event-card"
+                  key={event.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleGoToDetail(event.id)}
+                >
                   <div className="event-image-wrapper">
                     <img src={event.image} alt={event.title} />
 
@@ -369,7 +385,7 @@ function DashboardCustomer() {
 
                       <button
                         className="buy-ticket-button"
-                        onClick={() => handleBuyTicket(event)}
+                        onClick={(e) => handleBuyTicket(e, event)}
                       >
                         Beli Tiket
                       </button>
