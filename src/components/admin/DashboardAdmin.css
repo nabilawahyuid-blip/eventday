@@ -374,6 +374,9 @@
 
   padding: 9px 11px;
 
+  position: relative; /* KUNCI: Mencegah status badge keluar wadah */
+  overflow: hidden;   /* KUNCI: Membatasi elemen agar tidak melayang */
+
   border: 1px solid #e6e0f1;
 
   border-radius: 9px;
