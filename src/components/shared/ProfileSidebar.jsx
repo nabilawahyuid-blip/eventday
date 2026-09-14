@@ -37,7 +37,7 @@ function ProfileSidebar({ open, onClose }) {
     },
     {
       label: "Refund",
-      path: "/customer/refund",
+      path: "/customer/refund-list",
       type: "refund",
     },
   ];
@@ -49,7 +49,7 @@ function ProfileSidebar({ open, onClose }) {
 
   const handleEditProfile = () => {
     onClose();
-    navigate("/customer/profile");
+    navigate("/customer/profile/edit");
   };
 
   const handleTerms = () => {
