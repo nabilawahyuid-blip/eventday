@@ -1,7 +1,7 @@
 const API_URL =
   (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
   (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
-  "https://bad1-2400-9800-3cd-197d-a978-b26a-d2bf-6e8.ngrok-free.app/api/v1/auth";
+  "https://90bc-2400-9800-25a-64b-45cc-9a26-5944-a73.ngrok-free.app/api/v1/auth";
 
 export const getApiBaseUrl = () => {
   return API_URL.replace("/auth", "");

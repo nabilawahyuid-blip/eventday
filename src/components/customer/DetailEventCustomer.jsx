@@ -149,8 +149,23 @@ function DetailEventCustomer() {
   }
 
   const currentEvent = event || FALLBACK_EVENT;
-  const lineup = currentEvent.lineup || [];
-  const facilities = currentEvent.facilities || [];
+
+  // SAFE CHECKING: Memastikan tipe data berupa Array sebelum di-render
+  const lineup = Array.isArray(currentEvent.lineup)
+    ? currentEvent.lineup
+    : typeof currentEvent.lineup === "string"
+      ? [{ name: currentEvent.lineup }]
+      : [];
+
+  const facilities = Array.isArray(currentEvent.facilities)
+    ? currentEvent.facilities
+    : typeof currentEvent.facilities === "string"
+      ? [currentEvent.facilities]
+      : [];
+
+  const rawDescription = currentEvent.description || "";
+  const descriptionParagraphs =
+    typeof rawDescription === "string" ? rawDescription.split("\n\n") : [];
 
   return (
     <div className="detail-event-page">
@@ -243,22 +258,26 @@ function DetailEventCustomer() {
           {/* DESKRIPSI EVENT */}
           <section className="event-description-card">
             <h2>Deskripsi Event</h2>
-            {currentEvent.description.split("\n\n").map((para, idx) => (
+            {descriptionParagraphs.map((para, idx) => (
               <p key={idx}>{para}</p>
             ))}
           </section>
 
-          {/* FASILITAS (BERBASIS TAMPILAN DESKRIPSI) */}
+          {/* FASILITAS */}
           {facilities.length > 0 && (
             <section className="event-facilities-card">
               <h2>Fasilitas</h2>
               {facilities.map((fac, idx) => (
-                <p key={idx}>{fac}</p>
+                <p key={idx}>
+                  {typeof fac === "object"
+                    ? fac?.name || JSON.stringify(fac)
+                    : fac}
+                </p>
               ))}
             </section>
           )}
 
-          {/* LINEUP (TAMPILAN HORIZONTAL) */}
+          {/* LINEUP */}
           {lineup.length > 0 && (
             <section className="event-lineup-card">
               <h2>LineUp</h2>
@@ -266,8 +285,11 @@ function DetailEventCustomer() {
                 {lineup.map((person, index) => (
                   <div className="lineup-item" key={index}>
                     <div className="lineup-avatar">
-                      {person.image ? (
-                        <img src={person.image} alt={person.name} />
+                      {person?.image ? (
+                        <img
+                          src={person.image}
+                          alt={person?.name || "Lineup"}
+                        />
                       ) : (
                         <svg
                           viewBox="0 0 24 24"
@@ -280,7 +302,11 @@ function DetailEventCustomer() {
                         </svg>
                       )}
                     </div>
-                    <span>{person.name}</span>
+                    <span>
+                      {typeof person === "string"
+                        ? person
+                        : person?.name || "Bintang Tamu"}
+                    </span>
                   </div>
                 ))}
               </div>
