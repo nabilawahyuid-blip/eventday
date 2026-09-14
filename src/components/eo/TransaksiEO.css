@@ -1,6 +1,6 @@
-/* =
+/* =========================================================
    TRANSAKSI EO
-= */
+========================================================= */
 
 .transaksi-eo-page {
   min-height: 100vh;
@@ -9,9 +9,9 @@
 }
 
 
-/* =
+/* =========================================================
    MAIN
-= */
+========================================================= */
 
 .transaksi-eo-main {
   min-height: 100vh;
@@ -20,209 +20,601 @@
 }
 
 
-/* =
+/* =========================================================
    CONTENT
-= */
+========================================================= */
 
 .transaksi-eo-content {
   width: 100%;
   max-width: 1120px;
-
   margin: 0 auto;
-
   padding: 34px 34px 70px;
 }
 
 
-/* =
+/* =========================================================
    HEADER
-= */
+========================================================= */
 
 .transaksi-eo-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   margin-bottom: 30px;
 }
 
-
 .transaksi-eo-header h1 {
   margin: 0;
-
   color: #28263f;
-
-  font-size: 26px;
+  font-size: 29px;
   line-height: 1.2;
   font-weight: 700;
 }
 
-
 .transaksi-eo-header p {
-  margin: 6px 0 0;
-
-  color: #8c8b9c;
-
-  font-size: 12px;
+  margin: 7px 0 0;
+  color: #6f6d7c;
+  font-size: 13px;
   line-height: 1.5;
 }
 
 
-/* =
+/* =========================================================
    TRANSACTION CARD
-= */
+========================================================= */
 
 .transaction-card {
   width: 100%;
-
-  overflow: hidden;
-
-  border: 1px solid #e8e6f0;
+  overflow: visible;
+  border: 1px solid #e4e2ec;
   border-radius: 13px;
-
   background: #ffffff;
-
   box-shadow:
     0 4px 15px rgba(45, 40, 90, 0.035);
 }
 
 
-/* =
+/* =========================================================
    CARD HEADER
-= */
+========================================================= */
 
 .transaction-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 20px;
-
   padding: 22px 22px 18px;
-
-  border-bottom: 1px solid #eceaf2;
+  border-bottom: 1px solid #e7e5ee;
 }
-
 
 .transaction-card-header h2 {
   margin: 0;
-
-  color: #37354e;
-
-  font-size: 15px;
-  font-weight: 650;
+  color: #343246;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 
-/* =
+/* =========================================================
    TOOLS
-= */
+========================================================= */
 
 .transaction-tools {
   display: flex;
   align-items: center;
-
   gap: 10px;
 }
 
 
-/* =
+/* =========================================================
    SEARCH
-= */
+========================================================= */
 
 .transaction-search {
   position: relative;
-
   display: flex;
   align-items: center;
 
-  width: 220px;
-  height: 36px;
+  width: 250px;
+  height: 42px;
+
+  padding: 4px;
+
+  border: 1px solid #dedbe9;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 2px 7px rgba(50, 45, 100, 0.035);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
+
+/* =========================================================
+   SEARCH ICON
+========================================================= */
 
 .transaction-search span {
   position: absolute;
 
-  left: 11px;
+  left: 10px;
 
-  color: #9c9baa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 16px;
+  width: 28px;
+  height: 28px;
+
+  border-radius: 7px;
+
+  background: #f2f0ff;
+  color: #6256e8;
+
+  font-size: 17px;
+  font-weight: 600;
 
   pointer-events: none;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
+
+/* =========================================================
+   SEARCH INPUT
+========================================================= */
 
 .transaction-search input {
   width: 100%;
   height: 100%;
 
-  padding: 0 12px 0 34px;
+  padding: 0 13px 0 47px;
 
-  border: 1px solid #e4e2eb;
+  border: none;
   border-radius: 7px;
 
   outline: none;
 
-  background: #faf9fd;
+  background: transparent;
 
-  color: #38364d;
+  color: #363448;
 
   font-family: "Poppins", sans-serif;
 
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
+
+/* =========================================================
+   SEARCH PLACEHOLDER
+========================================================= */
 
 .transaction-search input::placeholder {
-  color: #aaa9b5;
+  color: #858391;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 
-.transaction-search input:focus {
+/* =========================================================
+   SEARCH HOVER
+========================================================= */
+
+.transaction-search:hover {
+  border-color: #cfcbe0;
+
+  box-shadow:
+    0 4px 12px rgba(50, 45, 100, 0.07);
+}
+
+
+/* =========================================================
+   SEARCH FOCUS
+========================================================= */
+
+.transaction-search:focus-within {
   border-color: #6256e8;
 
   box-shadow:
-    0 0 0 3px rgba(98, 86, 232, 0.07);
+    0 0 0 3px rgba(98, 86, 232, 0.09),
+    0 4px 12px rgba(50, 45, 100, 0.06);
 }
 
 
-/* =
-   FILTER
-= */
+/* =========================================================
+   SEARCH ICON SAAT FOCUS
+========================================================= */
+
+.transaction-search:focus-within span {
+  background: #6256e8;
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   CUSTOM FILTER
+========================================================= */
 
 .transaction-filter-wrapper {
   position: relative;
 }
 
 
+/* =========================================================
+   FILTER BUTTON
+========================================================= */
+
 .transaction-filter {
-  width: 105px;
-  height: 36px;
+  display: flex;
+  align-items: center;
 
-  padding: 0 10px;
+  width: 125px;
+  height: 42px;
 
-  border: 1px solid #e4e2eb;
-  border-radius: 7px;
+  padding: 0 11px;
+
+  border: 1px solid #dcd9e5;
+  border-radius: 10px;
 
   outline: none;
 
   background: #ffffff;
-
-  color: #5e5d6c;
+  color: #4f4d5d;
 
   font-family: "Poppins", sans-serif;
-
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 500;
 
   cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 
-/* =
+/* =========================================================
+   FILTER HOVER
+========================================================= */
+
+.transaction-filter:hover {
+  border-color: #c9c5df;
+  background: #fcfbff;
+}
+
+
+/* =========================================================
+   FILTER ACTIVE
+========================================================= */
+
+.transaction-filter.active {
+  border-color: #6256e8;
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px rgba(98, 86, 232, 0.09);
+}
+
+
+/* =========================================================
+   FILTER CURRENT ICON
+========================================================= */
+
+.filter-current-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 23px;
+  height: 23px;
+
+  margin-right: 7px;
+
+  border-radius: 6px;
+
+  background: #f0efff;
+  color: #6256e8;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   FILTER CURRENT TEXT
+========================================================= */
+
+.filter-current-text {
+  flex: 1;
+
+  text-align: left;
+
+  color: #4d4b5b;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   FILTER ARROW
+========================================================= */
+
+.filter-arrow {
+  color: #777583;
+  font-size: 14px;
+
+  transition:
+    transform 0.2s ease;
+}
+
+.filter-arrow.rotate {
+  transform: rotate(180deg);
+}
+
+
+/* =========================================================
+   FILTER POPUP
+========================================================= */
+
+.transaction-filter-popup {
+  position: absolute;
+
+  top: calc(100% + 9px);
+  right: 0;
+
+  z-index: 1000;
+
+  width: 265px;
+
+  padding: 9px;
+
+  border: 1px solid #e3e0ec;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 12px 30px rgba(48, 43, 100, 0.13),
+    0 3px 8px rgba(48, 43, 100, 0.05);
+
+  animation:
+    filterPopupIn 0.18s ease;
+}
+
+
+/* =========================================================
+   POPUP ANIMATION
+========================================================= */
+
+@keyframes filterPopupIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   POPUP TITLE
+========================================================= */
+
+.filter-popup-title {
+  padding: 8px 10px 9px;
+
+  color: #858391;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+
+/* =========================================================
+   FILTER OPTIONS
+========================================================= */
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+
+/* =========================================================
+   FILTER OPTION
+========================================================= */
+
+.filter-option {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  width: 100%;
+
+  padding: 10px 9px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+
+/* =========================================================
+   FILTER OPTION HOVER
+========================================================= */
+
+.filter-option:hover {
+  background: #f7f6fc;
+}
+
+
+/* =========================================================
+   FILTER OPTION SELECTED
+========================================================= */
+
+.filter-option.selected {
+  background: #f5f3ff;
+}
+
+
+/* =========================================================
+   FILTER OPTION ACTIVE
+========================================================= */
+
+.filter-option:active {
+  transform: scale(0.985);
+}
+
+
+/* =========================================================
+   OPTION ICON
+========================================================= */
+
+.filter-option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+
+  width: 34px;
+  height: 34px;
+
+  margin-right: 10px;
+
+  border-radius: 9px;
+
+  font-size: 15px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   OPTION - SEMUA
+========================================================= */
+
+.filter-option-icon.all {
+  background: #efefff;
+  color: #6256e8;
+}
+
+
+/* =========================================================
+   OPTION - LUNAS
+========================================================= */
+
+.filter-option-icon.paid {
+  background: #e8f8f1;
+  color: #15966f;
+}
+
+
+/* =========================================================
+   OPTION - MENUNGGU
+========================================================= */
+
+.filter-option-icon.pending {
+  background: #fff3dc;
+  color: #c38417;
+}
+
+
+/* =========================================================
+   OPTION - DIBATALKAN
+========================================================= */
+
+.filter-option-icon.cancelled {
+  background: #ffebed;
+  color: #d6535b;
+}
+
+
+/* =========================================================
+   OPTION CONTENT
+========================================================= */
+
+.filter-option-content {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 2px;
+}
+
+.filter-option-content strong {
+  color: #3e3c4d;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.filter-option-content small {
+  color: #888693;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 9px;
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   FILTER CHECK
+========================================================= */
+
+.filter-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-left: auto;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+
+  background: #6256e8;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+/* =========================================================
    TRANSACTION LIST
-= */
+========================================================= */
 
 .transaction-list {
   display: flex;
@@ -234,28 +626,27 @@
 }
 
 
-/* =
+/* =========================================================
    TRANSACTION ITEM
-= */
+========================================================= */
 
 .transaction-item {
   display: grid;
 
   grid-template-columns:
-    minmax(180px, 1.25fr)
-    minmax(210px, 1.4fr)
-    100px
-    125px;
+    minmax(190px, 1.25fr)
+    minmax(230px, 1.4fr)
+    150px;
 
   align-items: center;
 
   gap: 20px;
 
-  min-height: 100px;
+  min-height: 108px;
 
-  padding: 17px 14px;
+  padding: 18px 15px;
 
-  border: 1px solid #e6e4ee;
+  border: 1px solid #e1dfe9;
   border-radius: 9px;
 
   background: #ffffff;
@@ -267,6 +658,11 @@
 }
 
 
+/* =========================================================
+   TRANSACTION ITEM HOVER
+   HANYA CARD, BUKAN STATUS
+========================================================= */
+
 .transaction-item:hover {
   border-color: #d5d1f5;
 
@@ -277,167 +673,260 @@
 }
 
 
-/* =
+/* =========================================================
    TRANSACTION INFO
-= */
+========================================================= */
 
 .transaction-info {
   min-width: 0;
 }
 
 
+/* =========================================================
+   CUSTOMER NAME
+========================================================= */
+
 .transaction-info h3 {
   overflow: hidden;
 
-  margin: 0 0 4px;
+  margin: 0 0 5px;
 
-  color: #333147;
+  color: #2f2d42;
 
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
+
+  line-height: 1.4;
 
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+
+/* =========================================================
+   TICKET
+========================================================= */
 
 .transaction-info p {
   overflow: hidden;
 
-  margin: 0 0 9px;
+  margin: 0 0 10px;
 
-  color: #858493;
+  color: #686675;
 
-  font-size: 9px;
+  font-size: 11px;
+  font-weight: 500;
+
+  line-height: 1.4;
 
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 
+/* =========================================================
+   ID TRANSAKSI
+========================================================= */
+
 .transaction-info strong {
   display: block;
 
-  color: #444254;
+  color: #555362;
 
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 600;
+
+  line-height: 1.4;
 }
 
 
-/* =
+/* =========================================================
    EVENT
-= */
+========================================================= */
 
 .transaction-event {
   min-width: 0;
 }
 
 
+/* =========================================================
+   LABEL EVENT
+========================================================= */
+
 .transaction-event span {
   display: block;
 
-  margin-bottom: 4px;
+  margin-bottom: 5px;
 
-  color: #a1a0ae;
+  color: #777583;
 
-  font-size: 8px;
+  font-size: 10px;
+  font-weight: 500;
 }
 
+
+/* =========================================================
+   NAMA EVENT
+========================================================= */
 
 .transaction-event p {
   overflow: hidden;
 
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 
-  color: #4c4a5e;
+  color: #363448;
 
-  font-size: 9px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 700;
+
+  line-height: 1.4;
 
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 
-.transaction-event small {
-  color: #9998a7;
+/* =========================================================
+   TANGGAL DAN JAM
+========================================================= */
 
-  font-size: 8px;
+.transaction-event small {
+  color: #666472;
+
+  font-size: 11px;
+  font-weight: 500;
+
+  line-height: 1.4;
 }
 
 
-/* =
+/* =========================================================
+   TRANSACTION ACTION
+   STATUS + DETAIL
+========================================================= */
+
+.transaction-action {
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 8px !important;
+
+  min-width: 130px;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+
+/* =========================================================
    STATUS
-= */
+   SELALU TERLIHAT
+   TIDAK TERGANTUNG HOVER
+========================================================= */
 
 .transaction-status {
-  display: flex;
-  justify-content: center;
+  display: flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 100% !important;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  position: static !important;
+
+  transform: none !important;
 }
 
 
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
 .status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-flex !important;
 
-  min-width: 62px;
+  align-items: center !important;
+  justify-content: center !important;
 
-  padding: 5px 10px;
+  min-width: 72px;
+
+  padding: 6px 12px;
 
   border-radius: 20px;
 
-  font-size: 8px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 600;
+
+  line-height: 1.3;
 
   white-space: nowrap;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  position: static !important;
+
+  transform: none !important;
 }
 
 
-/* LUNAS */
+/* =========================================================
+   LUNAS
+========================================================= */
 
 .status-badge.paid {
-  border: 1px solid #cdece1;
+  border: 1px solid #c7e9dc;
 
-  background: #e9f8f2;
+  background: #e7f8f1;
 
-  color: #15966f;
+  color: #118b68;
 }
 
 
-/* MENUNGGU */
+/* =========================================================
+   MENUNGGU
+========================================================= */
 
 .status-badge.pending {
-  border: 1px solid #f2dfb9;
+  border: 1px solid #f0ddb7;
 
-  background: #fff4df;
+  background: #fff3dc;
 
-  color: #c88a19;
+  color: #b8790e;
 }
 
 
-/* DIBATALKAN */
+/* =========================================================
+   DIBATALKAN
+========================================================= */
 
 .status-badge.cancelled {
-  border: 1px solid #f4d0d2;
+  border: 1px solid #f1cccc;
 
-  background: #ffebec;
+  background: #ffebed;
 
-  color: #dd5d63;
+  color: #d5535b;
 }
 
 
-/* =
+/* =========================================================
    DETAIL BUTTON
-= */
+========================================================= */
 
 .detail-transaction-button {
-  height: 34px;
+  width: 130px;
+  height: 37px;
 
-  padding: 0 12px;
+  padding: 0 13px;
 
-  border: 1px solid #d6d3e5;
+  border: 1px solid #d3d0e2;
   border-radius: 7px;
 
   background: #ffffff;
@@ -446,17 +935,22 @@
 
   font-family: "Poppins", sans-serif;
 
-  font-size: 8px;
-  font-weight: 500;
+  font-size: 10px;
+  font-weight: 600;
 
   cursor: pointer;
 
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
+
+/* =========================================================
+   DETAIL BUTTON HOVER
+========================================================= */
 
 .detail-transaction-button:hover {
   border-color: #6256e8;
@@ -464,17 +958,21 @@
   background: #6256e8;
 
   color: #ffffff;
+
+  transform: translateY(-1px);
 }
 
 
-/* =
+/* =========================================================
    EMPTY STATE
-= */
+========================================================= */
 
 .empty-transaction {
   display: flex;
+
   align-items: center;
   justify-content: center;
+
   flex-direction: column;
 
   min-height: 260px;
@@ -482,9 +980,9 @@
   text-align: center;
 }
 
-
 .empty-icon {
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -502,31 +1000,29 @@
   font-size: 22px;
 }
 
-
 .empty-transaction h3 {
   margin: 0 0 5px;
 
-  color: #3b394e;
+  color: #373548;
 
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 700;
 }
-
 
 .empty-transaction p {
   margin: 0;
 
-  color: #9998a6;
+  color: #777583;
 
-  font-size: 10px;
+  font-size: 11px;
 }
 
 
-/* =
-   RESPONSIVE
-= */
+/* =========================================================
+   RESPONSIVE - TABLET BESAR
+========================================================= */
 
 @media (max-width: 1100px) {
-
   .transaksi-eo-main {
     margin-left: 200px;
   }
@@ -537,17 +1033,18 @@
 
   .transaction-item {
     grid-template-columns:
-      1fr
-      1fr
-      auto
-      auto;
+      minmax(170px, 1fr)
+      minmax(200px, 1fr)
+      140px;
   }
-
 }
 
 
-@media (max-width: 850px) {
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
 
+@media (max-width: 850px) {
   .transaction-card-header {
     align-items: flex-start;
     flex-direction: column;
@@ -561,29 +1058,61 @@
     flex: 1;
   }
 
+  .transaction-filter {
+    width: 125px;
+  }
+
   .transaction-item {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
+  .transaction-action {
+    grid-column: 1 / -1;
+
+    align-items: flex-start !important;
+
+    flex-direction: row !important;
+
+    justify-content: flex-start !important;
+
+    gap: 10px !important;
+
+    min-width: 0;
   }
 
   .transaction-status {
-    justify-content: flex-start;
+    width: auto !important;
+
+    justify-content: flex-start !important;
   }
 
   .detail-transaction-button {
-    width: max-content;
+    width: 130px;
   }
-
 }
 
 
-@media (max-width: 650px) {
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
 
+@media (max-width: 650px) {
   .transaksi-eo-main {
     margin-left: 0;
   }
 
   .transaksi-eo-content {
     padding: 25px 16px 50px;
+  }
+
+  .transaksi-eo-header h1 {
+    font-size: 26px;
+  }
+
+  .transaksi-eo-header p {
+    font-size: 12px;
   }
 
   .transaction-tools {
@@ -600,17 +1129,70 @@
     width: 100%;
   }
 
+  .transaction-filter-popup {
+    left: 0;
+    right: 0;
+
+    width: auto;
+
+    min-width: 100%;
+  }
+
   .transaction-item {
     grid-template-columns: 1fr;
+
     gap: 13px;
   }
 
+  .transaction-info h3 {
+    font-size: 14px;
+  }
+
+  .transaction-info p {
+    font-size: 11px;
+  }
+
+  .transaction-event p {
+    font-size: 14px;
+  }
+
+  .transaction-event small {
+    font-size: 10px;
+  }
+
+  .transaction-action {
+    grid-column: auto;
+
+    align-items: flex-start !important;
+
+    flex-direction: column !important;
+
+    gap: 8px !important;
+  }
+
   .transaction-status {
-    justify-content: flex-start;
+    width: auto !important;
+
+    justify-content: flex-start !important;
   }
 
   .detail-transaction-button {
     width: 100%;
   }
+}
 
+
+/* =========================================================
+   PENGAMAN TERAKHIR
+   STATUS TIDAK BOLEH HILANG SAAT HOVER
+========================================================= */
+
+.transaction-item:hover .transaction-action,
+.transaction-item:hover .transaction-status,
+.transaction-item:hover .status-badge {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+  position: static !important;
+  transform: none !important;
 }

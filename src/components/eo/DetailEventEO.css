@@ -18,26 +18,38 @@
 }
 
 /* Top Back Button */
+
 .detail-event-eo-top-nav {
   margin-bottom: 20px;
 }
 
 .back-button {
-  border: none;
-  background: transparent;
-  color: #6b667e;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: max-content;
+  white-space: nowrap;
+  border: 1px solid #ddd9e8;
+  background: #ffffff;
+  color: #5f596d;
+  font-family: "Poppins", sans-serif;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  padding: 0;
-  transition: color 0.2s;
+  padding: 8px 14px;
+  border-radius: 7px;
+  transition: all 0.2s ease;
 }
 
 .back-button:hover {
   color: #5b4de5;
+  border-color: #5b4de5;
+  background: #faf9ff;
 }
 
 /* Hero Section */
+
 .detail-event-eo-hero-card {
   background: #ffffff;
   border-radius: 12px;
@@ -64,7 +76,7 @@
   right: 16px;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -79,21 +91,22 @@
 
 .hero-info h1 {
   margin: 0;
-  font-size: 22px;
+  font-size: 25px;
   font-weight: 700;
   color: #242038;
 }
 
 .event-id {
   margin: 6px 0 0;
-  font-size: 11px;
-  color: #8c879a;
+  font-size: 12px;
+  color: #666173;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 /* Two Column Grid */
+
 .detail-event-eo-content-grid {
   display: grid;
   grid-template-columns: 1fr 300px;
@@ -102,6 +115,7 @@
 }
 
 /* Card Universal Styling */
+
 .detail-card {
   background: #ffffff;
   border-radius: 10px;
@@ -112,15 +126,16 @@
 
 .detail-card h2 {
   margin: 0 0 12px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: #242038;
 }
 
 /* Left Column Specifics */
+
 .meta-card h3 {
   margin: 0 0 14px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -128,8 +143,8 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  font-size: 10px;
-  color: #837e93;
+  font-size: 11px;
+  color: #666173;
   flex-wrap: wrap;
 }
 
@@ -141,9 +156,9 @@
 
 .description-text p,
 .facilities-text {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.7;
-  color: #696479;
+  color: #625d70;
   margin: 0 0 10px;
 }
 
@@ -152,6 +167,7 @@
 }
 
 /* LineUp Section */
+
 .lineup-grid {
   display: flex;
   gap: 24px;
@@ -176,12 +192,13 @@
 }
 
 .lineup-item span {
-  font-size: 9px;
-  color: #696479;
+  font-size: 10px;
+  color: #625d70;
   text-align: center;
 }
 
 /* Right Column Specifics */
+
 .edit-event-btn {
   width: 100%;
   height: 38px;
@@ -190,7 +207,7 @@
   border: none;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   margin-bottom: 16px;
@@ -203,15 +220,15 @@
 }
 
 .stats-card h2 {
-  font-size: 12px;
+  font-size: 14px;
   margin-bottom: 16px;
 }
 
 .sales-text-row {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
-  color: #797489;
+  font-size: 10px;
+  color: #666173;
   margin-bottom: 6px;
 }
 
@@ -237,9 +254,9 @@
 
 .category-breakdown h4 {
   margin: 0 0 12px;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.5px;
-  color: #a09ba9;
+  color: #777181;
   font-weight: 600;
 }
 
@@ -248,7 +265,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .category-row:last-child {
@@ -266,8 +283,8 @@
 }
 
 .cat-price {
-  font-size: 9px;
-  color: #8c879a;
+  font-size: 10px;
+  color: #686274;
   margin-top: 2px;
 }
 
@@ -277,6 +294,7 @@
 }
 
 /* Responsive Breakpoints */
+
 @media (max-width: 900px) {
   .detail-event-eo-content-grid {
     grid-template-columns: 1fr;
@@ -297,6 +315,7 @@
   .detail-event-eo-main {
     width: 100%;
     margin-left: 0;
-    padding: 80px 16px 30px;
+    padding: 20px 16px 30px;
   }
+
 }
