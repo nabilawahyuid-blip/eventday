@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../shared/Sidebar";
@@ -9,10 +9,12 @@ import "./EventManagement.css";
 function EventManagement() {
   const navigate = useNavigate();
 
-  // ==
-  // DATA EVENT SEMENTARA
-  // ==
+  // State untuk Search dan Filter
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("Semua Status");
+  const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
 
+  // DATA EVENT
   const events = [
     {
       id: 1,
@@ -27,7 +29,6 @@ function EventManagement() {
       organizer: "Synchronize Festival",
       imageClass: "event-purple",
     },
-
     {
       id: 2,
       title: "Jakarta Tech Week 2024",
@@ -41,7 +42,6 @@ function EventManagement() {
       organizer: "Tech Indonesia",
       imageClass: "event-blue",
     },
-
     {
       id: 3,
       title: "Annual Gala Dinner",
@@ -55,7 +55,6 @@ function EventManagement() {
       organizer: "EventDay Organizer",
       imageClass: "event-orange",
     },
-
     {
       id: 4,
       title: "Creative Youth Festival",
@@ -69,7 +68,6 @@ function EventManagement() {
       organizer: "Creative Youth",
       imageClass: "event-pink",
     },
-
     {
       id: 5,
       title: "Indonesia Digital Expo",
@@ -83,7 +81,6 @@ function EventManagement() {
       organizer: "Digital Indonesia",
       imageClass: "event-green",
     },
-
     {
       id: 6,
       title: "Art & Culture Weekend",
@@ -99,73 +96,48 @@ function EventManagement() {
     },
   ];
 
-  // ==
   // KLIK PANAH → DETAIL EVENT
-  // ==
-
   const handleEventClick = (event) => {
     navigate(`/admin/event/${event.id}`);
   };
 
-  // ==
-  // BUTTON TAMBAH EVENT
-  // ==
-
+  // BUTTON TAMBAH EVENT → ARAHKAN KE FORM TAMBAH EVENT
   const handleAddEvent = () => {
-    console.log("Tambah event");
+    navigate("/admin/tambah-event");
   };
 
-  // ==
-  // RENDER
-  // ==
+  // LOGIKA FILTER DAN SEARCH
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch = event.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      selectedStatus === "Semua Status" || event.status === selectedStatus;
+    const matchesCategory =
+      selectedCategory === "Semua Kategori" ||
+      event.category === selectedCategory;
+
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
 
   return (
     <div className="event-management-page">
-
-      {/* =====
-          SIDEBAR
-      ====== */}
-
+      {/* SIDEBAR */}
       <Sidebar />
 
-
-      {/* =====
-          MAIN AREA
-      ====== */}
-
+      {/* MAIN AREA */}
       <main className="event-main">
-
-        {/* =====
-            NAVBAR
-        ====== */}
-
+        {/* NAVBAR */}
         <Navbar />
 
-
-        {/* =====
-            CONTENT
-        ====== */}
-
+        {/* CONTENT */}
         <div className="event-content">
-
-          {/* =====
-              PAGE HEADING
-          ====== */}
-
+          {/* PAGE HEADING */}
           <div className="page-heading">
-
             <div className="page-heading-text">
-
-              <h2>
-                Event Management
-              </h2>
-
-              <p>
-                Kelola dan pantau seluruh event yang tersedia
-              </p>
-
+              <h2>Event Management</h2>
+              <p>Kelola dan pantau seluruh event yang tersedia</p>
             </div>
-
 
             <button
               type="button"
@@ -174,219 +146,113 @@ function EventManagement() {
             >
               + Tambah Event
             </button>
-
           </div>
 
-
-          {/* =====
-              TOOLBAR
-          ====== */}
-
+          {/* TOOLBAR */}
           <div className="event-toolbar">
-
             {/* SEARCH */}
-
             <div className="event-search">
-
-              <span>
-                ⌕
-              </span>
-
+              <span>⌕</span>
               <input
                 type="text"
                 placeholder="Cari event..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-
             </div>
 
-
             {/* FILTER STATUS */}
-
-            <select className="event-filter">
-
-              <option>
-                Semua Status
-              </option>
-
-              <option>
-                Aktif
-              </option>
-
-              <option>
-                Draft
-              </option>
-
-              <option>
-                Selesai
-              </option>
-
+            <select
+              className="event-filter"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            >
+              <option value="Semua Status">Semua Status</option>
+              <option value="Aktif">Aktif</option>
+              <option value="Draft">Draft</option>
+              <option value="Selesai">Selesai</option>
             </select>
-
 
             {/* FILTER KATEGORI */}
-
-            <select className="event-filter">
-
-              <option>
-                Semua Kategori
-              </option>
-
-              <option>
-                Music Festival
-              </option>
-
-              <option>
-                Technology
-              </option>
-
-              <option>
-                Entertainment
-              </option>
-
-              <option>
-                Community
-              </option>
-
-              <option>
-                Art & Culture
-              </option>
-
+            <select
+              className="event-filter"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <option value="Semua Kategori">Semua Kategori</option>
+              <option value="Music Festival">Music Festival</option>
+              <option value="Technology">Technology</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Community">Community</option>
+              <option value="Art & Culture">Art & Culture</option>
             </select>
-
           </div>
 
-
-          {/* =====
-              EVENT GRID
-          ====== */}
-
+          {/* EVENT GRID */}
           <div className="event-grid">
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
+                <div className="event-card" key={event.id}>
+                  {/* EVENT COVER */}
+                  <div className={`event-cover ${event.imageClass}`}>
+                    <span>{event.category}</span>
+                  </div>
 
-            {events.map((event) => (
+                  {/* EVENT CONTENT */}
+                  <div className="event-card-content">
+                    {/* STATUS */}
+                    <div className="event-card-top">
+                      <span className={`event-status ${event.statusClass}`}>
+                        {event.status}
+                      </span>
+                    </div>
 
-              <div
-                className="event-card"
-                key={event.id}
-              >
+                    {/* TITLE */}
+                    <h3>{event.title}</h3>
 
-                {/* =
-                    EVENT COVER
-                == */}
+                    {/* DATE */}
+                    <div className="event-detail">
+                      <span>▣</span>
+                      {event.date}
+                    </div>
 
-                <div
-                  className={`event-cover ${event.imageClass}`}
-                >
+                    {/* TIME */}
+                    <div className="event-detail">
+                      <span>◷</span>
+                      {event.time}
+                    </div>
 
-                  <span>
-                    {event.category}
-                  </span>
+                    {/* LOCATION */}
+                    <div className="event-detail">
+                      <span>◉</span>
+                      {event.location}
+                    </div>
 
+                    {/* FOOTER */}
+                    <div className="event-card-footer">
+                      <span>{event.tickets} tiket</span>
+
+                      {/* PANAH → DETAIL EVENT */}
+                      <button
+                        type="button"
+                        className="event-arrow"
+                        onClick={() => handleEventClick(event)}
+                        aria-label={`Lihat detail ${event.title}`}
+                      >
+                        →
+                      </button>
+                    </div>
+                  </div>
                 </div>
-
-
-                {/* =
-                    EVENT CONTENT
-                == */}
-
-                <div className="event-card-content">
-
-                  {/* STATUS */}
-
-                  <div className="event-card-top">
-
-                    <span
-                      className={`event-status ${event.statusClass}`}
-                    >
-                      {event.status}
-                    </span>
-
-                  </div>
-
-
-                  {/* TITLE */}
-
-                  <h3>
-                    {event.title}
-                  </h3>
-
-
-                  {/* DATE */}
-
-                  <div className="event-detail">
-
-                    <span>
-                      ▣
-                    </span>
-
-                    {event.date}
-
-                  </div>
-
-
-                  {/* TIME */}
-
-                  <div className="event-detail">
-
-                    <span>
-                      ◷
-                    </span>
-
-                    {event.time}
-
-                  </div>
-
-
-                  {/* LOCATION */}
-
-                  <div className="event-detail">
-
-                    <span>
-                      ◉
-                    </span>
-
-                    {event.location}
-
-                  </div>
-
-
-                  {/* =
-                      FOOTER
-                  == */}
-
-                  <div className="event-card-footer">
-
-                    <span>
-                      {event.tickets} tiket
-                    </span>
-
-
-                    {/* =
-                        PANAH → DETAIL EVENT
-                    == */}
-
-                    <button
-                      type="button"
-                      className="event-arrow"
-                      onClick={() => handleEventClick(event)}
-                      aria-label={`Lihat detail ${event.title}`}
-                    >
-                      →
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            ))}
-
+              ))
+            ) : (
+              <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#8d889a" }}>
+                Tidak ada event yang sesuai dengan pencarian.
+              </p>
+            )}
           </div>
-
         </div>
-
       </main>
-
     </div>
   );
 }

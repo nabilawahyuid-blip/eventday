@@ -55,7 +55,9 @@ function Sidebar() {
 
         <button
           type="button"
-          className="sidebar-menu-item"
+          className={`sidebar-menu-item ${
+            isActive("/admin/users") ? "active" : ""
+          }`}
           onClick={() => navigate("/admin/users")}
         >
           <span className="sidebar-icon">♙</span>
@@ -65,7 +67,9 @@ function Sidebar() {
 
         <button
           type="button"
-          className="sidebar-menu-item"
+          className={`sidebar-menu-item ${
+            isActive("/admin/pengajuan-eo") ? "active" : ""
+          }`}
           onClick={() => navigate("/admin/pengajuan-eo")}
         >
           <span className="sidebar-icon">♙</span>
@@ -75,8 +79,10 @@ function Sidebar() {
 
         <button
           type="button"
-          className="sidebar-menu-item"
-           onClick={() => navigate("/admin/transaksi")}
+          className={`sidebar-menu-item ${
+            isActive("/admin/transaksi") ? "active" : ""
+          }`}
+          onClick={() => navigate("/admin/transaksi")}
         >
           <span className="sidebar-icon">▣</span>
           Transaksi
@@ -85,8 +91,10 @@ function Sidebar() {
 
         <button
           type="button"
-          className="sidebar-menu-item"
-           onClick={() => navigate("/admin/tiket")}
+          className={`sidebar-menu-item ${
+            isActive("/admin/tiket") ? "active" : ""
+          }`}
+          onClick={() => navigate("/admin/tiket")}
         >
           <span className="sidebar-icon">▤</span>
           Tiket
@@ -95,8 +103,10 @@ function Sidebar() {
 
         <button
           type="button"
-          className="sidebar-menu-item"
-          onClick={() => console.log("Pengaturan Platform")}
+          className={`sidebar-menu-item ${
+            isActive("/admin/pengaturan") ? "active" : ""
+          }`}
+          onClick={() => navigate("/admin/pengaturan")}
         >
           <span className="sidebar-icon">⚙</span>
           Pengaturan Platform
