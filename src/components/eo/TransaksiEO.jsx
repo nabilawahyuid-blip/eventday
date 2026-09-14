@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
@@ -9,6 +9,9 @@ function TransaksiEO() {
 
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const filterRef = useRef(null);
 
   const transactions = [
     {
@@ -63,9 +66,9 @@ function TransaksiEO() {
     },
   ];
 
-  // ======
-  // FILTER
-  // ======
+  /* =====================================================
+     FILTER TRANSAKSI
+  ===================================================== */
 
   const filteredTransactions = transactions.filter((transaction) => {
     const keyword = search.toLowerCase();
@@ -83,78 +86,127 @@ function TransaksiEO() {
     return matchesSearch && matchesStatus;
   });
 
-  // ======
-  // DETAIL TRANSAKSI
-  // ======
+  /* =====================================================
+     DETAIL TRANSAKSI
+  ===================================================== */
 
   const handleDetail = (transaction) => {
     navigate(`/eo/transaksi/${transaction.id}`);
   };
 
+  /* =====================================================
+     GANTI FILTER
+  ===================================================== */
+
+  const handleFilterChange = (status) => {
+    setFilterStatus(status);
+    setIsFilterOpen(false);
+  };
+
+  /* =====================================================
+     TUTUP DROPDOWN SAAT KLIK DI LUAR
+  ===================================================== */
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target)
+      ) {
+        setIsFilterOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  /* =====================================================
+     ICON STATUS
+  ===================================================== */
+
+  const getStatusIcon = (status) => {
+    if (status === "Lunas") {
+      return "✓";
+    }
+
+    if (status === "Menunggu") {
+      return "◷";
+    }
+
+    if (status === "Dibatalkan") {
+      return "×";
+    }
+
+    return "☷";
+  };
+
   return (
     <div className="transaksi-eo-page">
 
-      {/* =
-           SIDEBAR
-       = */}
+      {/* =================================================
+          SIDEBAR
+      ================================================= */}
 
       <SidebarEO />
 
-      {/* =
-           MAIN CONTENT
-       = */}
+      {/* =================================================
+          MAIN CONTENT
+      ================================================= */}
 
       <main className="transaksi-eo-main">
 
         {/* NAVBAR */}
-
         <NavbarEO />
 
-        {/* =
-            PAGE CONTENT
-        = */}
-
+        {/* PAGE CONTENT */}
         <div className="transaksi-eo-content">
 
-          {/* PAGE HEADER */}
+          {/* =================================================
+              PAGE HEADER
+          ================================================= */}
 
           <div className="transaksi-eo-header">
-
             <div>
-              <h1>
-                Transaksi
-              </h1>
+              <h1>Transaksi</h1>
 
               <p>
                 Kelola dan pantau seluruh transaksi event Anda.
               </p>
             </div>
-
           </div>
 
-          {/* =
-              TRANSACTION LIST
-          = */}
+          {/* =================================================
+              TRANSACTION CARD
+          ================================================= */}
 
           <section className="transaction-card">
+
+            {/* =================================================
+                CARD HEADER
+            ================================================= */}
 
             <div className="transaction-card-header">
 
               <div>
-                <h2>
-                  Daftar Transaksi
-                </h2>
+                <h2>Daftar Transaksi</h2>
               </div>
 
               <div className="transaction-tools">
 
-                {/* SEARCH */}
+                {/* =================================================
+                    SEARCH
+                ================================================= */}
 
                 <div className="transaction-search">
 
-                  <span>
-                    ⌕
-                  </span>
+                  <span>⌕</span>
 
                   <input
                     type="text"
@@ -167,44 +219,206 @@ function TransaksiEO() {
 
                 </div>
 
-                {/* FILTER */}
+                {/* =================================================
+                    CUSTOM FILTER
+                ================================================= */}
 
-                <div className="transaction-filter-wrapper">
+                <div
+                  className="transaction-filter-wrapper"
+                  ref={filterRef}
+                >
 
-                  <select
-                    value={filterStatus}
-                    onChange={(e) =>
-                      setFilterStatus(e.target.value)
+                  {/* FILTER BUTTON */}
+
+                  <button
+                    type="button"
+                    className={`transaction-filter ${
+                      isFilterOpen ? "active" : ""
+                    }`}
+                    onClick={() =>
+                      setIsFilterOpen(!isFilterOpen)
                     }
-                    className="transaction-filter"
                   >
-                    <option value="Semua">
-                      Semua
-                    </option>
 
-                    <option value="Lunas">
-                      Lunas
-                    </option>
+                    <span className="filter-current-icon">
+                      {getStatusIcon(filterStatus)}
+                    </span>
 
-                    <option value="Menunggu">
-                      Menunggu
-                    </option>
+                    <span className="filter-current-text">
+                      {filterStatus}
+                    </span>
 
-                    <option value="Dibatalkan">
-                      Dibatalkan
-                    </option>
+                    <span
+                      className={`filter-arrow ${
+                        isFilterOpen ? "rotate" : ""
+                      }`}
+                    >
+                      ▾
+                    </span>
 
-                  </select>
+                  </button>
+
+                  {/* =================================================
+                      FILTER POPUP
+                  ================================================= */}
+
+                  {isFilterOpen && (
+                    <div className="transaction-filter-popup">
+
+                      <div className="filter-popup-title">
+                        Filter Status
+                      </div>
+
+                      <div className="filter-options">
+
+                        {/* SEMUA */}
+
+                        <button
+                          type="button"
+                          className={`filter-option ${
+                            filterStatus === "Semua"
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleFilterChange("Semua")
+                          }
+                        >
+
+                          <span className="filter-option-icon all">
+                            ☷
+                          </span>
+
+                          <span className="filter-option-content">
+                            <strong>Semua</strong>
+
+                            <small>
+                              Tampilkan semua transaksi
+                            </small>
+                          </span>
+
+                          {filterStatus === "Semua" && (
+                            <span className="filter-check">
+                              ✓
+                            </span>
+                          )}
+
+                        </button>
+
+                        {/* LUNAS */}
+
+                        <button
+                          type="button"
+                          className={`filter-option ${
+                            filterStatus === "Lunas"
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleFilterChange("Lunas")
+                          }
+                        >
+
+                          <span className="filter-option-icon paid">
+                            ✓
+                          </span>
+
+                          <span className="filter-option-content">
+                            <strong>Lunas</strong>
+
+                            <small>
+                              Transaksi sudah dibayar
+                            </small>
+                          </span>
+
+                          {filterStatus === "Lunas" && (
+                            <span className="filter-check">
+                              ✓
+                            </span>
+                          )}
+
+                        </button>
+
+                        {/* MENUNGGU */}
+
+                        <button
+                          type="button"
+                          className={`filter-option ${
+                            filterStatus === "Menunggu"
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleFilterChange("Menunggu")
+                          }
+                        >
+
+                          <span className="filter-option-icon pending">
+                            ◷
+                          </span>
+
+                          <span className="filter-option-content">
+                            <strong>Menunggu</strong>
+
+                            <small>
+                              Menunggu pembayaran
+                            </small>
+                          </span>
+
+                          {filterStatus === "Menunggu" && (
+                            <span className="filter-check">
+                              ✓
+                            </span>
+                          )}
+
+                        </button>
+
+                        {/* DIBATALKAN */}
+
+                        <button
+                          type="button"
+                          className={`filter-option ${
+                            filterStatus === "Dibatalkan"
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleFilterChange("Dibatalkan")
+                          }
+                        >
+
+                          <span className="filter-option-icon cancelled">
+                            ×
+                          </span>
+
+                          <span className="filter-option-content">
+                            <strong>Dibatalkan</strong>
+
+                            <small>
+                              Transaksi dibatalkan
+                            </small>
+                          </span>
+
+                          {filterStatus === "Dibatalkan" && (
+                            <span className="filter-check">
+                              ✓
+                            </span>
+                          )}
+
+                        </button>
+
+                      </div>
+                    </div>
+                  )}
 
                 </div>
 
               </div>
-
             </div>
 
-            {/* =
-                TRANSACTION ITEMS
-            = */}
+            {/* =================================================
+                TRANSACTION LIST
+            ================================================= */}
 
             <div className="transaction-list">
 
@@ -217,7 +431,9 @@ function TransaksiEO() {
                     key={transaction.id}
                   >
 
-                    {/* CUSTOMER */}
+                    {/* =================================================
+                        CUSTOMER
+                    ================================================= */}
 
                     <div className="transaction-info">
 
@@ -235,7 +451,9 @@ function TransaksiEO() {
 
                     </div>
 
-                    {/* EVENT */}
+                    {/* =================================================
+                        EVENT
+                    ================================================= */}
 
                     <div className="transaction-event">
 
@@ -254,35 +472,47 @@ function TransaksiEO() {
 
                     </div>
 
-                    {/* STATUS */}
+                    {/* =================================================
+                        STATUS + DETAIL
+                    ================================================= */}
 
-                    <div className="transaction-status">
+                    <div className="transaction-action">
 
-                      <span
-                        className={`status-badge ${transaction.statusClass}`}
+                      {/* STATUS SELALU TAMPIL */}
+
+                      <div className="transaction-status">
+
+                        <span
+                          className={`status-badge ${transaction.statusClass}`}
+                        >
+                          {transaction.status}
+                        </span>
+
+                      </div>
+
+                      {/* DETAIL BUTTON */}
+
+                      <button
+                        type="button"
+                        className="detail-transaction-button"
+                        onClick={() =>
+                          handleDetail(transaction)
+                        }
                       >
-                        {transaction.status}
-                      </span>
+                        Detail Transaksi
+                      </button>
 
                     </div>
-
-                    {/* ACTION */}
-
-                    <button
-                      type="button"
-                      className="detail-transaction-button"
-                      onClick={() =>
-                        handleDetail(transaction)
-                      }
-                    >
-                      Detail Transaksi
-                    </button>
 
                   </div>
 
                 ))
 
               ) : (
+
+                /* =================================================
+                   EMPTY STATE
+                ================================================= */
 
                 <div className="empty-transaction">
 
