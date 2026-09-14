@@ -31,6 +31,7 @@ import TransaksiCustomer from "./components/customer/TransaksiCustomer";
 import ProfileCustomer from "./components/customer/ProfileCustomer";
 import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
 import SyaratKetentuan from "./components/customer/SyaratKetentuan";
+import EditProfileCustomer from "./components/customer/EditProfileCustomer";
 
 // ==================== EO ====================
 import DashboardEO from "./components/eo/DashboardEO";
@@ -239,6 +240,10 @@ function App() {
             path="/customer/terms"
             element={<SyaratKetentuan />}
           />
+          <Route
+  path="/customer/profile/edit"
+  element={<EditProfileCustomer />}
+/>
 
         </Routes>
 

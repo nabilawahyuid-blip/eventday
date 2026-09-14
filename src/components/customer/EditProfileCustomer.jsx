@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import "./EditProfileCustomer.css";
 
 function EditProfileCustomer() {
@@ -16,191 +17,199 @@ function EditProfileCustomer() {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    setFormData({
-      ...formData,
+    setFormData((previous) => ({
+      ...previous,
       [name]: value,
-    });
-  };
-
-  const handleSave = (e) => {
-    e.preventDefault();
-
-    alert("Data profile berhasil disimpan!");
-
-    navigate("/customer/profile");
+    }));
   };
 
   const handleCancel = () => {
-    navigate("/customer/profile");
+    navigate(-1);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (
+      !formData.name.trim() ||
+      !formData.username.trim() ||
+      !formData.email.trim() ||
+      !formData.phone.trim() ||
+      !formData.nik.trim()
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "Data Belum Lengkap",
+        text: "Silakan lengkapi semua data terlebih dahulu.",
+        confirmButtonColor: "#5143e6",
+      });
+
+      return;
+    }
+
+    Swal.fire({
+      icon: "success",
+      title: "Berhasil Disimpan",
+      text: "Data diri kamu berhasil diperbarui.",
+      confirmButtonColor: "#5143e6",
+    }).then(() => {
+      navigate("/customer/profile");
+    });
   };
 
   return (
     <div className="edit-profile-page">
+      {/* HEADER */}
 
-      {/* Header */}
       <header className="edit-profile-header">
-        <div
-          className="edit-profile-back"
-          onClick={() => navigate("/customer/profile")}
+        <button
+          type="button"
+          className="edit-profile-back-button"
+          onClick={handleCancel}
+          aria-label="Kembali"
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M19 12H5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M12 19L5 12L12 5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6" />
           </svg>
-        </div>
+        </button>
 
         <div className="edit-profile-logo">
-          <span>EVENT</span>
-          <strong>DAY</strong>
+          EVENT<span>DAY</span>
         </div>
 
         <div className="edit-profile-location">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M20 10C20 15 12 21 12 21C12 21 4 15 4 10C4 5.58 7.58 2 12 2C16.42 2 20 5.58 20 10Z"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
-            <circle
-              cx="12"
-              cy="10"
-              r="2.5"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            />
+          <svg viewBox="0 0 24 24">
+            <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
+            <circle cx="12" cy="9" r="2.5" />
           </svg>
 
           <span>Jakarta, ID</span>
         </div>
       </header>
 
-      {/* Main */}
-      <main className="edit-profile-main">
+      {/* MAIN */}
 
-        {/* Profile Card */}
-        <section className="edit-profile-card">
+      <main className="edit-profile-content">
+        {/* PROFILE CARD */}
 
-          <div className="profile-image-wrapper">
-            <div className="profile-image-placeholder">
-              <span>Silahkan Edit Data Diri</span>
-
-              <div className="placeholder-fields">
-                <div></div>
-                <div></div>
-                <div></div>
-                <div></div>
-              </div>
-            </div>
+        <section className="edit-profile-user-card">
+          <div className="edit-profile-photo">
+            <img
+              src="https://ui-avatars.com/api/?name=Adit+Ramadan&background=f5f5f5&color=777&size=180"
+              alt="Foto Profil"
+            />
           </div>
 
-          <h1>{formData.name}</h1>
-          <p>{formData.email}</p>
+          <div className="edit-profile-user-info">
+            <h1>{formData.name}</h1>
+            <p>{formData.email}</p>
+          </div>
         </section>
 
-        {/* Form */}
-        <section className="edit-profile-form-card">
+        {/* FORM CARD */}
 
+        <section className="edit-profile-form-card">
           <div className="edit-profile-form-title">
             <h2>Edit Data Diri</h2>
           </div>
 
-          <form onSubmit={handleSave}>
+          <form onSubmit={handleSubmit}>
+            <div className="edit-profile-form-body">
+              {/* NAMA */}
 
-            <div className="edit-form-group">
-              <label htmlFor="name">
-                Nama Lengkap
-              </label>
+              <div className="edit-profile-input-group">
+                <label htmlFor="name">
+                  Nama Lengkap
+                </label>
 
-              <input
-                id="name"
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-              />
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Masukan Nama Lengkap"
+                />
+              </div>
+
+              {/* USERNAME */}
+
+              <div className="edit-profile-input-group">
+                <label htmlFor="username">
+                  Username
+                </label>
+
+                <input
+                  id="username"
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  placeholder="Masukan Username"
+                />
+              </div>
+
+              {/* EMAIL */}
+
+              <div className="edit-profile-input-group">
+                <label htmlFor="email">
+                  Email
+                </label>
+
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Masukan Email"
+                />
+              </div>
+
+              {/* WHATSAPP */}
+
+              <div className="edit-profile-input-group">
+                <label htmlFor="phone">
+                  No WhatsApp
+                </label>
+
+                <input
+                  id="phone"
+                  type="text"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Masukan No WhatsApp"
+                  inputMode="numeric"
+                />
+              </div>
+
+              {/* NIK */}
+
+              <div className="edit-profile-input-group">
+                <label htmlFor="nik">
+                  NIK
+                </label>
+
+                <input
+                  id="nik"
+                  type="text"
+                  name="nik"
+                  value={formData.nik}
+                  onChange={handleChange}
+                  placeholder="Masukan NIK"
+                  inputMode="numeric"
+                  maxLength={16}
+                />
+              </div>
             </div>
 
-            <div className="edit-form-group">
-              <label htmlFor="username">
-                Username
-              </label>
+            {/* BUTTON */}
 
-              <input
-                id="username"
-                type="text"
-                name="username"
-                value={formData.username}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="edit-form-group">
-              <label htmlFor="email">
-                Email
-              </label>
-
-              <input
-                id="email"
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="edit-form-group">
-              <label htmlFor="phone">
-                No WhatsApp
-              </label>
-
-              <input
-                id="phone"
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="edit-form-group">
-              <label htmlFor="nik">
-                NIK
-              </label>
-
-              <input
-                id="nik"
-                type="text"
-                name="nik"
-                value={formData.nik}
-                disabled
-              />
-            </div>
-
-            <div className="edit-profile-divider"></div>
-
-            <div className="edit-profile-actions">
+            <div className="edit-profile-form-footer">
               <button
                 type="button"
-                className="cancel-profile-button"
+                className="edit-profile-cancel-button"
                 onClick={handleCancel}
               >
                 Batal
@@ -208,22 +217,21 @@ function EditProfileCustomer() {
 
               <button
                 type="submit"
-                className="save-profile-button"
+                className="edit-profile-save-button"
               >
                 Simpan
               </button>
             </div>
-
           </form>
         </section>
-
       </main>
 
-      {/* Footer */}
-      <footer className="edit-profile-footer">
-        © 2027 EVENTDAY. Hak cipta dilindungi undang-undang.
-      </footer>
+      {/* FOOTER */}
 
+      <footer className="edit-profile-footer">
+        © 2027 EVENTDAY. Hak cipta dilindungi
+        undang-undang.
+      </footer>
     </div>
   );
 }
