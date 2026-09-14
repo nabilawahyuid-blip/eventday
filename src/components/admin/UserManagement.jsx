@@ -247,15 +247,7 @@ function UserManagement() {
               </p>
 
             </div>
-
-            <button
-              type="button"
-              className="add-user-button"
-              onClick={handleAddUser}
-            >
-              <span>+</span>
-              Add New User
-            </button>
+    
 
           </div>
 
