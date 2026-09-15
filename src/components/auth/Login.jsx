@@ -28,6 +28,7 @@ function Login() {
     // Jika BE masih kirim token (legacy), simpan. Jika tidak, jangan hapus token lama — cookie sudah tersimpan otomatis via credentials:'include'.
     if (data.token) {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("eventday_token", data.token);
     }
 
     if (data.userId) {
@@ -344,7 +345,6 @@ function Login() {
             size="large"
             text="continue_with"
             shape="rectangular"
-            width="100%"
           />
         </div>
 
