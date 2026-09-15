@@ -2,6 +2,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import NavbarCustomer from "../shared/NavbarCustomer";
+import {
+  calcCheckout,
+  getCheckoutSummary,
+  initiateCheckout,
+  processCheckout,
+  saveAttendees,
+} from "../../services/checkoutService";
 import "./Checkout.css";
 
 function Checkout() {
@@ -11,15 +18,34 @@ function Checkout() {
 
   const checkoutData = location.state || {};
 
-  const [timeLeft, setTimeLeft] = useState(14 * 60 + 57);
+  const tierId =
+    checkoutData.ticketId ||
+    checkoutData.tierId ||
+    checkoutData.ticket?.id ||
+    null;
+  const initialQuantity =
+    Number(checkoutData.quantity) ||
+    Number(checkoutData.event?.quantity) ||
+    1;
 
-  const [buyers, setBuyers] = useState([
-    {
-      name: "",
-      email: "",
-      nik: "",
-    },
-  ]);
+  const [timeLeft, setTimeLeft] = useState(14 * 60 + 57);
+  const [orderId, setOrderId] = useState(checkoutData.orderId || null);
+  const [calc, setCalc] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createEmptyBuyer = () => ({
+    name: "",
+    email: "",
+    nik: "",
+  });
+
+  // Form pemesan otomatis sejumlah tiket yang dipesan (1 tiket = 1 data pemesan)
+  const [buyers, setBuyers] = useState(() =>
+    Array.from(
+      { length: Math.max(1, initialQuantity) },
+      createEmptyBuyer
+    )
+  );
 
   const [openForms, setOpenForms] = useState({
     1: true,
@@ -64,13 +90,86 @@ function Checkout() {
     };
   }, [checkoutData, id]);
 
+  // Sinkronkan jumlah form dengan jumlah tiket — data yang sudah diisi dipertahankan
+  useEffect(() => {
+    const count = Math.max(1, event.quantity);
+    setBuyers((previous) => {
+      if (previous.length === count) return previous;
+      return Array.from({ length: count }, (_, index) =>
+        previous[index] || createEmptyBuyer()
+      );
+    });
+    setOpenForms((previous) => {
+      const next = { ...previous };
+      for (let number = 1; number <= count; number++) {
+        if (!(number in next)) next[number] = true;
+      }
+      return next;
+    });
+  }, [event.quantity]);
+
   const ticketTotal = useMemo(() => {
+    if (calc?.subtotal != null) return Number(calc.subtotal);
     return event.price * event.quantity;
-  }, [event.price, event.quantity]);
+  }, [calc, event.price, event.quantity]);
 
-  const adminFee = 5000;
+  const adminFee = calc?.adminFee != null ? Number(calc.adminFee) : 5000;
+  const tax = calc?.tax != null ? Number(calc.tax) : 0;
+  const discount = calc?.discount != null ? Number(calc.discount) : 0;
 
-  const totalPayment = ticketTotal + adminFee;
+  const totalPayment = useMemo(() => {
+    if (calc?.totalAmount != null) return Number(calc.totalAmount);
+    return ticketTotal + adminFee;
+  }, [calc, ticketTotal, adminFee]);
+
+  // Ambil kalkulasi resmi BE (subtotal + adminFee + tax 10%) — fallback ke hitungan lokal jika BE mati
+  useEffect(() => {
+    if (!tierId) return;
+    let cancelled = false;
+    const loadCalc = async () => {
+      try {
+        const res = await calcCheckout(tierId, event.quantity);
+        if (!cancelled) setCalc(res?.data || null);
+      } catch (err) {
+        console.error("Gagal memuat kalkulasi checkout:", err);
+      }
+    };
+    loadCalc();
+    return () => {
+      cancelled = true;
+    };
+  }, [tierId, event.quantity]);
+
+  // Buat order PENDING sekali saat halaman dibuka — expiredAt BE jadi acuan timer
+  useEffect(() => {
+    if (!tierId || orderId) return;
+    let cancelled = false;
+    const init = async () => {
+      try {
+        const res = await initiateCheckout(tierId, initialQuantity);
+        const order = res?.data || res || {};
+        const newOrderId = order.orderId || order.id || null;
+        const expiredAt = order.expiredAt || order.expired_at || null;
+        if (!cancelled) {
+          if (newOrderId) setOrderId(newOrderId);
+          if (expiredAt) {
+            const diff = Math.max(
+              0,
+              Math.floor((new Date(expiredAt).getTime() - Date.now()) / 1000)
+            );
+            if (diff > 0) setTimeLeft(diff);
+          }
+        }
+      } catch (err) {
+        console.error("Gagal initiate checkout:", err);
+      }
+    };
+    init();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tierId]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -114,88 +213,6 @@ function Checkout() {
         };
       })
     );
-  };
-
-  const addBuyer = () => {
-    const newBuyer = {
-      name: "",
-      email: "",
-      nik: "",
-    };
-
-    setBuyers((previous) => [...previous, newBuyer]);
-
-    const newNumber = buyers.length + 1;
-
-    setOpenForms((previous) => ({
-      ...previous,
-      [newNumber]: true,
-    }));
-
-    setTimeout(() => {
-      const element = document.getElementById(
-        `buyer-card-${newNumber}`
-      );
-
-      if (element) {
-        element.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-    }, 100);
-  };
-
-  const removeBuyer = (index) => {
-    if (buyers.length <= 1) {
-      return;
-    }
-
-    const number = index + 1;
-
-    Swal.fire({
-      title: "Hapus data pemesan?",
-      text: `Data Pemesan ${number} akan dihapus.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Hapus",
-      cancelButtonText: "Batal",
-      reverseButtons: true,
-      confirmButtonColor: "#5548dc",
-      cancelButtonColor: "#9aa1ae",
-    }).then((result) => {
-      if (!result.isConfirmed) {
-        return;
-      }
-
-      setBuyers((previous) =>
-        previous.filter(
-          (_, buyerIndex) => buyerIndex !== index
-        )
-      );
-
-      setOpenForms((previous) => {
-        const updatedForms = {};
-
-        Object.keys(previous).forEach((key) => {
-          const currentNumber = Number(key);
-
-          if (currentNumber === number) {
-            return;
-          }
-
-          if (currentNumber > number) {
-            updatedForms[currentNumber - 1] =
-              previous[key];
-          } else {
-            updatedForms[currentNumber] =
-              previous[key];
-          }
-        });
-
-        return updatedForms;
-      });
-    });
   };
 
   const openBuyerForm = (number) => {
@@ -295,30 +312,108 @@ function Checkout() {
     return true;
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!validateBuyers()) {
       return;
     }
 
-    Swal.fire({
-      icon: "success",
-      title: "Data Pemesan Siap",
-      text: `${buyers.length} data pemesan berhasil disiapkan.`,
-      confirmButtonText: "Lanjut Pembayaran",
-      confirmButtonColor: "#5548dc",
-    }).then((result) => {
+    if (buyers.length !== event.quantity) {
+      Swal.fire({
+        icon: "warning",
+        title: "Jumlah Pemesan Tidak Sesuai",
+        text: `Jumlah data pemesan (${buyers.length}) harus sama dengan jumlah tiket (${event.quantity}).`,
+        confirmButtonColor: "#5548dc",
+      });
+      return;
+    }
+
+    // Mode mock (tanpa tierId / BE mati): pertahankan alur lama
+    if (!tierId || !orderId) {
+      Swal.fire({
+        icon: "success",
+        title: "Data Pemesan Siap",
+        text: `${buyers.length} data pemesan berhasil disiapkan.`,
+        confirmButtonText: "Lanjut Pembayaran",
+        confirmButtonColor: "#5548dc",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate("/customer/ticket-success", {
+            state: {
+              event,
+              buyers,
+              ticketTotal,
+              adminFee,
+              totalPayment,
+            },
+          });
+        }
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const attendees = buyers.map((buyer) => ({
+        fullName: buyer.name.trim(),
+        email: buyer.email.trim(),
+        phoneNumber: buyer.phoneNumber || buyer.phone || "",
+        identityNumber: buyer.nik.trim(),
+      }));
+      await saveAttendees(orderId, attendees);
+      await processCheckout(orderId);
+
+      let summary = null;
+      try {
+        const summaryRes = await getCheckoutSummary(orderId);
+        summary = summaryRes?.data || null;
+      } catch (err) {
+        console.error("Gagal memuat ringkasan checkout:", err);
+      }
+
+      const result = await Swal.fire({
+        icon: "success",
+        title: "Checkout Berhasil",
+        text: `Order ${summary?.orderNumber || orderId} menunggu pembayaran.`,
+        confirmButtonText: "Lanjut Pembayaran",
+        confirmButtonColor: "#5548dc",
+      });
       if (result.isConfirmed) {
         navigate("/customer/ticket-success", {
           state: {
             event,
             buyers,
-            ticketTotal,
-            adminFee,
-            totalPayment,
+            ticketTotal: summary?.subtotal ?? ticketTotal,
+            adminFee: summary?.adminFee ?? adminFee,
+            tax: summary?.tax ?? tax,
+            discountAmount: summary?.discountAmount ?? discount,
+            totalPayment: summary?.totalAmount ?? totalPayment,
+            orderId,
+            orderNumber: summary?.orderNumber,
+            expiredAt: summary?.expiredAt,
           },
         });
       }
-    });
+    } catch (err) {
+      console.error("Checkout gagal:", err);
+      const message = err?.message || "Checkout gagal. Silakan coba lagi.";
+      if (/unauthorized|401/i.test(message)) {
+        Swal.fire({
+          icon: "warning",
+          title: "Sesi Habis",
+          text: "Silakan login kembali.",
+          confirmButtonColor: "#5548dc",
+        }).then(() => navigate("/"));
+        return;
+      }
+      Swal.fire({
+        icon: "error",
+        title: "Checkout Gagal",
+        text: message,
+        confirmButtonColor: "#5548dc",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -368,22 +463,10 @@ function Checkout() {
                 <h2>Data Pemesan</h2>
 
                 <span>
-                  {buyers.length} Data Pemesan
+                  {buyers.length} Data Pemesan — sesuai {event.quantity}x tiket
+                  yang dipesan
                 </span>
               </div>
-
-              <button
-                type="button"
-                className="add-buyer-button"
-                onClick={addBuyer}
-              >
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 5V19" />
-                  <path d="M5 12H19" />
-                </svg>
-
-                <span>Tambah Data Pemesan</span>
-              </button>
             </div>
 
             <div className="buyer-form-list">
@@ -428,58 +511,6 @@ function Checkout() {
                           </svg>
                         </span>
                       </button>
-
-                      {buyers.length > 1 && (
-                        <button
-                          type="button"
-                          className="delete-buyer-button"
-                          onClick={() =>
-                            removeBuyer(index)
-                          }
-                          aria-label={`Hapus Pemesan ${formNumber}`}
-                        >
-                          <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                          >
-                            <path
-                              d="M4 7H20"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                            />
-
-                            <path
-                              d="M10 11V17"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                            />
-
-                            <path
-                              d="M14 11V17"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                            />
-
-                            <path
-                              d="M6 7L7 19C7.1 20.1 8 21 9.1 21H14.9C16 21 16.9 20.1 17 19L18 7"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-
-                            <path
-                              d="M9 7V4C9 3.45 9.45 3 10 3H14C14.55 3 15 3.45 15 4V7"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </button>
-                      )}
                     </div>
 
                     {isOpen && (
@@ -555,18 +586,6 @@ function Checkout() {
               })}
             </div>
 
-            <button
-              type="button"
-              className="add-buyer-button-bottom"
-              onClick={addBuyer}
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 5V19" />
-                <path d="M5 12H19" />
-              </svg>
-
-              <span>Tambah Data Pemesan</span>
-            </button>
           </section>
 
           <aside className="checkout-sidebar">
@@ -582,9 +601,12 @@ function Checkout() {
               event={event}
               ticketTotal={ticketTotal}
               adminFee={adminFee}
+              tax={tax}
+              discount={discount}
               totalPayment={totalPayment}
               formatRupiah={formatRupiah}
               onCheckout={handleCheckout}
+              isSubmitting={isSubmitting}
             />
           </aside>
         </div>
@@ -595,9 +617,12 @@ function Checkout() {
           event={event}
           ticketTotal={ticketTotal}
           adminFee={adminFee}
+          tax={tax}
+          discount={discount}
           totalPayment={totalPayment}
           formatRupiah={formatRupiah}
           onCheckout={handleCheckout}
+          isSubmitting={isSubmitting}
         />
       </div>
 
@@ -680,9 +705,12 @@ function PaymentSummary({
   event,
   ticketTotal,
   adminFee,
+  tax = 0,
+  discount = 0,
   totalPayment,
   formatRupiah,
   onCheckout,
+  isSubmitting = false,
 }) {
   return (
     <div className="payment-summary-card">
@@ -706,6 +734,26 @@ function PaymentSummary({
         </strong>
       </div>
 
+      {tax > 0 && (
+        <div className="payment-row">
+          <span>Pajak (10%)</span>
+
+          <strong>
+            {formatRupiah(tax)}
+          </strong>
+        </div>
+      )}
+
+      {discount > 0 && (
+        <div className="payment-row">
+          <span>Diskon</span>
+
+          <strong>
+            -{formatRupiah(discount)}
+          </strong>
+        </div>
+      )}
+
       <div className="payment-divider"></div>
 
       <div className="payment-total">
@@ -720,8 +768,9 @@ function PaymentSummary({
         type="button"
         className="checkout-submit-button"
         onClick={onCheckout}
+        disabled={isSubmitting}
       >
-        <span>Checkout</span>
+        <span>{isSubmitting ? "Memproses..." : "Checkout"}</span>
 
         <svg viewBox="0 0 24 24">
           <path d="M5 12h13" />

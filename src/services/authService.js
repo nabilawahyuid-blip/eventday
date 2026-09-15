@@ -1,16 +1,7 @@
-const API_URL =
-  (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
-  (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
-  "https://90bc-2400-9800-25a-64b-45cc-9a26-5944-a73.ngrok-free.app/api/v1/auth";
-
-export const getApiBaseUrl = () => {
-  return API_URL.replace("/auth", "");
-};
-
+// authService.js — pakai Vite proxy (/api/...) → same-origin → cookie HttpOnly otomatis
 const getHeaders = () => ({
   "Content-Type": "application/json",
   Accept: "application/json",
-  "ngrok-skip-browser-warning": "true",
 });
 
 const getResponseData = async (response) => {
@@ -86,6 +77,27 @@ const normalizeSuccess = (result) => {
   return result;
 };
 
+const authFetch = async (path, options = {}) => {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  const response = await fetch(`/api${cleanPath}`, {
+    method: options.method || "POST",
+    credentials: "include",
+    headers: getHeaders(),
+    body: options.body,
+  });
+
+  const result = await getResponseData(response);
+
+  if (!response.ok) {
+    throw new Error(
+      extractErrorMessage(result, `Request gagal. Status: ${response.status}`),
+    );
+  }
+
+  return normalizeSuccess(result);
+};
+
 export const register = async (data) => {
   try {
     const username = data.username?.trim();
@@ -125,9 +137,8 @@ export const register = async (data) => {
       throw new Error("Password minimal 6 karakter.");
     }
 
-    const response = await fetch(`${API_URL}/register`, {
+    return authFetch("/auth/register", {
       method: "POST",
-      headers: getHeaders(),
       body: JSON.stringify({
         name,
         username,
@@ -138,22 +149,6 @@ export const register = async (data) => {
         role,
       }),
     });
-
-    const result = await getResponseData(response);
-
-    console.log("REGISTER STATUS:", response.status);
-    console.log("REGISTER RESPONSE:", result);
-
-    if (!response.ok) {
-      throw new Error(
-        extractErrorMessage(
-          result,
-          `Registrasi gagal. Status: ${response.status}`,
-        ),
-      );
-    }
-
-    return normalizeSuccess(result);
   } catch (error) {
     console.error("REGISTER ERROR:", error);
     throw error;
@@ -176,30 +171,13 @@ export const verifyOtp = async (data) => {
       throw new Error("Kode OTP wajib diisi.");
     }
 
-    const response = await fetch(`${API_URL}/verify-otp`, {
+    return authFetch("/auth/verify-otp", {
       method: "POST",
-      headers: getHeaders(),
       body: JSON.stringify({
         email,
         otpCode,
       }),
     });
-
-    const result = await getResponseData(response);
-
-    console.log("VERIFY OTP STATUS:", response.status);
-    console.log("VERIFY OTP RESPONSE:", result);
-
-    if (!response.ok) {
-      throw new Error(
-        extractErrorMessage(
-          result,
-          `Verifikasi OTP gagal. Status: ${response.status}`,
-        ),
-      );
-    }
-
-    return normalizeSuccess(result);
   } catch (error) {
     console.error("VERIFY OTP ERROR:", error);
     throw error;
@@ -216,29 +194,12 @@ export const resendOtp = async (data) => {
       throw new Error("Email wajib diisi.");
     }
 
-    const response = await fetch(`${API_URL}/resend-otp`, {
+    return authFetch("/auth/resend-otp", {
       method: "POST",
-      headers: getHeaders(),
       body: JSON.stringify({
         email,
       }),
     });
-
-    const result = await getResponseData(response);
-
-    console.log("RESEND OTP STATUS:", response.status);
-    console.log("RESEND OTP RESPONSE:", result);
-
-    if (!response.ok) {
-      throw new Error(
-        extractErrorMessage(
-          result,
-          `Gagal mengirim ulang OTP. Status: ${response.status}`,
-        ),
-      );
-    }
-
-    return normalizeSuccess(result);
   } catch (error) {
     console.error("RESEND OTP ERROR:", error);
     throw error;
@@ -281,24 +242,10 @@ export const login = async (data) => {
       password: "********",
     });
 
-    const response = await fetch(`${API_URL}/login`, {
+    return authFetch("/auth/login", {
       method: "POST",
-      headers: getHeaders(),
       body: JSON.stringify(payload),
     });
-
-    const result = await getResponseData(response);
-
-    console.log("LOGIN STATUS:", response.status);
-    console.log("LOGIN RESPONSE:", result);
-
-    if (!response.ok) {
-      throw new Error(
-        extractErrorMessage(result, `Login gagal. Status: ${response.status}`),
-      );
-    }
-
-    return normalizeSuccess(result);
   } catch (error) {
     console.error("LOGIN ERROR:", error);
     throw error;
@@ -313,29 +260,12 @@ export const loginGoogle = async (data) => {
       throw new Error("ID Token Google tidak ditemukan.");
     }
 
-    const response = await fetch(`${API_URL}/google`, {
+    return authFetch("/auth/google", {
       method: "POST",
-      headers: getHeaders(),
       body: JSON.stringify({
         idToken: data.idToken,
       }),
     });
-
-    const result = await getResponseData(response);
-
-    console.log("GOOGLE LOGIN STATUS:", response.status);
-    console.log("GOOGLE LOGIN RESPONSE:", result);
-
-    if (!response.ok) {
-      throw new Error(
-        extractErrorMessage(
-          result,
-          `Login Google gagal. Status: ${response.status}`,
-        ),
-      );
-    }
-
-    return normalizeSuccess(result);
   } catch (error) {
     console.error("GOOGLE LOGIN ERROR:", error);
     throw error;
@@ -352,29 +282,12 @@ export const forgotPassword = async (data) => {
       throw new Error("Email wajib diisi.");
     }
 
-    const response = await fetch(`${API_URL}/reset-password`, {
+    return authFetch("/auth/reset-password", {
       method: "POST",
-      headers: getHeaders(),
       body: JSON.stringify({
         email,
       }),
     });
-
-    const result = await getResponseData(response);
-
-    console.log("SEND RESET OTP STATUS:", response.status);
-    console.log("SEND RESET OTP RESPONSE:", result);
-
-    if (!response.ok) {
-      throw new Error(
-        extractErrorMessage(
-          result,
-          `Gagal mengirim kode OTP. Status: ${response.status}`,
-        ),
-      );
-    }
-
-    return normalizeSuccess(result);
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
     throw error;
@@ -409,31 +322,14 @@ export const resetPassword = async (data) => {
       throw new Error("Password minimal 6 karakter.");
     }
 
-    const response = await fetch(`${API_URL}/reset-password`, {
+    return authFetch("/auth/reset-password", {
       method: "POST",
-      headers: getHeaders(),
       body: JSON.stringify({
         email,
         code,
         newPassword,
       }),
     });
-
-    const result = await getResponseData(response);
-
-    console.log("RESET PASSWORD STATUS:", response.status);
-    console.log("RESET PASSWORD RESPONSE:", result);
-
-    if (!response.ok) {
-      throw new Error(
-        extractErrorMessage(
-          result,
-          `Reset password gagal. Status: ${response.status}`,
-        ),
-      );
-    }
-
-    return normalizeSuccess(result);
   } catch (error) {
     console.error("RESET PASSWORD ERROR:", error);
     throw error;
