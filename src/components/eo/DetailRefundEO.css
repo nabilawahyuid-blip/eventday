@@ -1,0 +1,1474 @@
+/* =========================================================
+   DETAIL REFUND EO
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.detail-refund-page {
+  width: 100%;
+  min-height: 100vh;
+
+  margin: 0;
+  padding: 0;
+
+  background: #faf8ff;
+}
+
+
+/* =========================================================
+   MAIN AREA
+========================================================= */
+
+.detail-refund-main {
+  width: calc(100% - 262px);
+
+  min-height: 100vh;
+
+  margin-left: 262px;
+
+  padding: 0;
+
+  background: #faf8ff;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.detail-refund-content {
+  width: 100%;
+
+  margin: 0;
+
+  padding: 28px 32px 60px;
+
+  background: #faf8ff;
+}
+
+
+/* =========================================================
+   BREADCRUMB
+========================================================= */
+
+.refund-breadcrumb {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  margin: 0 0 12px;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 15px;
+
+  color: #4f4b5f;
+}
+
+
+.refund-breadcrumb span:first-child {
+  font-size: 20px;
+
+  line-height: 1;
+
+  color: #706c7d;
+}
+
+
+/* =========================================================
+   PAGE TITLE
+========================================================= */
+
+.refund-title-row {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin: 0 0 34px;
+}
+
+
+.refund-title-left {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  min-width: 0;
+}
+
+
+.refund-title-left h1 {
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 34px;
+
+  font-weight: 700;
+
+  line-height: 1.15;
+
+  color: #111322;
+}
+
+
+/* =========================================================
+   PENDING BADGE
+========================================================= */
+
+.pending-badge {
+  height: 46px;
+
+  padding: 0 15px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50px;
+
+  background: #fff6bf;
+
+  color: #a66e00;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.3px;
+}
+
+
+/* =========================================================
+   REQUEST DATE
+========================================================= */
+
+.request-date {
+  margin: 0;
+
+  flex-shrink: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 16px;
+
+  color: #5f5a6d;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   MAIN LAYOUT
+
+   LEFT                         RIGHT
+   -----------------------------------------------
+   Customer + Ticket            Tindakan
+   Refund Reason                Penyelenggara
+========================================================= */
+
+.refund-main-layout {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    296px;
+
+  gap: 24px;
+
+  align-items: start;
+}
+
+
+/* =========================================================
+   LEFT AREA
+========================================================= */
+
+.refund-left-area {
+  width: 100%;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   CUSTOMER + TICKET TITLE
+
+   TITLE BERADA DI LUAR CARD
+========================================================= */
+
+.information-header-row {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 24px;
+
+  margin-bottom: 12px;
+}
+
+
+.information-title {
+  margin: 0;
+
+  padding: 0 24px;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 20px;
+
+  font-weight: 700;
+
+  line-height: 1.25;
+
+  color: #191827;
+}
+
+
+/* =========================================================
+   CUSTOMER + TICKET CARD ROW
+========================================================= */
+
+.information-card-row {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 24px;
+
+  margin-bottom: 28px;
+}
+
+
+/* =========================================================
+   GENERAL CARD
+========================================================= */
+
+.refund-card {
+  width: 100%;
+
+  min-width: 0;
+
+  margin: 0;
+
+  background: #ffffff;
+
+  border: 1px solid #e2deeb;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 2px 6px rgba(38, 31, 65, 0.04);
+}
+
+
+/* =========================================================
+   CUSTOMER INFORMATION CARD
+========================================================= */
+
+.customer-information {
+  min-height: 142px;
+
+  padding: 25px 24px;
+
+  display: flex;
+
+  align-items: center;
+}
+
+
+.customer-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 25px;
+
+  align-items: center;
+}
+
+
+.customer-item {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   CUSTOMER TEXT
+========================================================= */
+
+.field-label {
+  display: block;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  line-height: 1.2;
+
+  letter-spacing: 0.5px;
+
+  color: #5f5a6d;
+}
+
+
+.field-value {
+  display: block;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+  line-height: 1.3;
+
+  color: #20202f;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   TICKET INFORMATION CARD
+========================================================= */
+
+.ticket-information {
+  min-height: 142px;
+
+  padding: 25px 24px;
+
+  display: flex;
+
+  align-items: center;
+}
+
+
+/* =========================================================
+   TICKET BOX
+========================================================= */
+
+.ticket-box {
+  width: 100%;
+
+  min-height: 82px;
+
+  margin: 0;
+
+  padding: 15px;
+
+  display: grid;
+
+  grid-template-columns:
+    48px
+    minmax(0, 1fr)
+    150px;
+
+  align-items: center;
+
+  column-gap: 12px;
+
+  border: 1px solid #f0eef3;
+
+  border-radius: 8px;
+
+  background: #fcfcfd;
+}
+
+
+/* =========================================================
+   TICKET ICON
+========================================================= */
+
+.ticket-icon {
+  width: 48px;
+
+  height: 48px;
+
+  min-width: 48px;
+
+  min-height: 48px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 8px;
+
+  background: #eeebff;
+
+  color: #5146e5;
+}
+
+
+/* =========================================================
+   TICKET DETAIL
+
+   POSISI DETAIL DI TENGAH AREA
+========================================================= */
+
+.ticket-detail {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: row;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 10px;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   TICKET NAME
+========================================================= */
+
+.ticket-name {
+  display: block;
+
+  width: auto;
+
+  max-width: 100%;
+
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  color: #20202f;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   TICKET QUANTITY
+========================================================= */
+
+.ticket-quantity {
+  display: block;
+
+  width: auto;
+
+  flex-shrink: 0;
+
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 400;
+
+  line-height: 1.3;
+
+  color: #5f5a6d;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   TICKET PRICE
+========================================================= */
+
+.ticket-box .ticket-price {
+  min-width: 150px;
+
+  margin: 0;
+
+  padding: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  justify-content: center;
+
+  gap: 5px;
+
+  text-align: right;
+
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   TICKET TOTAL
+========================================================= */
+
+.ticket-box .ticket-price .ticket-total {
+  display: block;
+
+  width: auto;
+
+  margin: 0;
+
+  padding: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 17px;
+
+  font-weight: 700;
+
+  line-height: 1.2;
+
+  color: #20202f;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   TOTAL PAID
+========================================================= */
+
+.ticket-box .ticket-price .ticket-paid {
+  display: block;
+
+  width: auto;
+
+  margin: 0;
+
+  padding: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 500;
+
+  line-height: 1.2;
+
+  color: #5f5a6d;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   REFUND REASON
+========================================================= */
+
+.refund-reason-wrapper {
+  width: 100%;
+}
+
+
+.refund-reason-title {
+  margin-bottom: 12px;
+}
+
+
+.refund-reason {
+  width: 100%;
+
+  min-height: 168px;
+
+  padding: 26px 24px 26px 27px;
+
+  display: flex;
+
+  align-items: center;
+}
+
+
+/* =========================================================
+   PURPLE LINE
+========================================================= */
+
+.reason-line {
+  position: absolute;
+
+  top: 0;
+
+  bottom: 0;
+
+  left: 0;
+
+  width: 4px;
+
+  border-radius: 12px 0 0 12px;
+
+  background: #5146e5;
+}
+
+
+/* =========================================================
+   REASON BOX
+========================================================= */
+
+.reason-box {
+  width: 100%;
+
+  padding: 16px;
+
+  border: 1px solid #f0eef3;
+
+  border-radius: 8px;
+
+  background: #fafafa;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 15px;
+
+  font-style: italic;
+
+  line-height: 1.5;
+
+  color: #4f4a5d;
+}
+
+
+/* =========================================================
+   ORGANIZER ACTION
+========================================================= */
+
+.organizer-action {
+  width: 100%;
+
+  min-width: 0;
+
+  margin: 0;
+
+  padding: 26px 24px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2deeb;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 2px 6px rgba(38, 31, 65, 0.04);
+
+  position: sticky;
+
+  top: 20px;
+}
+
+
+/* =========================================================
+   ORGANIZER TITLE
+========================================================= */
+
+.organizer-title {
+  width: 100%;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 10px;
+
+  margin: 0 0 18px;
+}
+
+
+.gavel {
+  flex-shrink: 0;
+
+  margin-top: 2px;
+
+  color: #5146e5;
+}
+
+
+.organizer-title h2 {
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 20px;
+
+  font-weight: 700;
+
+  line-height: 1.2;
+
+  color: #1a1928;
+}
+
+
+/* =========================================================
+   DECISION BUTTONS
+========================================================= */
+
+.decision-buttons {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+
+  gap: 16px;
+
+  margin-bottom: 34px;
+}
+
+
+.reject-button,
+.approve-button {
+  width: 100%;
+
+  height: 39px;
+
+  padding: 0;
+
+  border-radius: 8px;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+.reject-button {
+  background: #ffffff;
+
+  border: 1px solid #ff3434;
+
+  color: #dc2828;
+}
+
+
+.approve-button {
+  background: #5146e5;
+
+  border: 1px solid #5146e5;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   ACTION LABEL
+========================================================= */
+
+.action-label {
+  display: block;
+
+  margin: 0 0 9px;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  line-height: 1.3;
+
+  letter-spacing: 0.5px;
+
+  color: #565160;
+}
+
+
+/* =========================================================
+   PERCENTAGE
+========================================================= */
+
+.percentage-section {
+  width: 100%;
+
+  margin-bottom: 16px;
+}
+
+
+.percentage-input {
+  width: 100%;
+
+  height: 50px;
+
+  display: flex;
+
+  align-items: center;
+
+  border: 1px solid #d5d1df;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  overflow: hidden;
+}
+
+
+.percentage-input input {
+  flex: 1;
+
+  width: 100%;
+
+  height: 100%;
+
+  min-width: 0;
+
+  padding: 0 14px;
+
+  border: none;
+
+  outline: none;
+
+  background: transparent;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 15px;
+
+  color: #292737;
+}
+
+
+.percentage-input span {
+  flex-shrink: 0;
+
+  padding-right: 15px;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 16px;
+
+  color: #777485;
+}
+
+
+/* =========================================================
+   REMOVE NUMBER ARROWS
+========================================================= */
+
+.percentage-input input::-webkit-inner-spin-button,
+.percentage-input input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+
+  margin: 0;
+}
+
+
+.percentage-input input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+
+/* =========================================================
+   TOTAL REFUND
+========================================================= */
+
+.total-refund {
+  width: 100%;
+
+  min-height: 85px;
+
+  margin-bottom: 18px;
+
+  padding: 17px 16px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border-radius: 8px;
+
+  background: #202b3d;
+}
+
+
+.total-label {
+  font-family: Arial, sans-serif;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  line-height: 1.2;
+
+  letter-spacing: 0.6px;
+
+  color: #e5e6ea;
+}
+
+
+.total-amount {
+  font-family: Arial, sans-serif;
+
+  font-size: 25px;
+
+  font-weight: 700;
+
+  line-height: 1.1;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   NOTE
+========================================================= */
+
+.note-section {
+  width: 100%;
+
+  margin-bottom: 22px;
+}
+
+
+.note-section textarea {
+  width: 100%;
+
+  height: 98px;
+
+  margin: 0;
+
+  padding: 14px;
+
+  resize: none;
+
+  outline: none;
+
+  border: 1px solid #d5d1df;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 15px;
+
+  line-height: 1.5;
+
+  color: #4f4a5d;
+}
+
+
+.note-section textarea::placeholder {
+  color: #777181;
+}
+
+
+/* =========================================================
+   CONFIRM BUTTON
+========================================================= */
+
+.confirm-button {
+  width: 100%;
+
+  height: 45px;
+
+  margin: 0;
+
+  padding: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 8px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #5146e5;
+
+  color: #ffffff;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: opacity 0.2s ease;
+}
+
+
+.confirm-button:hover {
+  opacity: 0.9;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+
+  .detail-refund-main {
+    width: calc(100% - 262px);
+
+    margin-left: 262px;
+  }
+
+
+  .detail-refund-content {
+    padding-left: 24px;
+
+    padding-right: 24px;
+  }
+
+
+  .refund-main-layout {
+    grid-template-columns:
+      minmax(0, 1fr)
+      270px;
+
+    gap: 18px;
+  }
+
+
+  .information-header-row,
+  .information-card-row {
+    gap: 18px;
+  }
+
+
+  .refund-title-left h1 {
+    font-size: 30px;
+  }
+
+
+  .pending-badge {
+    height: 40px;
+  }
+
+
+  .organizer-action {
+    padding: 22px 18px;
+  }
+
+
+  .ticket-box {
+    grid-template-columns:
+      44px
+      minmax(0, 1fr)
+      125px;
+
+    column-gap: 8px;
+
+    padding: 12px;
+  }
+
+
+  .ticket-icon {
+    width: 44px;
+
+    height: 44px;
+
+    min-width: 44px;
+  }
+
+
+  .ticket-box .ticket-price {
+    min-width: 125px;
+  }
+
+
+  .ticket-box .ticket-price .ticket-total {
+    font-size: 16px;
+  }
+
+
+  .ticket-name {
+    font-size: 13px;
+  }
+
+
+  .ticket-quantity {
+    font-size: 11px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .detail-refund-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+
+  .detail-refund-content {
+    width: 100%;
+
+    padding: 20px 16px 35px;
+  }
+
+
+  /* TITLE */
+
+  .refund-title-row {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 12px;
+  }
+
+
+  .refund-title-left {
+    gap: 12px;
+  }
+
+
+  .refund-title-left h1 {
+    font-size: 27px;
+  }
+
+
+  .pending-badge {
+    height: 35px;
+
+    padding: 0 12px;
+
+    font-size: 10px;
+  }
+
+
+  .request-date {
+    font-size: 13px;
+  }
+
+
+  /* MAIN LAYOUT */
+
+  .refund-main-layout {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 24px;
+  }
+
+
+  /* INFORMATION */
+
+  .information-header-row {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+
+    margin-bottom: 12px;
+  }
+
+
+  .information-card-row {
+    grid-template-columns: 1fr;
+
+    gap: 24px;
+
+    margin-bottom: 28px;
+  }
+
+
+  .information-title {
+    padding: 0 4px;
+
+    font-size: 19px;
+  }
+
+
+  /* CUSTOMER */
+
+  .customer-information {
+    min-height: auto;
+
+    padding: 22px 18px;
+  }
+
+
+  .customer-grid {
+    grid-template-columns: 1fr;
+
+    gap: 20px;
+  }
+
+
+  /* TICKET */
+
+  .ticket-information {
+    min-height: auto;
+
+    padding: 18px;
+  }
+
+
+  .ticket-box {
+    grid-template-columns:
+      44px
+      minmax(0, 1fr);
+
+    grid-template-rows:
+      auto
+      auto;
+
+    column-gap: 12px;
+
+    row-gap: 10px;
+
+    height: auto;
+
+    min-height: 82px;
+
+    padding: 14px;
+  }
+
+
+  .ticket-icon {
+    width: 44px;
+
+    height: 44px;
+
+    min-width: 44px;
+
+    grid-column: 1;
+
+    grid-row: 1;
+  }
+
+
+  .ticket-detail {
+    grid-column: 2;
+
+    grid-row: 1;
+
+    min-width: 0;
+
+    justify-content: flex-start;
+  }
+
+
+  .ticket-name {
+    font-size: 14px;
+  }
+
+
+  .ticket-quantity {
+    font-size: 12px;
+  }
+
+
+  .ticket-box .ticket-price {
+    width: 100%;
+
+    min-width: 0;
+
+    grid-column: 2;
+
+    grid-row: 2;
+
+    align-items: flex-start;
+
+    text-align: left;
+
+    padding-top: 8px;
+
+    border-top: 1px solid #eeeeee;
+  }
+
+
+  /* REFUND REASON */
+
+  .refund-reason-title {
+    margin-bottom: 12px;
+  }
+
+
+  .refund-reason {
+    min-height: auto;
+
+    padding: 22px 18px 22px 21px;
+
+    align-items: stretch;
+  }
+
+
+  .reason-box {
+    font-size: 13px;
+  }
+
+
+  /* ACTION */
+
+  .organizer-action {
+    width: 100%;
+
+    padding: 22px 18px;
+
+    position: static;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (max-width: 480px) {
+
+  .detail-refund-content {
+    padding: 16px 12px 30px;
+  }
+
+
+  .refund-title-left {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+
+  .refund-title-left h1 {
+    font-size: 25px;
+  }
+
+
+  .information-title {
+    font-size: 18px;
+  }
+
+
+  .refund-card {
+    border-radius: 10px;
+  }
+
+
+  .ticket-box {
+    padding: 12px;
+
+    column-gap: 10px;
+  }
+
+
+  .ticket-icon {
+    width: 42px;
+
+    height: 42px;
+
+    min-width: 42px;
+  }
+
+
+  .ticket-name {
+    font-size: 13px;
+  }
+
+
+  .ticket-quantity {
+    font-size: 11px;
+  }
+
+
+  .ticket-box .ticket-price .ticket-total {
+    font-size: 16px;
+  }
+
+
+  .ticket-box .ticket-price .ticket-paid {
+    font-size: 12px;
+  }
+
+
+  .decision-buttons {
+    gap: 10px;
+  }
+
+
+  .reject-button,
+  .approve-button {
+    height: 38px;
+
+    font-size: 12px;
+  }
+
+
+  .total-amount {
+    font-size: 22px;
+  }
+}

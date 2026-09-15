@@ -35,7 +35,7 @@ import ProfileCustomer from "./components/customer/ProfileCustomer";
 import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
 import SyaratKetentuan from "./components/customer/SyaratKetentuan";
 import EditProfileCustomer from "./components/customer/EditProfileCustomer";
-
+import DetailRefundEO from "./components/eo/DetailRefundEO";
 // ==================== EO ====================
 import DashboardEO from "./components/eo/DashboardEO";
 import EventEO from "./components/eo/EventEO";
@@ -260,7 +260,10 @@ function App() {
   path="/customer/profile/edit"
   element={<EditProfileCustomer />}
 />
-
+<Route
+  path="/eo/refund/detail"
+  element={<DetailRefundEO />}
+/>
         </Routes>
 
       </BrowserRouter>
