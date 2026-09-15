@@ -36,6 +36,7 @@ function Register() {
   const saveLoginData = (data) => {
     if (data.token) {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("eventday_token", data.token);
     }
 
     if (data.userId) {
@@ -833,7 +834,6 @@ function Register() {
               }
               theme="outline"
               size="large"
-              width="100%"
               text="continue_with"
               shape="rectangular"
             />

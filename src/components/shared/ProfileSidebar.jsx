@@ -119,13 +119,13 @@ function ProfileSidebar({ open, onClose }) {
             </div>
 
             <div className="sidebar-menu-list">
-              {securityMenus.map((menu) => (
-                <SidebarMenuItem
-                  key={menu.label}
-                  menu={menu}
-                  onClick={handleNavigate}
-                />
-              ))}
+{securityMenus.map((menu) => (
+        <SidebarMenuItem
+          key={menu.label}
+          menu={menu}
+          onClick={menu.onClick ? () => menu.onClick() : () => handleNavigate(menu.path)}
+        />
+      ))}
             </div>
           </section>
 

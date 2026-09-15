@@ -145,9 +145,10 @@ function DashboardCustomer() {
   const loadHero = useCallback(async () => {
     try {
       const res = await getFeaturedEvents();
-      const list = res?.data?.content || [];
+      console.log("HERO RESPONSE:", JSON.stringify(res, null, 2));
+      const list = res?.data?.content || res?.data || [];
 
-      if (list.length) {
+      if (Array.isArray(list) && list.length) {
         setHeroSlides(
           list.map((ev) => ({
             id: ev.id,
@@ -177,9 +178,10 @@ function DashboardCustomer() {
       }
 
       const res = await getEvents(params);
-      const list = res?.data?.content || [];
+      console.log("EVENTS RESPONSE:", JSON.stringify(res, null, 2));
+      const list = res?.data?.content || res?.data || [];
 
-      setEvents(list);
+      setEvents(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("Gagal memuat event:", err);
       setEvents(FALLBACK_EVENTS);
