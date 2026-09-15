@@ -431,7 +431,7 @@ function DetailEvent() {
                   type="button"
                   className="edit-button"
                   onClick={() =>
-                    console.log("Edit event")
+                    navigate(`/admin/event/edit/${id}`)
                   }
                 >
                   Edit Event

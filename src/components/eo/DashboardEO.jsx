@@ -1,422 +1,400 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
-import "./DashboardEO.css";
 
-function DashboardEO() {
+import "./DetailEventEO.css";
+
+function DetailEventEO() {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const [dashboardData, setDashboardData] = useState({
-    eventAktif: 5,
-    tiketTerjual: 500,
-    reschedule: 7,
-    eventTerbaru: [
+  const event = {
+    id: id || "EVT-2024-001",
+
+    title: "Music Festival 2024",
+
+    status: "Event Aktif",
+
+    category: "Kategori Event",
+
+    date: "02 Februari 2027",
+
+    time: "19:00",
+
+    location: "Lokasi/Venue Event",
+
+    description: [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    ],
+
+    facilities:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+
+    banner:
+      "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1600&q=85",
+
+    ticketSold: 200,
+
+    ticketTotal: 400,
+
+    categories: [
       {
-        id: 1,
-        title: "Music Festival 2024",
-        date: "25 Nov 2024",
-        location: "Stadion Utama",
-        sold: 200,
-        total: 400,
-        progress: 50,
-        status: "Event Aktif",
-        statusClass: "active",
+        name: "VIP",
+        price: "Rp 1.500.000",
+        sold: "50 / 100",
       },
       {
-        id: 2,
-        title: "Workshop Fotografi",
-        date: "01 Okt 2024",
-        location: "Creative Space",
-        sold: 300,
-        total: 400,
-        progress: 75,
-        status: "Event Berakhir",
-        statusClass: "finished",
+        name: "Festival",
+        price: "Rp 750.000",
+        sold: "150 / 300",
       },
     ],
-    transaksiTerbaru: [
+
+    lineup: [
       {
-        id: "TRX-982734",
-        customer: "Budi Santoso",
-        ticket: "VIP",
-        event: "Music Festival",
-        amount: "Rp 1.500.000",
-        status: "Lunas",
+        name: "Bintang Tamu",
       },
       {
-        id: "TRX-776218",
-        customer: "Andi Wijaya",
-        ticket: "Regular",
-        event: "Workshop Fotografi",
-        amount: "Rp 250.000",
-        status: "Lunas",
+        name: "Bintang Tamu",
+      },
+      {
+        name: "Bintang Tamu",
       },
     ],
-  });
-
-  // TODO: Ganti dummy dengan fetch real saat endpoint EO ready.
-  // Saat ini modul EO masih SCHEMA ONLY (API.md).
-  // Contoh fetch nanti:
-  // fetch("http://localhost:8082/api/eo/dashboard", {
-  //   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
-  // })
-
-  const handleDetailEvent = (eventId) => {
-    navigate(`/eo/event/${eventId}`);
   };
 
-  const handleDetailTransaction = (transactionId) => {
-    navigate(`/eo/transaksi/${transactionId}`);
-  };
+  const percentage = Math.round(
+    (event.ticketSold / event.ticketTotal) * 100
+  );
 
-  const handleViewAllEvents = () => {
+  const handleBack = () => {
     navigate("/eo/event");
   };
 
-  const handleViewAllTransactions = () => {
-    navigate("/eo/transaksi");
+  const handleEdit = () => {
+    navigate(`/eo/event/${event.id}/edit`);
+  };
+
+  /*
+    Menentukan class status berdasarkan status event
+  */
+
+  const getStatusClass = () => {
+    if (event.status === "Event Aktif") {
+      return "active";
+    }
+
+    if (event.status === "Event Berakhir") {
+      return "ended";
+    }
+
+    if (event.status === "Menunggu") {
+      return "waiting";
+    }
+
+    if (event.status === "Draft") {
+      return "draft";
+    }
+
+    return "active";
   };
 
   return (
-    <div className="dashboard-eo-page">
+    <div className="detail-event-eo-page">
 
-      {/* 
-          SIDEBAR EO
-      = */}
+      {/* SIDEBAR */}
       <SidebarEO />
 
-      {/* 
-          MAIN CONTENT
-      = */}
-      <main className="dashboard-eo-main">
+      {/* MAIN */}
+      <main className="detail-event-eo-main">
 
-        {/* 
-            NAVBAR EO
-        = */}
+        {/* NAVBAR */}
         <NavbarEO />
 
-        {/* 
-            CONTENT
-        = */}
-        <section className="dashboard-eo-content">
+        {/* CONTENT */}
+        <div className="detail-event-eo-content">
 
-          {/* 
-              PAGE HEADER
-          = */}
-          <div className="dashboard-eo-header">
+          {/* PAGE TITLE */}
+          <div className="detail-event-page-title">
+            <h1>Detail Event</h1>
+          </div>
 
-            <div>
-              <h1>Dashboard</h1>
+          {/* BACK BUTTON */}
+          <div className="detail-event-eo-top-nav">
 
-              <p>
-                Selamat Datang, EO
+            <button
+              type="button"
+              className="back-button"
+              onClick={handleBack}
+            >
+              <span className="back-arrow">←</span>
+
+              <span>
+                Kembali ke Kelola Event
+              </span>
+            </button>
+
+          </div>
+
+          {/* HERO CARD */}
+          <section className="detail-event-eo-hero-card">
+
+            {/* BANNER */}
+            <div className="banner-wrapper">
+
+              <img
+                src={event.banner}
+                alt={event.title}
+                className="event-banner"
+              />
+
+              {/* STATUS EVENT */}
+              <div
+                className={`status-badge ${getStatusClass()}`}
+              >
+                <span className="status-dot"></span>
+
+                {event.status}
+              </div>
+
+            </div>
+
+            {/* HERO INFO */}
+            <div className="hero-info">
+
+              <h2>
+                {event.title}
+              </h2>
+
+              <p className="event-id">
+
+                <span className="event-id-icon">
+                  ▣
+                </span>
+
+                ID Event: {event.id}
+
               </p>
+
             </div>
 
-          </div>
+          </section>
 
-          {/* 
-              RINGKASAN AKTIVITAS
-          = */}
-          <div className="dashboard-eo-section-title">
-            <h2>Ringkasan Aktivitas</h2>
-          </div>
+          {/* TWO COLUMN */}
+          <div className="detail-event-eo-content-grid">
 
-          <div className="eo-stat-grid">
+            {/* LEFT COLUMN */}
+            <div className="detail-event-left-column">
 
-            {/* EVENT AKTIF */}
-            <div className="eo-stat-card">
+              {/* EVENT INFORMATION */}
+              <section className="detail-card meta-card">
 
-              <div className="eo-stat-left">
+                <h3>
+                  {event.title}
+                </h3>
 
-                <span className="eo-stat-label">
-                  EVENT AKTIF
-                </span>
+                <div className="meta-list">
 
-                <div className="eo-stat-number-row">
+                  <span>
+                    <span className="meta-icon">
+                      ◇
+                    </span>
 
-                  <h3>
-                    {dashboardData.eventAktif}
-                  </h3>
+                    {event.category}
+                  </span>
 
-                  <span className="eo-stat-growth green">
-                    ↗ +2%
+                  <span>
+                    <span className="meta-icon">
+                      ▣
+                    </span>
+
+                    {event.date} {event.time}
+                  </span>
+
+                  <span>
+                    <span className="meta-icon">
+                      ♧
+                    </span>
+
+                    {event.location}
                   </span>
 
                 </div>
 
-              </div>
+              </section>
 
-              <div className="eo-stat-icon purple">
-                ▣
-              </div>
-
-              <div className="eo-stat-decoration purple-decoration"></div>
-
-            </div>
-
-            {/* TIKET TERJUAL */}
-            <div className="eo-stat-card">
-
-              <div className="eo-stat-left">
-
-                <span className="eo-stat-label">
-                  TIKET TERJUAL
-                </span>
-
-                <div className="eo-stat-number-row">
-
-                  <h3>
-                    {dashboardData.tiketTerjual}
-                  </h3>
-
-                  <span className="eo-stat-growth green">
-                    ↗ +15%
-                  </span>
-
-                </div>
-
-              </div>
-
-              <div className="eo-stat-icon green">
-                🎟
-              </div>
-
-              <div className="eo-stat-decoration green-decoration"></div>
-
-            </div>
-
-            {/* RESCHEDULE */}
-            <div className="eo-stat-card">
-
-              <div className="eo-stat-left">
-
-                <span className="eo-stat-label">
-                  RESCHEDULE
-                </span>
-
-                <div className="eo-stat-number-row">
-
-                  <h3>
-                    {dashboardData.reschedule}
-                  </h3>
-
-                  <span className="eo-stat-growth gray">
-                    ↔ 0%
-                  </span>
-
-                </div>
-
-              </div>
-
-              <div className="eo-stat-icon orange">
-                ◷
-              </div>
-
-              <div className="eo-stat-decoration orange-decoration"></div>
-
-            </div>
-
-          </div>
-
-          {/* 
-              LOWER GRID
-          = */}
-          <div className="dashboard-eo-lower-grid">
-
-            {/* 
-                EVENT TERBARU
-            = */}
-            <div className="eo-panel">
-
-              <div className="eo-panel-header">
+              {/* DESCRIPTION */}
+              <section className="detail-card">
 
                 <h2>
-                  Event Terbaru
+                  Deskripsi Event
                 </h2>
 
-                <button
-                  type="button"
-                  className="eo-view-all"
-                  onClick={handleViewAllEvents}
-                >
-                  Lihat Semua
-                </button>
+                <div className="description-text">
 
-              </div>
+                  {event.description.map(
+                    (paragraph, index) => (
+                      <p key={index}>
+                        {paragraph}
+                      </p>
+                    )
+                  )}
 
-              <div className="eo-event-list">
+                </div>
 
-                {dashboardData.eventTerbaru.map((event) => (
+              </section>
 
-                  <div
-                    className="eo-event-card"
-                    key={event.id}
-                  >
+              {/* FACILITIES */}
+              <section className="detail-card">
 
-                    <div className="eo-event-top">
+                <h2>
+                  Fasilitas
+                </h2>
 
-                      <div className="eo-event-info">
+                <div className="facilities-text">
 
-                        <h3>
-                          {event.title}
-                        </h3>
+                  <p>
+                    {event.facilities}
+                  </p>
 
-                        <p>
-                          {event.date} • {event.location}
-                        </p>
+                </div>
 
-                      </div>
+              </section>
 
-                      <span
-                        className={`eo-event-status ${event.statusClass}`}
-                      >
-                        {event.status}
-                      </span>
+              {/* LINEUP */}
+              <section className="detail-card lineup-card">
 
-                    </div>
+                <h2>
+                  LineUp
+                </h2>
 
-                    {/* TICKET PROGRESS */}
-                    <div className="eo-event-progress-info">
+                <div className="lineup-grid">
 
-                      <span>
-                        {event.sold}/{event.total} Tiket Terjual
-                      </span>
-
-                      <span>
-                        {event.progress}%
-                      </span>
-
-                    </div>
-
-                    <div className="eo-event-progress">
+                  {event.lineup.map(
+                    (person, index) => (
 
                       <div
-                        className="eo-event-progress-fill"
-                        style={{
-                          width: `${event.progress}%`,
-                        }}
-                      ></div>
-
-                    </div>
-
-                    {/* DETAIL BUTTON */}
-                    <div className="eo-event-bottom">
-
-                      <button
-                        type="button"
-                        className="eo-detail-button"
-                        onClick={() =>
-                          handleDetailEvent(event.id)
-                        }
+                        className="lineup-item"
+                        key={index}
                       >
-                        Detail Event
-                      </button>
 
-                    </div>
+                        <div className="lineup-avatar">
 
-                  </div>
+                          <span>
+                            ♙
+                          </span>
 
-                ))}
-
-              </div>
-
-            </div>
-
-            {/* 
-                TRANSAKSI TERBARU
-            = */}
-            <div className="eo-panel">
-
-              <div className="eo-panel-header">
-
-                <h2>
-                  Transaksi Terbaru
-                </h2>
-
-                <button
-                  type="button"
-                  className="eo-view-all"
-                  onClick={handleViewAllTransactions}
-                >
-                  Lihat Semua
-                </button>
-
-              </div>
-
-              <div className="eo-transaction-list">
-
-                {dashboardData.transaksiTerbaru.map(
-                  (transaction, index) => (
-
-                    <div
-                      className="eo-transaction-card"
-                      key={transaction.id}
-                    >
-
-                      {/* AVATAR */}
-                      <div className="eo-transaction-avatar">
-                        {transaction.customer
-                          .charAt(0)
-                          .toUpperCase()}
-                      </div>
-
-                      {/* INFO */}
-                      <div className="eo-transaction-info">
-
-                        <h3>
-                          {transaction.customer}
-                        </h3>
-
-                        <p>
-                          {transaction.ticket} •{" "}
-                          {transaction.event}
-                        </p>
+                        </div>
 
                         <span>
-                          {transaction.id}
+                          {person.name}
                         </span>
 
                       </div>
 
-                      {/* RIGHT */}
-                      <div className="eo-transaction-right">
+                    )
+                  )}
 
-                        <span className="eo-paid-badge">
-                          {transaction.status}
-                        </span>
+                </div>
 
-                        <strong>
-                          {transaction.amount}
-                        </strong>
-
-                        <button
-                          type="button"
-                          className="eo-transaction-detail"
-                          onClick={() =>
-                            handleDetailTransaction(
-                              transaction.id
-                            )
-                          }
-                        >
-                          Detail →
-                        </button>
-
-                      </div>
-
-                    </div>
-
-                  )
-                )}
-
-              </div>
+              </section>
 
             </div>
+
+            {/* RIGHT COLUMN */}
+            <aside className="detail-event-right-column">
+
+              {/* EDIT BUTTON */}
+              <button
+                type="button"
+                className="edit-event-btn"
+                onClick={handleEdit}
+              >
+                Edit Event
+              </button>
+
+              {/* STATISTICS */}
+              <section className="detail-card stats-card">
+
+                <h2>
+                  Statistik Penjualan
+                </h2>
+
+                <div className="stats-divider-top"></div>
+
+                <div className="sales-text-row">
+
+                  <span>
+                    {event.ticketSold}/{event.ticketTotal} Tiket Terjual
+                  </span>
+
+                  <span>
+                    {percentage}%
+                  </span>
+
+                </div>
+
+                <div className="progress-bar-bg">
+
+                  <div
+                    className="progress-bar-fill"
+                    style={{
+                      width: `${percentage}%`,
+                    }}
+                  ></div>
+
+                </div>
+
+                <hr className="stats-divider" />
+
+                <div className="category-breakdown">
+
+                  <h4>
+                    RINCIAN PER KATEGORI
+                  </h4>
+
+                  {event.categories.map(
+                    (category, index) => (
+
+                      <div
+                        className="category-row"
+                        key={index}
+                      >
+
+                        <div className="cat-info">
+
+                          <span className="cat-name">
+                            {category.name}
+                          </span>
+
+                          <span className="cat-price">
+                            {category.price}
+                          </span>
+
+                        </div>
+
+                        <span className="cat-count">
+                          {category.sold}
+                        </span>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </section>
+
+            </aside>
 
           </div>
 
-        </section>
+        </div>
 
       </main>
 
@@ -424,4 +402,4 @@ function DashboardEO() {
   );
 }
 
-export default DashboardEO;
+export default DetailEventEO;

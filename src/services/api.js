@@ -4,7 +4,6 @@
 const getHeaders = () => ({
   "Content-Type": "application/json",
   Accept: "application/json",
-  // "ngrok-skip-browser-warning" tidak perlu lagi lewat proxy
 });
 
 const getResponseData = async (response) => {
@@ -49,7 +48,7 @@ export const apiFetch = async (path, options = {}) => {
 
   const response = await fetch(`/api${cleanPath}`, {
     method: options.method || "GET",
-    credentials: "include", // Cookie HttpOnly ikut otomatis (same-origin via proxy)
+    credentials: "include",
     headers: getHeaders(),
     body: options.body,
   });

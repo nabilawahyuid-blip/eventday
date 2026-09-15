@@ -1,3 +1,7 @@
+/* =========================================================
+   SIDEBAR EO
+========================================================= */
+
 .sidebar-eo {
   position: fixed;
 
@@ -19,7 +23,10 @@
   z-index: 100;
 }
 
-/* BRAND */
+
+/* =========================================================
+   BRAND
+========================================================= */
 
 .sidebar-eo-brand {
   display: flex;
@@ -32,6 +39,7 @@
 
   margin-bottom: 38px;
 }
+
 
 .sidebar-eo-logo {
   width: 34px;
@@ -48,17 +56,23 @@
 
   color: white;
 
-  font-size: 14px;
+  font-size: 15px;
 
   font-weight: 600;
 
-  box-shadow: 0 5px 12px rgba(91, 77, 226, 0.18);
+  box-shadow:
+    0 5px 12px rgba(91, 77, 226, 0.18);
 }
+
+
+/* =========================================================
+   BRAND TEXT
+========================================================= */
 
 .sidebar-eo-brand-text h2 {
   margin: 0;
 
-  font-size: 15px;
+  font-size: 17px;
 
   line-height: 1.1;
 
@@ -67,19 +81,23 @@
   font-weight: 700;
 }
 
+
 .sidebar-eo-brand-text span {
   display: block;
 
   margin-top: 3px;
 
-  font-size: 6px;
+  font-size: 9px;
 
-  color: #817c91;
+  color: #686373;
 
   letter-spacing: 0.2px;
 }
 
-/* MENU */
+
+/* =========================================================
+   MENU
+========================================================= */
 
 .sidebar-eo-menu {
   display: flex;
@@ -89,8 +107,14 @@
   gap: 5px;
 }
 
+
+/* =========================================================
+   MENU ITEM
+========================================================= */
+
 .sidebar-eo-item {
   width: 100%;
+
   height: 39px;
 
   padding: 0 13px;
@@ -107,11 +131,13 @@
 
   background: transparent;
 
-  color: #6e687e;
+  color: #5f5a6e;
 
   font-family: "Poppins", sans-serif;
 
-  font-size: 8px;
+  font-size: 11px;
+
+  font-weight: 500;
 
   text-align: left;
 
@@ -120,13 +146,23 @@
   transition: 0.2s ease;
 }
 
+
+/* =========================================================
+   MENU ICON
+========================================================= */
+
 .sidebar-eo-item span {
   width: 14px;
 
   text-align: center;
 
-  font-size: 10px;
+  font-size: 12px;
 }
+
+
+/* =========================================================
+   HOVER
+========================================================= */
 
 .sidebar-eo-item:hover {
   background: #f3f1ff;
@@ -134,60 +170,70 @@
   color: #5b4de2;
 }
 
+
+/* =========================================================
+   ACTIVE
+========================================================= */
+
 .sidebar-eo-item.active {
   background: #5b4de2;
 
   color: #ffffff;
 
-  box-shadow: 0 6px 14px rgba(91, 77, 226, 0.18);
+  box-shadow:
+    0 6px 14px rgba(91, 77, 226, 0.18);
 }
 
-/* LOGOUT */
 
+/* =========================================================
+   LOGOUT
+========================================================= */
 .sidebar-eo-logout {
   width: calc(100% - 18px);
-
   height: 38px;
-
   margin: auto 9px 0;
-
   display: flex;
-
   align-items: center;
-
   gap: 10px;
-
   border: none;
-
   background: transparent;
-
-  color: #726d7e;
-
+  color: #e53935;
   font-family: "Poppins", sans-serif;
-
-  font-size: 8px;
-
+  font-size: 11px;
+  font-weight: 500;
   cursor: pointer;
-
   text-align: left;
 }
 
 .sidebar-eo-logout:hover {
-  color: #5b4de2;
+  color: #c62828;
 }
 
 .sidebar-eo-logout span {
-  font-size: 11px;
+  font-size: 13px;
 }
 
+/* =========================================================
+   TABLET
+========================================================= */
+
 @media (max-width: 800px) {
+
   .sidebar-eo {
     width: 200px;
   }
+
 }
 
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media (max-width: 600px) {
+
   .sidebar-eo {
     display: none;
   }
+
 }

@@ -6,198 +6,470 @@ import NavbarEO from "../shared/NavbarEO";
 
 import "./DetailEventEO.css";
 
+
 function DetailEventEO() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Mock data detail event (disesuaikan dengan kebutuhan API nanti)
-  const eventDetail = {
-    id: id || "1",
-    eventId: "EVT-2024-001",
-    title: "Music Festival 2024",
-    category: "Kategori Event",
-    date: "02 Februari 2027 19:00",
-    location: "Lokasi/Venue Event",
-    status: "Event Aktif",
-    statusClass: "active",
-    bannerUrl:
-      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop",
-    description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+  /*
+    Data event sementara.
+    Nanti bagian ini bisa diganti dengan data dari API.
+  */
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
+  const event = {
+    id: id || "EVT-2024-001",
+
+    title: "Music Festival 2024",
+
+    status: "Event Aktif",
+
+    category: "Kategori Event",
+
+    date: "02 Februari 2027",
+
+    time: "19:00",
+
+    location: "Lokasi/Venue Event",
+
+    description: [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+    ],
+
     facilities:
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-    lineup: [
-      { id: 1, name: "Bintang Tamu" },
-      { id: 2, name: "Bintang Tamu" },
-      { id: 3, name: "Bintang Tamu" },
+
+    banner:
+      "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1600&q=85",
+
+    ticketSold: 200,
+
+    ticketTotal: 400,
+
+    categories: [
+      {
+        name: "VIP",
+        price: "Rp 1.500.000",
+        sold: "50 / 100",
+      },
+      {
+        name: "Festival",
+        price: "Rp 750.000",
+        sold: "150 / 300",
+      },
     ],
-    stats: {
-      sold: 200,
-      total: 400,
-      percentage: 50,
-      categories: [
-        { name: "VIP", price: "Rp 1.500.000", sold: 50, total: 100 },
-        { name: "Festival", price: "Rp 750.000", sold: 150, total: 300 },
-      ],
-    },
+
+    lineup: [
+      {
+        name: "Bintang Tamu",
+      },
+      {
+        name: "Bintang Tamu",
+      },
+      {
+        name: "Bintang Tamu",
+      },
+    ],
   };
+
+
+  const percentage = Math.round(
+    (event.ticketSold / event.ticketTotal) * 100
+  );
+
+
+  const handleBack = () => {
+    navigate("/eo/event");
+  };
+
+
+  const handleEdit = () => {
+    navigate(`/eo/event/${event.id}/edit`);
+  };
+
 
   return (
     <div className="detail-event-eo-page">
+
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
+
       <SidebarEO />
-      <NavbarEO />
+
+
+      {/* =====================================================
+          MAIN
+      ===================================================== */}
 
       <main className="detail-event-eo-main">
-        {/* Navigation / Back Button */}
-        <div className="detail-event-eo-top-nav">
-          <button
-            type="button"
-            className="back-button"
-            onClick={() => navigate(-1)}
-          >
-            ← Kembali ke Kelola Event
-          </button>
-        </div>
 
-        {/* Hero Section (Banner & Title Card) */}
-        <div className="detail-event-eo-hero-card">
-          <div className="banner-wrapper">
-            <img
-              src={eventDetail.bannerUrl}
-              alt={eventDetail.title}
-              className="event-banner"
-            />
-            <span className={`status-badge ${eventDetail.statusClass}`}>
-              {eventDetail.status}
-            </span>
+        {/* ===================================================
+            NAVBAR
+        =================================================== */}
+
+        <NavbarEO />
+
+
+        {/* ===================================================
+            CONTENT
+        =================================================== */}
+
+        <div className="detail-event-eo-content">
+
+
+          {/* =================================================
+              PAGE TITLE
+          ================================================= */}
+
+          <div className="detail-event-page-title">
+            <h1>Detail Event</h1>
           </div>
 
-          <div className="hero-info">
-            <h1>{eventDetail.title}</h1>
-            <p className="event-id">
-              <span className="id-icon">📄</span> ID Event:{" "}
-              {eventDetail.eventId}
-            </p>
-          </div>
-        </div>
 
-        {/* Two Column Layout */}
-        <div className="detail-event-eo-content-grid">
-          {/* Left Column - Details */}
-          <div className="left-column">
-            {/* Meta Info Box */}
-            <div className="detail-card meta-card">
-              <h3>{eventDetail.title}</h3>
-              <div className="meta-list">
-                <span>
-                  <i className="icon">🏷️</i> {eventDetail.category}
-                </span>
-                <span>
-                  <i className="icon">📅</i> {eventDetail.date}
-                </span>
-                <span>
-                  <i className="icon">📍</i> {eventDetail.location}
-                </span>
-              </div>
-            </div>
+          {/* =================================================
+              BACK BUTTON
+          ================================================= */}
 
-            {/* Description Box */}
-            <div className="detail-card">
-              <h2>Deskripsi Event</h2>
-              <div className="description-text">
-                {eventDetail.description.split("\n\n").map((paragraph, idx) => (
-                  <p key={idx}>{paragraph}</p>
-                ))}
-              </div>
-            </div>
+          <div className="detail-event-eo-top-nav">
 
-            {/* Facilities Box */}
-            <div className="detail-card">
-              <h2>Fasilitas</h2>
-              <p className="facilities-text">{eventDetail.facilities}</p>
-            </div>
-
-            {/* LineUp Box */}
-            <div className="detail-card">
-              <h2>LineUp</h2>
-              <div className="lineup-grid">
-                {eventDetail.lineup.map((item) => (
-                  <div className="lineup-item" key={item.id}>
-                    <div className="lineup-avatar">
-                      <svg
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#8a859b"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    </div>
-                    <span>{item.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column - Stats & Action */}
-          <div className="right-column">
             <button
               type="button"
-              className="edit-event-btn"
-              onClick={() => navigate(`/eo/event/edit/${eventDetail.id}`)}
+              className="back-button"
+              onClick={handleBack}
             >
-              Edit Event
+              <span className="back-arrow">←</span>
+
+              Kembali ke Kelola Event
             </button>
 
-            {/* Sales Stats Box */}
-            <div className="detail-card stats-card">
-              <h2>Statistik Penjualan</h2>
+          </div>
 
-              <div className="sales-progress-container">
-                <div className="sales-text-row">
+
+          {/* =================================================
+              HERO CARD
+          ================================================= */}
+
+          <section className="detail-event-eo-hero-card">
+
+            {/* BANNER */}
+
+            <div className="banner-wrapper">
+
+              <img
+                src={event.banner}
+                alt={event.title}
+                className="event-banner"
+              />
+
+
+              {/* STATUS */}
+
+              <span className="status-badge active">
+                {event.status}
+              </span>
+
+            </div>
+
+
+            {/* HERO INFO */}
+
+            <div className="hero-info">
+
+              <h2>
+                {event.title}
+              </h2>
+
+              <p className="event-id">
+
+                <span className="event-id-icon">
+                  ▣
+                </span>
+
+                ID Event: {event.id}
+
+              </p>
+
+            </div>
+
+          </section>
+
+
+          {/* =================================================
+              TWO COLUMN
+          ================================================= */}
+
+          <div className="detail-event-eo-content-grid">
+
+
+            {/* =================================================
+                LEFT COLUMN
+            ================================================= */}
+
+            <div className="detail-event-left-column">
+
+
+              {/* =============================================
+                  EVENT INFORMATION
+              ============================================= */}
+
+              <section className="detail-card meta-card">
+
+                <h3>
+                  {event.title}
+                </h3>
+
+
+                <div className="meta-list">
+
                   <span>
-                    {eventDetail.stats.sold}/{eventDetail.stats.total} Tiket
-                    Terjual
+                    <span className="meta-icon tag-icon">
+                      ◇
+                    </span>
+
+                    {event.category}
                   </span>
-                  <span>{eventDetail.stats.percentage}%</span>
+
+
+                  <span>
+                    <span className="meta-icon">
+                      ▣
+                    </span>
+
+                    {event.date} {event.time}
+                  </span>
+
+
+                  <span>
+                    <span className="meta-icon location-icon">
+                      ♧
+                    </span>
+
+                    {event.location}
+                  </span>
+
                 </div>
+
+              </section>
+
+
+              {/* =============================================
+                  DESCRIPTION
+              ============================================= */}
+
+              <section className="detail-card">
+
+                <h2>
+                  Deskripsi Event
+                </h2>
+
+
+                <div className="description-text">
+
+                  {event.description.map(
+                    (paragraph, index) => (
+                      <p key={index}>
+                        {paragraph}
+                      </p>
+                    )
+                  )}
+
+                </div>
+
+              </section>
+
+
+              {/* =============================================
+                  FACILITIES
+              ============================================= */}
+
+              <section className="detail-card">
+
+                <h2>
+                  Fasilitas
+                </h2>
+
+
+                <div className="facilities-text">
+
+                  <p>
+                    {event.facilities}
+                  </p>
+
+                </div>
+
+              </section>
+
+
+              {/* =============================================
+                  LINEUP
+              ============================================= */}
+
+              <section className="detail-card lineup-card">
+
+                <h2>
+                  LineUp
+                </h2>
+
+
+                <div className="lineup-grid">
+
+                  {event.lineup.map(
+                    (person, index) => (
+
+                      <div
+                        className="lineup-item"
+                        key={index}
+                      >
+
+                        <div className="lineup-avatar">
+
+                          <span>
+                            ♙
+                          </span>
+
+                        </div>
+
+
+                        <span>
+                          {person.name}
+                        </span>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </section>
+
+            </div>
+
+
+            {/* =================================================
+                RIGHT COLUMN
+            ================================================= */}
+
+            <aside className="detail-event-right-column">
+
+
+              {/* =============================================
+                  EDIT BUTTON
+              ============================================= */}
+
+              <button
+                type="button"
+                className="edit-event-btn"
+                onClick={handleEdit}
+              >
+                Edit Event
+              </button>
+
+
+              {/* =============================================
+                  SALES STATISTICS
+              ============================================= */}
+
+              <section className="detail-card stats-card">
+
+                <h2>
+                  Statistik Penjualan
+                </h2>
+
+
+                <div className="stats-divider-top"></div>
+
+
+                {/* SALES TEXT */}
+
+                <div className="sales-text-row">
+
+                  <span>
+                    {event.ticketSold}/{event.ticketTotal} Tiket Terjual
+                  </span>
+
+                  <span>
+                    {percentage}%
+                  </span>
+
+                </div>
+
+
+                {/* PROGRESS */}
+
                 <div className="progress-bar-bg">
+
                   <div
                     className="progress-bar-fill"
-                    style={{ width: `${eventDetail.stats.percentage}%` }}
-                  />
+                    style={{
+                      width: `${percentage}%`,
+                    }}
+                  ></div>
+
                 </div>
-              </div>
 
-              <hr className="stats-divider" />
 
-              <div className="category-breakdown">
-                <h4>RINCIAN PER KATEGORI</h4>
-                {eventDetail.stats.categories.map((cat, idx) => (
-                  <div className="category-row" key={idx}>
-                    <div className="cat-info">
-                      <span className="cat-name">{cat.name}</span>
-                      <span className="cat-price">{cat.price}</span>
-                    </div>
-                    <span className="cat-count">
-                      {cat.sold} / {cat.total}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+                {/* DIVIDER */}
+
+                <hr className="stats-divider" />
+
+
+                {/* CATEGORY */}
+
+                <div className="category-breakdown">
+
+                  <h4>
+                    RINCIAN PER KATEGORI
+                  </h4>
+
+
+                  {event.categories.map(
+                    (category, index) => (
+
+                      <div
+                        className="category-row"
+                        key={index}
+                      >
+
+                        <div className="cat-info">
+
+                          <span className="cat-name">
+                            {category.name}
+                          </span>
+
+                          <span className="cat-price">
+                            {category.price}
+                          </span>
+
+                        </div>
+
+
+                        <span className="cat-count">
+                          {category.sold}
+                        </span>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </section>
+
+            </aside>
+
           </div>
+
         </div>
+
       </main>
+
     </div>
   );
 }
+
 
 export default DetailEventEO;

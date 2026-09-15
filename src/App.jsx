@@ -14,11 +14,13 @@ import DashboardAdmin from "./components/admin/DashboardAdmin";
 import EventManagement from "./components/admin/EventManagement";
 import TambahEvent from "./components/admin/TambahEvent";
 import DetailEvent from "./components/admin/DetailEvent";
+import EditEvent from './components/admin/EditEvent';
 import UserManagement from "./components/admin/UserManagement";
 import DetailUser from "./components/admin/DetailUser";
 import PengajuanAkunEO from "./components/admin/PengajuanAkunEO";
 import Transaksi from "./components/admin/Transaksi";
 import Tiket from "./components/admin/Tiket";
+import PengaturanPlatform from "./components/admin/PengaturanPlatform";
 
 // ==================== CUSTOMER ====================
 import CustomerDashboard from "./components/customer/CustomerDashboard";
@@ -33,7 +35,7 @@ import ProfileCustomer from "./components/customer/ProfileCustomer";
 import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
 import SyaratKetentuan from "./components/customer/SyaratKetentuan";
 import EditProfileCustomer from "./components/customer/EditProfileCustomer";
-
+import DetailRefundEO from "./components/eo/DetailRefundEO";
 // ==================== EO ====================
 import DashboardEO from "./components/eo/DashboardEO";
 import EventEO from "./components/eo/EventEO";
@@ -76,6 +78,7 @@ function App() {
           <Route path="/admin/event-management" element={<EventManagement />} />
 
           <Route path="/admin/event/:id" element={<DetailEvent />} />
+          <Route path="/admin/event/edit/:id" element={<EditEvent />} />
 
           <Route path="/admin/users" element={<UserManagement />} />
 
@@ -88,6 +91,7 @@ function App() {
           <Route path="/admin/transaksi" element={<Transaksi />} />
 
           <Route path="/admin/tiket" element={<Tiket />} />
+          <Route path="/admin/pengaturan" element={<PengaturanPlatform />} />
 
           {/* ==================== EO ==================== */}
 
@@ -137,6 +141,7 @@ function App() {
             path="/customer/profile/edit"
             element={<EditProfileCustomer />}
           />
+          <Route path="/eo/refund/detail" element={<DetailRefundEO />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>
