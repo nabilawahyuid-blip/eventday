@@ -1,175 +1,181 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Check, X } from "lucide-react";
+
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
+
 import "./RefundEO.css";
+const refundData = [
+  {
+    id: 1,
+    customer: "Ahmad Hidayat",
+    ticket: "VIP Festival Day 1",
+    transaction: "TRX-9982-A",
+    reason: "Acara berbenturan dengan jadwal dinas...",
+    status: "Approved",
+  },
+  {
+    id: 2,
+    customer: "Budi Santoso",
+    ticket: "Regular Pass",
+    transaction: "TRX-7712-B",
+    reason: "Sakit parah, surat dokter terlampir...",
+    status: "Approved",
+  },
+  {
+    id: 3,
+    customer: "Siti Rahma",
+    ticket: "Early Bird Pass",
+    transaction: "TRX-4421-P",
+    reason: "Salah beli tiket untuk hari yang berbeda...",
+    status: "Menunggu",
+  },
+  {
+    id: 4,
+    customer: "Dian Sastro",
+    ticket: "Group Package (5 Pax)",
+    transaction: "TRX-1102-R",
+    reason: "Alasan tidak valid sesuai S&K...",
+    status: "Rejected",
+  },
+  {
+    id: 5,
+    customer: "Eka Putra",
+    ticket: "VIP Backstage",
+    transaction: "TRX-1103-R",
+    reason: "Permintaan melewati batas waktu H-7...",
+    status: "Rejected",
+  },
+];
 
-function RefundEO() {
-  const navigate = useNavigate();
-
-  const refundData = [
-    {
-      id: "TRX-9982-A",
-      customer: "Ahmad Hidayat",
-      ticket: "VIP Festival Day 1",
-      reason: "Acara berbenturan dengan jadwal dinas...",
-      status: "Approved",
-      statusClass: "approved",
-    },
-    {
-      id: "TRX-7712-B",
-      customer: "Budi Santoso",
-      ticket: "Regular Pass",
-      reason: "Sakit parah, surat dokter terlampir...",
-      status: "Approved",
-      statusClass: "approved",
-    },
-    {
-      id: "TRX-4421-P",
-      customer: "Siti Rahma",
-      ticket: "Early Bird Pass",
-      reason: "Salah beli tiket untuk hari yang berbeda...",
-      status: "Menunggu",
-      statusClass: "pending",
-      action: true,
-    },
-    {
-      id: "TRX-1102-R",
-      customer: "Dian Sastro",
-      ticket: "Group Package (5 Pax)",
-      reason: "Alasan tidak valid sesuai S&K...",
-      status: "Rejected",
-      statusClass: "rejected",
-    },
-    {
-      id: "TRX-1103-R",
-      customer: "Nia Eka Putri",
-      ticket: "VIP Backstage",
-      reason: "Permintaan melewati batas waktu H-7...",
-      status: "Rejected",
-      statusClass: "rejected",
-    },
-  ];
-
+function Refund() {
   const handleDetail = (refund) => {
-    navigate(`/eo/refund/${refund.id}`);
+    console.log("Detail refund:", refund);
   };
 
   const handleApprove = (refund) => {
-    alert(`Refund ${refund.id} disetujui`);
+    console.log("Setujui refund:", refund);
   };
 
   const handleReject = (refund) => {
-    alert(`Refund ${refund.id} ditolak`);
+    console.log("Tolak refund:", refund);
   };
 
   return (
-    <div className="refund-page">
+    <div className="refund-layout">
 
       {/* SIDEBAR */}
       <SidebarEO />
 
-      {/* MAIN AREA */}
-      <main className="refund-main">
+      {/* AREA UTAMA */}
+      <div className="refund-main">
 
         {/* NAVBAR */}
         <NavbarEO />
 
-        {/* CONTENT */}
-        <div className="refund-content">
+        <main className="refund-content">
 
-          {/* HEADER */}
+          {/* TITLE */}
           <div className="refund-header">
-            <div>
-              <h1>Daftar Refund</h1>
-              <p>Kelola permintaan pengembalian dana tiket.</p>
+            <h1>Refund</h1>
+
+            <div className="refund-description">
+              <h2>Daftar Refund</h2>
+              <p>
+                Kelola permintaan pengembalian dana tiket.
+              </p>
             </div>
           </div>
 
-          {/* FILTER / SEARCH */}
-          <div className="refund-toolbar">
-
-            <div className="refund-search">
-              <span>⌕</span>
-              <input
-                type="text"
-                placeholder="Cari refund..."
-              />
-            </div>
-
-            <select className="refund-filter">
-              <option>Semua Status</option>
-              <option>Menunggu</option>
-              <option>Approved</option>
-              <option>Rejected</option>
-            </select>
-
-          </div>
-
-          {/* REFUND LIST */}
-          <section className="refund-list">
+          {/* LIST REFUND */}
+          <div className="refund-list">
 
             {refundData.map((refund) => (
               <div
-                className={`refund-card ${
-                  refund.action ? "refund-pending-card" : ""
-                }`}
                 key={refund.id}
+                className={`refund-card ${
+                  refund.status === "Menunggu"
+                    ? "refund-card-pending"
+                    : ""
+                }`}
               >
 
-                {/* CUSTOMER */}
-                <div className="refund-column customer-column">
+                {/* DATA REFUND */}
+                <div className="refund-info">
 
-                  <span className="refund-label">
-                    NAMA CUSTOMER
-                  </span>
+                  {/* CUSTOMER */}
+                  <div className="refund-column">
+                    <div className="refund-item">
+                      <span className="refund-label">
+                        {refund.id >= 3
+                          ? `NAMA CUSTOMER ${refund.id}`
+                          : "NAMA CUSTOMER"}
+                      </span>
 
-                  <strong>
-                    {refund.customer}
-                  </strong>
+                      <span className="refund-value customer-name">
+                        {refund.customer}
+                      </span>
+                    </div>
 
-                  <span className="refund-label refund-id-label">
-                    ID TRANSAKSI
-                  </span>
+                    <div className="refund-item transaction-item">
+                      <span className="refund-label">
+                        ID TRANSAKSI
+                      </span>
 
-                  <span className="refund-id">
-                    {refund.id}
-                  </span>
+                      <span className="refund-value transaction-id">
+                        {refund.transaction}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* TICKET */}
+                  <div className="refund-column">
+                    <div className="refund-item">
+                      <span className="refund-label">
+                        TIKET YANG DIPESAN
+                      </span>
+
+                      <span className="refund-value">
+                        {refund.ticket}
+                      </span>
+                    </div>
+
+                    <div className="refund-item reason-item">
+                      <span className="refund-label">
+                        ALASAN REFUND
+                      </span>
+
+                      <span className="refund-value reason-text">
+                        {refund.reason}
+                      </span>
+                    </div>
+                  </div>
 
                 </div>
 
-                {/* TICKET */}
-                <div className="refund-column ticket-column">
+                {/* ACTION AREA */}
+                <div className="refund-action">
 
-                  <span className="refund-label">
-                    TIKET YANG DIPESAN
-                  </span>
-
-                  <strong>
-                    {refund.ticket}
-                  </strong>
-
-                  <span className="refund-label refund-reason-label">
-                    ALASAN REFUND
-                  </span>
-
-                  <span className="refund-reason">
-                    {refund.reason}
-                  </span>
-
-                </div>
-
-                {/* RIGHT SIDE */}
-                <div className="refund-action-area">
-
+                  {/* STATUS */}
                   <span
-                    className={`refund-status ${refund.statusClass}`}
+                    className={`refund-status ${
+                      refund.status === "Approved"
+                        ? "status-approved"
+                        : refund.status === "Menunggu"
+                        ? "status-pending"
+                        : "status-rejected"
+                    }`}
                   >
                     {refund.status}
                   </span>
 
+                  {/* DETAIL */}
                   <button
-                    className="refund-detail-button"
+                    className={`detail-refund-btn ${
+                      refund.status === "Rejected"
+                        ? "detail-disabled"
+                        : ""
+                    }`}
                     onClick={() => handleDetail(refund)}
                   >
                     Detail Refund
@@ -177,28 +183,30 @@ function RefundEO() {
 
                 </div>
 
-                {/* APPROVE / REJECT */}
-                {refund.action && (
-                  <div className="refund-decision">
+                {/* PENDING ACTION */}
+                {refund.status === "Menunggu" && (
+                  <div className="pending-action">
 
-                    <span>
+                    <span className="pending-text">
                       Tindakan Diperlukan
                     </span>
 
-                    <div className="decision-buttons">
+                    <div className="pending-buttons">
 
                       <button
-                        className="reject-button"
+                        className="reject-btn"
                         onClick={() => handleReject(refund)}
                       >
-                        ✕ Tolak
+                        <X size={15} strokeWidth={2.5} />
+                        Tolak
                       </button>
 
                       <button
-                        className="approve-button"
+                        className="approve-btn"
                         onClick={() => handleApprove(refund)}
                       >
-                        ✓ Setujui
+                        <Check size={15} strokeWidth={2.5} />
+                        Setujui
                       </button>
 
                     </div>
@@ -209,14 +217,12 @@ function RefundEO() {
               </div>
             ))}
 
-          </section>
+          </div>
 
-        </div>
-
-      </main>
-
+        </main>
+      </div>
     </div>
   );
 }
 
-export default RefundEO;
+export default Refund;
