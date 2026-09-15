@@ -12,7 +12,6 @@ function DashboardAdmin() {
   // ======
   // VIEW ALL EVENT
   // ======
-
   const handleViewAll = () => {
     navigate("/event-management");
   };
@@ -20,7 +19,6 @@ function DashboardAdmin() {
   // ======
   // EVENT CLICK
   // ======
-
   const handleEventClick = (eventId) => {
     navigate(`/admin/event/${eventId}`);
   };
@@ -28,7 +26,6 @@ function DashboardAdmin() {
   // ======
   // TRANSACTION CLICK
   // ======
-
   const handleTransactionClick = (name) => {
     alert(`Transaksi ${name} dipilih`);
   };
@@ -299,115 +296,69 @@ function DashboardAdmin() {
               </div>
 
               {/* =
-                  AKTIVITAS TRANSAKSI
+                  AKTIVITAS TRANSAKSI (DISAMAKAN UKURAN & STRUKTUR DENGAN EVENT)
               = */}
 
               <div className="dashboard-card transactions-card">
 
                 <div className="card-header">
-
-                  <h3>
-                    Aktivitas Terbaru
-                  </h3>
-
+                  <h3>Aktivitas Terbaru</h3>
                 </div>
 
                 <div className="transaction-list">
 
-                  {/* ======
-                      TRANSACTION 1
-                  ====== */}
-
+                  {/* TRANSACTION 1 */}
                   <button
                     type="button"
                     className="transaction-item"
-                    onClick={() =>
-                      handleTransactionClick("Nama Customer 1")
-                    }
+                    onClick={() => handleTransactionClick("Nama Customer 1")}
                   >
-
-                    <div className="transaction-avatar">
-                      N1
+                    <div className="event-image">
+                      <span>N1</span>
                     </div>
 
-                    <div className="transaction-info">
-
-                      <p>
-
-                        <strong>
-                          Nama Customer 1
-                        </strong>
-
-                        <br />
-
-                        Tiket Yang Dipesan
-
-                        <br />
-
-                        <strong>
-                          TRANSAKSI TRX-9922
-                        </strong>
-
-                      </p>
-
-                      <span>
-                        2 mins ago
-                      </span>
-
+                    <div className="event-info">
+                      <h4>Nama Customer 1</h4>
+                      <div className="transaction-text-wrapper">
+                        <p className="trx-desc">🎫 Tiket Yang Dipesan</p>
+                        <p className="trx-code">TRX-9922</p>
+                      </div>
                     </div>
 
-                    <strong className="transaction-price success-badge">
+                    <div className="event-status published">
                       Lunas
-                    </strong>
+                    </div>
 
+                    <span className="event-more">
+                      ⋮
+                    </span>
                   </button>
 
-                  {/* ======
-                      TRANSACTION 2
-                  ====== */}
-
+                  {/* TRANSACTION 2 */}
                   <button
                     type="button"
                     className="transaction-item"
-                    onClick={() =>
-                      handleTransactionClick("Nama Customer 2")
-                    }
+                    onClick={() => handleTransactionClick("Nama Customer 2")}
                   >
-
-                    <div className="transaction-avatar">
-                      N2
+                    <div className="event-image">
+                      <span>N2</span>
                     </div>
 
-                    <div className="transaction-info">
-
-                      <p>
-
-                        <strong>
-                          Nama Customer 2
-                        </strong>
-
-                        <br />
-
-                        Tiket Yang Dipesan
-
-                        <br />
-
-                        <strong>
-                          TRANSAKSI TRX-9923
-                        </strong>
-
-                      </p>
-
-                      <span>
-                        15 mins ago
-                      </span>
-
+                    <div className="event-info">
+                      <h4>Nama Customer 2</h4>
+                      <div className="transaction-text-wrapper">
+                        <p className="trx-desc">🎫 Tiket Yang Dipesan</p>
+                        <p className="trx-code">TRX-9923</p>
+                      </div>
                     </div>
 
-                    <strong className="transaction-price pending-badge">
+                    <div className="event-status draft">
                       Menunggu
-                    </strong>
+                    </div>
 
+                    <span className="event-more">
+                      ⋮
+                    </span>
                   </button>
 
                 </div>
