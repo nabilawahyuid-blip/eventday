@@ -1,0 +1,987 @@
+/* =========================================================
+   PENGAJUAN PAYOUT
+========================================================= */
+
+.pengajuan-payout-page {
+  width: 100%;
+  min-height: 100vh;
+
+  background: #faf8ff;
+
+  font-family: "Poppins", sans-serif;
+
+  color: #252337;
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.pengajuan-payout-main {
+  width: calc(100% - 220px);
+  min-height: 100vh;
+
+  margin-left: 220px;
+
+  background: #faf8ff;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.pengajuan-payout-content {
+  width: 100%;
+
+  padding: 32px 32px 50px;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.pengajuan-payout-header {
+  margin-bottom: 30px;
+}
+
+.pengajuan-payout-header h1 {
+  margin: 0;
+
+  color: #242331;
+
+  font-size: 25px;
+  line-height: 1.25;
+
+  font-weight: 700;
+
+  letter-spacing: -0.5px;
+}
+
+.pengajuan-payout-header p {
+  margin: 5px 0 0;
+
+  color: #5f5b69;
+
+  font-size: 12px;
+  line-height: 1.5;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+.payout-statistics {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 24px;
+
+  margin-bottom: 24px;
+}
+
+
+/* =========================================================
+   STAT CARD
+========================================================= */
+
+.payout-stat-card {
+  min-height: 106px;
+
+  padding: 19px 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+
+  border: 1px solid #cbc6d8;
+
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 2px 4px rgba(52, 45, 75, 0.06);
+}
+
+
+/* =========================================================
+   STAT INFO
+========================================================= */
+
+.payout-stat-info {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.payout-stat-label {
+  color: #52505d;
+
+  font-size: 10px;
+
+  line-height: 1.2;
+
+  font-weight: 700;
+
+  letter-spacing: 0.5px;
+}
+
+.payout-stat-number {
+  color: #20202b;
+
+  font-size: 31px;
+
+  line-height: 1;
+
+  font-weight: 700;
+
+  letter-spacing: -0.8px;
+}
+
+
+/* =========================================================
+   STAT ICON
+========================================================= */
+
+.payout-stat-icon {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+}
+
+
+/* PENDING */
+
+.payout-icon-pending {
+  background: #ffddb2;
+
+  color: #3d3934;
+}
+
+
+/* APPROVED */
+
+.payout-icon-approved {
+  background: #5be8b0;
+
+  color: #16553f;
+}
+
+
+/* REJECTED */
+
+.payout-icon-rejected {
+  background: #ffd5d2;
+
+  color: #a72825;
+}
+
+
+/* =========================================================
+   PAYOUT LIST
+========================================================= */
+
+.payout-list {
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 16px;
+}
+
+
+/* =========================================================
+   PAYOUT REQUEST CARD
+========================================================= */
+
+.payout-request-card {
+  width: 100%;
+  min-height: 125px;
+
+  padding: 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  box-sizing: border-box;
+
+  border: 1px solid #cbc6d8;
+
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 2px 4px rgba(52, 45, 75, 0.06);
+}
+
+
+/* =========================================================
+   EVENT ICON
+========================================================= */
+
+.payout-event-icon {
+  width: 48px;
+  height: 48px;
+
+  min-width: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d0cbdf;
+
+  border-radius: 7px;
+
+  background: #f0eefb;
+
+  color: #777384;
+}
+
+
+/* =========================================================
+   EVENT INFORMATION
+========================================================= */
+
+.payout-event-info {
+  min-width: 0;
+
+  margin-left: 16px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+}
+
+.payout-event-info h2 {
+  margin: 0;
+
+  color: #24232f;
+
+  font-size: 17px;
+
+  line-height: 1.3;
+
+  font-weight: 600;
+
+  letter-spacing: -0.2px;
+}
+
+.payout-organizer {
+  margin: 7px 0 0;
+
+  color: #3f3c48;
+
+  font-size: 13px;
+
+  line-height: 1.3;
+
+  font-weight: 400;
+}
+
+.payout-date {
+  margin: 10px 0 0;
+
+  color: #65616e;
+
+  font-size: 12px;
+
+  line-height: 1.3;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   RIGHT ACTION
+========================================================= */
+
+.payout-request-action {
+  margin-left: auto;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 24px;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.payout-status {
+  min-width: 70px;
+  height: 25px;
+
+  padding: 0 11px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border-radius: 15px;
+
+  font-size: 11px;
+
+  line-height: 1;
+
+  font-weight: 400;
+
+  white-space: nowrap;
+}
+
+
+/* PENDING */
+
+.payout-status-pending {
+  background: #ffddb2;
+
+  color: #51412e;
+}
+
+
+/* APPROVED */
+
+.payout-status-approved {
+  background: #5be8b0;
+
+  color: #18513c;
+}
+
+
+/* REJECTED */
+
+.payout-status-rejected {
+  background: #ffd5d2;
+
+  color: #a72825;
+}
+
+
+/* =========================================================
+   DETAIL BUTTON
+========================================================= */
+
+.payout-detail-button {
+  min-width: 101px;
+  height: 35px;
+
+  padding: 0 14px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #827d8e;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #383540;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 400;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.payout-detail-button:hover {
+  background: #f4f2ff;
+
+  border-color: #5b4de2;
+
+  color: #5144d7;
+}
+
+.payout-detail-button svg {
+  display: none;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+
+  .pengajuan-payout-content {
+    padding: 28px 24px 45px;
+  }
+
+  .payout-statistics {
+    gap: 16px;
+  }
+
+  .payout-request-action {
+    gap: 15px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL TABLET
+========================================================= */
+
+@media (max-width: 800px) {
+
+  .pengajuan-payout-main {
+    width: calc(100% - 200px);
+
+    margin-left: 200px;
+  }
+
+  .pengajuan-payout-content {
+    padding: 25px 20px 40px;
+  }
+
+  .payout-statistics {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+  }
+
+  .payout-request-card {
+    align-items: flex-start;
+  }
+
+  .payout-request-action {
+    flex-direction: column;
+
+    align-items: flex-end;
+
+    gap: 10px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .pengajuan-payout-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+  .pengajuan-payout-content {
+    padding: 22px 15px 35px;
+  }
+
+  .pengajuan-payout-header {
+    margin-bottom: 22px;
+  }
+
+  .pengajuan-payout-header h1 {
+    font-size: 22px;
+  }
+
+  .pengajuan-payout-header p {
+    font-size: 11px;
+  }
+
+
+  /* STATISTICS */
+
+  .payout-statistics {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+
+    margin-bottom: 18px;
+  }
+
+  .payout-stat-card {
+    min-height: 95px;
+
+    padding: 17px;
+  }
+
+  .payout-stat-number {
+    font-size: 27px;
+  }
+
+  .payout-stat-icon {
+    width: 43px;
+    height: 43px;
+  }
+
+
+  /* PAYOUT CARD */
+
+  .payout-list {
+    gap: 12px;
+  }
+
+  .payout-request-card {
+    min-height: auto;
+
+    padding: 16px;
+
+    display: grid;
+
+    grid-template-columns: 42px minmax(0, 1fr);
+
+    gap: 12px;
+  }
+
+  .payout-event-icon {
+    width: 42px;
+    height: 42px;
+
+    min-width: 42px;
+  }
+
+  .payout-event-info {
+    margin-left: 0;
+  }
+
+  .payout-event-info h2 {
+    font-size: 14px;
+  }
+
+  .payout-organizer {
+    margin-top: 5px;
+
+    font-size: 11px;
+  }
+
+  .payout-date {
+    margin-top: 7px;
+
+    font-size: 10px;
+  }
+
+
+  /* ACTION */
+
+  .payout-request-action {
+    grid-column: 1 / -1;
+
+    width: 100%;
+
+    margin-left: 0;
+
+    padding-top: 12px;
+
+    display: flex;
+
+    flex-direction: row;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    border-top: 1px solid #eeeaf3;
+  }
+
+  .payout-detail-button {
+    height: 33px;
+
+    min-width: 95px;
+
+    font-size: 10px;
+  }
+
+}
+/* =========================================================
+   EXTRA FONT SIZE & GRAY COLOR IMPROVEMENT
+   HANYA FONT + WARNA TEKS
+   TIDAK MENGUBAH LOGIC / STRUKTUR / LAYOUT
+========================================================= */
+
+
+/* =========================================================
+   BODY
+========================================================= */
+
+body {
+  color: #29263a;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar-brand-info h2 {
+  font-size: 20px;
+}
+
+.sidebar-brand-info span {
+  font-size: 11px;
+  color: #5f5b68;
+}
+
+.sidebar-menu-item {
+  font-size: 15px;
+  color: #4f4b58;
+}
+
+.sidebar-menu-label {
+  font-size: 15px;
+}
+
+.sidebar-logout {
+  font-size: 15px;
+  color: #dc3f3f;
+}
+
+.sidebar-logout > span:last-child {
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.user-heading h1 {
+  font-size: 27px;
+  color: #29263a;
+}
+
+.user-heading p {
+  font-size: 15px;
+  color: #6f6a78;
+}
+
+
+/* =========================================================
+   ADD USER BUTTON
+========================================================= */
+
+.add-user-button {
+  font-size: 12px;
+}
+
+.add-user-button span {
+  font-size: 17px;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.search-icon {
+  font-size: 17px;
+  color: #686371;
+}
+
+.user-search input {
+  font-size: 12px;
+  color: #383441;
+}
+
+.user-search input::placeholder {
+  color: #77727f;
+}
+
+
+/* =========================================================
+   FILTER TABS
+========================================================= */
+
+.filter-tab {
+  font-size: 11px;
+  color: #595462;
+}
+
+.filter-tab.active {
+  color: #5145c9;
+}
+
+
+/* =========================================================
+   ADVANCED FILTER
+========================================================= */
+
+.advanced-filter {
+  color: #625d6b;
+}
+
+
+/* =========================================================
+   TABLE HEADER
+========================================================= */
+
+.user-table th {
+  font-size: 10px;
+  color: #625e6c;
+}
+
+
+/* =========================================================
+   TABLE BODY
+========================================================= */
+
+.user-table td {
+  font-size: 11px;
+  color: #45414e;
+}
+
+
+/* =========================================================
+   USER AVATAR
+========================================================= */
+
+.user-avatar {
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   USER NAME
+========================================================= */
+
+.user-name-wrapper strong {
+  font-size: 11px;
+  color: #37333f;
+}
+
+.user-name-wrapper span {
+  font-size: 9px;
+  color: #706b78;
+}
+
+
+/* =========================================================
+   USER TYPE
+========================================================= */
+
+.user-type {
+  font-size: 10px;
+  color: #57525f;
+}
+
+
+/* =========================================================
+   JOIN DATE
+========================================================= */
+
+.join-date {
+  font-size: 10px;
+  color: #57525f;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.user-status {
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   ACTION
+========================================================= */
+
+.user-action-button {
+  color: #686371;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-user {
+  font-size: 12px !important;
+  color: #706b78 !important;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.user-count {
+  font-size: 10px;
+  color: #625e6c;
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.page-arrow,
+.page-number {
+  font-size: 10px;
+  color: #5b5664;
+}
+
+
+/* =========================================================
+   GRAY COLOR GLOBAL IMPROVEMENT
+========================================================= */
+
+.user-heading p,
+.user-search input::placeholder,
+.filter-tab,
+.user-table th,
+.user-table td,
+.user-name-wrapper span,
+.user-type,
+.join-date,
+.user-count,
+.page-arrow,
+.page-number {
+  font-weight: 400;
+}
+
+
+/* Abu-abu yang tadinya terlalu pucat dibuat lebih jelas */
+
+.user-heading p {
+  color: #6f6a78;
+}
+
+.user-search input::placeholder {
+  color: #77727f;
+}
+
+.user-table th {
+  color: #625e6c;
+}
+
+.user-table td {
+  color: #45414e;
+}
+
+.user-name-wrapper span {
+  color: #706b78;
+}
+
+.user-type,
+.join-date {
+  color: #57525f;
+}
+
+.user-count {
+  color: #625e6c;
+}
+
+.page-arrow,
+.page-number {
+  color: #5b5664;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .user-heading h1 {
+    font-size: 23px;
+  }
+
+  .user-heading p {
+    font-size: 12px;
+  }
+
+  .filter-tab {
+    font-size: 10px;
+  }
+
+  .user-table th {
+    font-size: 10px;
+  }
+
+  .user-table td {
+    font-size: 11px;
+  }
+
+  .user-name-wrapper strong {
+    font-size: 11px;
+  }
+
+  .user-name-wrapper span {
+    font-size: 9px;
+  }
+
+  .user-type,
+  .join-date {
+    font-size: 10px;
+  }
+
+}
+
+
+@media (max-width: 450px) {
+
+  .user-heading h1 {
+    font-size: 21px;
+  }
+
+  .user-heading p {
+    font-size: 11px;
+  }
+
+  .filter-tab {
+    font-size: 9px;
+  }
+
+}

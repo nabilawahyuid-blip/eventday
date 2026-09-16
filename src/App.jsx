@@ -23,7 +23,8 @@ import Transaksi from "./components/admin/Transaksi";
 import Tiket from "./components/admin/Tiket";
 import PengaturanPlatform from "./components/admin/PengaturanPlatform";
 import AuditLog from "./components/admin/AuditLog";
-
+import PengajuanPayout from "./components/admin/PengajuanPayout";
+import DetailPengajuanPayout from "./components/admin/DetailPengajuanPayout";
 // ==================== CUSTOMER ====================
 import CustomerDashboard from "./components/customer/CustomerDashboard";
 import DetailEventCustomer from "./components/customer/DetailEventCustomer";
@@ -165,6 +166,14 @@ function App() {
 />
 
 <Route path="/admin/audit-log" element={<AuditLog />} />
+<Route
+  path="/admin/pengajuan-payout"
+  element={<PengajuanPayout />}
+/>
+<Route
+  path="/admin/pengajuan-payout/:id"
+  element={<DetailPengajuanPayout />}
+/>
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>

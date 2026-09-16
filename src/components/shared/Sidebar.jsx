@@ -8,6 +8,8 @@ import {
   UserCheck,
   ReceiptText,
   Ticket,
+  FileClock,
+  WalletCards,
   Settings,
   LogOut,
 } from "lucide-react";
@@ -84,7 +86,10 @@ function Sidebar() {
         <button
           type="button"
           className={`sidebar-menu-item ${
-            isActive("/event-management") || isActive("/admin/event") ? "active" : ""
+            isActive("/event-management") ||
+            isActive("/admin/event")
+              ? "active"
+              : ""
           }`}
           onClick={() =>
             navigate("/event-management")
@@ -216,6 +221,62 @@ function Sidebar() {
 
 
         {/* =================================================
+            AUDIT LOG
+        ================================================= */}
+
+        <button
+          type="button"
+          className={`sidebar-menu-item ${
+            isActive("/admin/audit-log")
+              ? "active"
+              : ""
+          }`}
+          onClick={() =>
+            navigate("/admin/audit-log")
+          }
+        >
+          <span className="sidebar-icon">
+            <FileClock
+              size={18}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-menu-label">
+            Audit Log
+          </span>
+        </button>
+
+
+        {/* =================================================
+            PENGAJUAN PAYOUT
+        ================================================= */}
+
+        <button
+          type="button"
+          className={`sidebar-menu-item ${
+            isActive("/admin/pengajuan-payout")
+              ? "active"
+              : ""
+          }`}
+          onClick={() =>
+            navigate("/admin/pengajuan-payout")
+          }
+        >
+          <span className="sidebar-icon">
+            <WalletCards
+              size={18}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-menu-label">
+            Pengajuan Payout
+          </span>
+        </button>
+
+
+        {/* =================================================
             PENGATURAN PLATFORM
         ================================================= */}
 
@@ -261,6 +322,7 @@ function Sidebar() {
           });
         }}
       >
+
         <span className="sidebar-logout-icon">
           <LogOut
             size={18}
@@ -271,6 +333,7 @@ function Sidebar() {
         <span>
           Keluar
         </span>
+
       </button>
 
     </aside>
