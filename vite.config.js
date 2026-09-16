@@ -15,7 +15,14 @@ export default defineConfig(({ mode }) => {
           headers: {
             "ngrok-skip-browser-warning": "true",
           },
-          rewrite: (path) => path.replace(/^\/api/, "/api/v1"),
+          rewrite: (path) => {
+            // /api/payments/... dan /api/tickets/... → jangan tambah /v1 (backend base path tanpa /v1)
+            if (path.startsWith("/api/payments") || path.startsWith("/api/tickets")) {
+              return path;
+            }
+            // Lainnya → tambah /v1 (/api/events → /api/v1/events)
+            return path.replace(/^\/api/, "/api/v1");
+          },
           configure: (proxy, _options) => {
             proxy.on("error", (err, _req, _res) => {
               console.log("proxy error", err);

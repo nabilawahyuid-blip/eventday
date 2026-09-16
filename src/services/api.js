@@ -1,10 +1,17 @@
 // src/services/api.js
 // Semua request lewat Vite proxy (/api/...) → same-origin → cookie HttpOnly ikut otomatis
 
-const getHeaders = () => ({
-  "Content-Type": "application/json",
-  Accept: "application/json",
-});
+const getHeaders = () => {
+  const headers = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+  const token = localStorage.getItem("token");
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
 
 const getResponseData = async (response) => {
   const text = await response.text();
@@ -43,10 +50,12 @@ export const toQueryString = (params = {}) => {
 };
 
 // Path sudah include /api/v1/... mis: "/events", "/checkout/initiate"
+// Opsi raw: path langsung dikirim tanpa auto-prepend "/api" (untuk endpoint seperti /payments/charge yang base path-nya /api tanpa /v1)
 export const apiFetch = async (path, options = {}) => {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const url = options.raw ? cleanPath : `/api${cleanPath}`;
 
-  const response = await fetch(`/api${cleanPath}`, {
+  const response = await fetch(url, {
     method: options.method || "GET",
     credentials: "include",
     headers: getHeaders(),
