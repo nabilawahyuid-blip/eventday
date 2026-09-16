@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecentTransactions } from '../../services/adminService';
+import { getRecentTransactions } from '../../services/adminDashboardService';
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
