@@ -1,0 +1,1237 @@
+/* =========================================================
+   AUDIT LOG
+========================================================= */
+
+.audit-log-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: "Poppins", sans-serif;
+  color: #252337;
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.audit-log-main {
+  width: calc(100% - 220px);
+  min-height: 100vh;
+  margin-left: 220px;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.audit-log-content {
+  width: 100%;
+  padding: 27px 28px 45px;
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.audit-log-header {
+  margin-bottom: 20px;
+}
+
+.audit-log-header h1 {
+  margin: 0;
+  color: #171a2b;
+  font-size: 28px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.7px;
+}
+
+.audit-log-header p {
+  margin: 6px 0 0;
+  color: #6f7482;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   FILTER ROW
+========================================================= */
+
+.audit-filter-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 20px;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.audit-search-box {
+  width: 224px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0 11px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e1e3eb;
+  border-radius: 7px;
+
+  background: #fbfcfe;
+
+  color: #7d8390;
+}
+
+.audit-search-box svg {
+  flex-shrink: 0;
+  color: #7c8390;
+}
+
+.audit-search-box input {
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #353847;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.audit-search-box input::placeholder {
+  color: #747a88;
+}
+
+
+/* =========================================================
+   DATE
+========================================================= */
+
+.audit-date-box {
+  width: 168px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 0 10px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e1e3eb;
+  border-radius: 7px;
+
+  background: #fbfcfe;
+
+  color: #7d8390;
+}
+
+.audit-date-box svg {
+  flex-shrink: 0;
+  color: #7b828f;
+}
+
+.audit-date-box input {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #666c7a;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.audit-date-box input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   CATEGORY
+========================================================= */
+
+.audit-category-box {
+  position: relative;
+
+  width: 150px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e1e3eb;
+  border-radius: 7px;
+
+  background: #fbfcfe;
+}
+
+.audit-category-box select {
+  width: 100%;
+  height: 100%;
+
+  appearance: none;
+
+  padding: 0 30px 0 12px;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #4f5461;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+
+  cursor: pointer;
+}
+
+.audit-category-box svg {
+  position: absolute;
+
+  right: 10px;
+
+  pointer-events: none;
+
+  color: #737987;
+}
+
+
+/* =========================================================
+   EXPORT CSV
+========================================================= */
+
+.audit-export-button {
+  height: 38px;
+
+  margin-left: auto;
+
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d9dce5;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #454250;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.audit-export-button:hover {
+  background: #f6f5ff;
+  border-color: #5b4de2;
+  color: #5144d7;
+}
+
+.audit-export-button svg {
+  color: #4d5360;
+}
+
+.audit-export-button:hover svg {
+  color: #5144d7;
+}
+
+
+/* =========================================================
+   TABLE CARD
+========================================================= */
+
+.audit-table-card {
+  width: 100%;
+
+  overflow: hidden;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e2e4ec;
+  border-radius: 7px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   TABLE WRAPPER
+========================================================= */
+
+.audit-table-wrapper {
+  width: 100%;
+
+  overflow-x: auto;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.audit-table {
+  width: 100%;
+
+  min-width: 880px;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+}
+
+
+/* =========================================================
+   TABLE HEADER
+========================================================= */
+
+.audit-table thead {
+  background: #f5f5ff;
+}
+
+.audit-table th {
+  height: 44px;
+
+  padding: 0 14px;
+
+  box-sizing: border-box;
+
+  color: #34394b;
+
+  font-size: 10.5px;
+  line-height: 1;
+
+  font-weight: 700;
+
+  letter-spacing: 0.15px;
+
+  text-align: left;
+
+  vertical-align: middle;
+
+  border-bottom: 1px solid #e4e5ed;
+}
+
+
+/* =========================================================
+   COLUMN WIDTH
+========================================================= */
+
+.audit-table th.time-column {
+  width: 95px;
+}
+
+.audit-table th.actor-column {
+  width: 180px;
+}
+
+.audit-table th.activity-column {
+  width: 195px;
+}
+
+.audit-table th.detail-column {
+  width: auto;
+}
+
+.audit-table th.status-column {
+  width: 95px;
+}
+
+.audit-table th.action-column {
+  width: 58px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   TABLE BODY
+========================================================= */
+
+.audit-table tbody tr {
+  height: 82px;
+
+  border-bottom: 1px solid #ececf1;
+
+  transition: background 0.15s ease;
+}
+
+.audit-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.audit-table tbody tr:hover {
+  background: #fcfcff;
+}
+
+.audit-table td {
+  padding: 11px 14px;
+
+  box-sizing: border-box;
+
+  color: #44495a;
+
+  font-size: 12px;
+
+  line-height: 1.4;
+
+  vertical-align: middle;
+}
+
+
+/* =========================================================
+   TIME
+========================================================= */
+
+.audit-time {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.audit-time strong {
+  display: block;
+
+  max-width: 70px;
+
+  color: #3e4351;
+
+  font-size: 12px;
+  line-height: 1.4;
+
+  font-weight: 500;
+}
+
+.audit-time span {
+  color: #6f7482;
+
+  font-size: 10px;
+  line-height: 1.4;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   ACTOR
+========================================================= */
+
+.audit-actor {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   AVATAR
+========================================================= */
+
+.audit-avatar {
+  width: 30px;
+  height: 30px;
+
+  min-width: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border-radius: 50%;
+}
+
+
+/* PHOTO */
+
+.audit-avatar-photo {
+  background: #e9edf2;
+
+  color: #707887;
+}
+
+
+/* EO */
+
+.audit-avatar-eo {
+  background: #eeeeff;
+
+  color: #5044df;
+
+  font-size: 9px;
+
+  font-weight: 600;
+}
+
+
+/* UNKNOWN */
+
+.audit-avatar-unknown {
+  background: #e9ebef;
+
+  color: #777d89;
+}
+
+
+/* =========================================================
+   ACTOR INFO
+========================================================= */
+
+.audit-actor-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.audit-actor-info strong {
+  overflow: hidden;
+
+  color: #35394a;
+
+  font-size: 12px;
+  line-height: 1.35;
+
+  font-weight: 500;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audit-actor-info span {
+  overflow: hidden;
+
+  color: #666c7a;
+
+  font-size: 10px;
+  line-height: 1.4;
+
+  font-weight: 400;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   ACTIVITY
+========================================================= */
+
+.audit-activity {
+  width: fit-content;
+
+  max-width: 100%;
+
+  min-height: 25px;
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 0 10px;
+
+  box-sizing: border-box;
+
+  border-radius: 14px;
+
+  font-size: 10px;
+
+  line-height: 1;
+
+  font-weight: 400;
+
+  white-space: nowrap;
+}
+
+
+/* TICKET */
+
+.audit-activity-ticket {
+  border: 1px solid #ddd9ff;
+
+  background: #f4f2ff;
+
+  color: #5144d7;
+}
+
+
+/* EVENT */
+
+.audit-activity-event {
+  border: 1px solid #e2e3e8;
+
+  background: #f4f5f7;
+
+  color: #626875;
+}
+
+
+/* APPROVAL */
+
+.audit-activity-approval {
+  border: 1px solid #e1e3e7;
+
+  background: #f2f3f5;
+
+  color: #5f6570;
+}
+
+
+/* LOGIN */
+
+.audit-activity-login {
+  border: 1px solid #ffc7c5;
+
+  background: #fff3f2;
+
+  color: #ef4444;
+}
+
+
+/* REFUND */
+
+.audit-activity-refund {
+  border: 1px solid #e1e3e7;
+
+  background: #f2f3f5;
+
+  color: #606671;
+}
+
+
+/* =========================================================
+   DETAIL
+========================================================= */
+
+.audit-detail {
+  max-width: 290px;
+
+  color: #555b6b;
+
+  font-size: 11.5px;
+
+  line-height: 1.5;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.audit-status {
+  width: fit-content;
+
+  min-height: 23px;
+
+  padding: 0 10px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border-radius: 4px;
+
+  font-size: 10px;
+
+  line-height: 1;
+
+  font-weight: 400;
+}
+
+
+/* SUCCESS */
+
+.audit-status-success {
+  background: #eafaf3;
+
+  color: #19a974;
+}
+
+
+/* FAILED */
+
+.audit-status-failed {
+  background: #fff0f0;
+
+  color: #ef4444;
+}
+
+
+/* =========================================================
+   VIEW BUTTON
+========================================================= */
+
+.audit-table td:last-child {
+  text-align: center;
+}
+
+.audit-view-button {
+  width: 30px;
+  height: 30px;
+
+  padding: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  background: transparent;
+
+  color: #5144df;
+
+  cursor: pointer;
+
+  border-radius: 5px;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.audit-view-button:hover {
+  background: #f1efff;
+
+  color: #4034c5;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.audit-empty {
+  height: 160px;
+
+  color: #707684 !important;
+
+  text-align: center !important;
+
+  font-size: 12px !important;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.audit-table-footer {
+  min-height: 60px;
+
+  padding: 0 14px 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+
+  border-top: 1px solid #e7e8ee;
+
+  background: #ffffff;
+}
+
+.audit-result-info {
+  color: #666c7a;
+
+  font-size: 11px;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.audit-pagination {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+}
+
+.audit-pagination button {
+  width: 30px;
+  height: 30px;
+
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border: 1px solid #e0e2e9;
+
+  border-radius: 5px;
+
+  background: #ffffff;
+
+  color: #555b69;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 400;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.audit-pagination button:hover:not(:disabled) {
+  border-color: #5b4de2;
+
+  color: #5144d7;
+
+  background: #f7f6ff;
+}
+
+.audit-pagination button.active {
+  border-color: #5546df;
+
+  background: #5546df;
+
+  color: #ffffff;
+}
+
+.audit-pagination button:disabled {
+  color: #c4c7ce;
+
+  background: #ffffff;
+
+  cursor: not-allowed;
+}
+
+.pagination-dots {
+  width: 23px;
+
+  text-align: center;
+
+  color: #777d89;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   SWEETALERT DETAIL POPUP
+========================================================= */
+
+.audit-swal-popup {
+  border-radius: 12px !important;
+
+  padding: 25px !important;
+
+  font-family: "Poppins", sans-serif !important;
+}
+
+.audit-swal-title {
+  margin: 0 !important;
+
+  color: #202337 !important;
+
+  font-family: "Poppins", sans-serif !important;
+
+  font-size: 21px !important;
+
+  font-weight: 600 !important;
+
+  text-align: left !important;
+}
+
+.audit-swal-content {
+  margin: 18px 0 0 !important;
+
+  padding: 0 !important;
+}
+
+
+/* =========================================================
+   POPUP CONTAINER
+========================================================= */
+
+.audit-popup-container {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  text-align: left;
+}
+
+
+/* =========================================================
+   POPUP ROW
+========================================================= */
+
+.audit-popup-section {
+  width: 100%;
+
+  min-height: 45px;
+
+  padding: 10px 0;
+
+  display: flex;
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  box-sizing: border-box;
+
+  border-bottom: 1px solid #eeeeF3;
+}
+
+.audit-popup-section:last-child {
+  border-bottom: none;
+}
+
+
+/* =========================================================
+   POPUP LABEL
+========================================================= */
+
+.audit-popup-label {
+  flex-shrink: 0;
+
+  width: 135px;
+
+  color: #686e7c;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 600;
+
+  letter-spacing: 0.3px;
+}
+
+
+/* =========================================================
+   POPUP VALUE
+========================================================= */
+
+.audit-popup-value {
+  flex: 1;
+
+  color: #35394a;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 11.5px;
+
+  line-height: 1.55;
+
+  font-weight: 400;
+
+  text-align: right;
+
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   POPUP DESCRIPTION
+========================================================= */
+
+.audit-popup-description-row {
+  min-height: 62px;
+}
+
+
+/* =========================================================
+   POPUP STATUS
+========================================================= */
+
+.audit-popup-status {
+  min-width: 62px;
+
+  padding: 5px 10px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 5px;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 500;
+}
+
+.audit-popup-status.success {
+  background: #eafaf3;
+
+  color: #19a974;
+}
+
+.audit-popup-status.failed {
+  background: #fff0f0;
+
+  color: #ef4444;
+}
+
+
+/* =========================================================
+   USER AGENT
+========================================================= */
+
+.audit-popup-user-agent .audit-popup-value {
+  max-width: 300px;
+}
+
+
+/* =========================================================
+   SWEETALERT CLOSE
+========================================================= */
+
+.audit-swal-close {
+  color: #686e7c !important;
+
+  font-size: 25px !important;
+
+  font-weight: 300 !important;
+}
+
+.audit-swal-close:hover {
+  color: #5144d7 !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE - TABLET
+========================================================= */
+
+@media (max-width: 1100px) {
+  .audit-log-content {
+    padding: 25px 22px 40px;
+  }
+
+  .audit-filter-row {
+    flex-wrap: wrap;
+  }
+
+  .audit-export-button {
+    margin-left: 0;
+  }
+
+  .audit-table {
+    min-width: 850px;
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE - SMALL TABLET
+========================================================= */
+
+@media (max-width: 800px) {
+  .audit-log-main {
+    width: calc(100% - 200px);
+
+    margin-left: 200px;
+  }
+
+  .audit-log-header h1 {
+    font-size: 25px;
+  }
+
+  .audit-filter-row {
+    align-items: stretch;
+  }
+
+  .audit-search-box {
+    width: 100%;
+  }
+
+  .audit-date-box {
+    flex: 1;
+  }
+
+  .audit-category-box {
+    flex: 1;
+  }
+}
+
+
+/* =========================================================
+   RESPONSIVE - MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+  .audit-log-main {
+    width: 100%;
+
+    margin-left: 0;
+  }
+
+  .audit-log-content {
+    padding: 20px 15px 35px;
+  }
+
+  .audit-log-header {
+    margin-bottom: 18px;
+  }
+
+  .audit-log-header h1 {
+    font-size: 23px;
+  }
+
+  .audit-log-header p {
+    font-size: 11px;
+  }
+
+  .audit-filter-row {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 9px;
+  }
+
+  .audit-search-box {
+    width: 100%;
+
+    grid-column: 1 / -1;
+  }
+
+  .audit-date-box,
+  .audit-category-box {
+    width: 100%;
+  }
+
+  .audit-export-button {
+    width: 100%;
+
+    grid-column: 1 / -1;
+  }
+
+  .audit-table-footer {
+    padding: 12px 14px;
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 12px;
+  }
+
+  .audit-pagination {
+    width: 100%;
+
+    justify-content: flex-end;
+  }
+
+
+  /* =======================================================
+     SWEETALERT MOBILE
+  ======================================================= */
+
+  .audit-swal-popup {
+    width: calc(100% - 30px) !important;
+
+    padding: 20px !important;
+  }
+
+  .audit-swal-title {
+    font-size: 18px !important;
+  }
+
+  .audit-popup-section {
+    flex-direction: column;
+
+    gap: 4px;
+  }
+
+  .audit-popup-label {
+    width: 100%;
+  }
+
+  .audit-popup-value {
+    width: 100%;
+
+    text-align: left;
+  }
+
+  .audit-popup-user-agent .audit-popup-value {
+    max-width: 100%;
+  }
+}
