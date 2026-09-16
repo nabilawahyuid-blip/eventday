@@ -18,6 +18,7 @@ import EditEvent from './components/admin/EditEvent';
 import UserManagement from "./components/admin/UserManagement";
 import DetailUser from "./components/admin/DetailUser";
 import PengajuanAkunEO from "./components/admin/PengajuanAkunEO";
+import DetailPengajuanEo from "./components/admin/DetailPengajuanEo";
 import Transaksi from "./components/admin/Transaksi";
 import Tiket from "./components/admin/Tiket";
 import PengaturanPlatform from "./components/admin/PengaturanPlatform";
@@ -90,7 +91,15 @@ function App() {
 
           <Route path="/admin/pengajuan-eo" element={<PengajuanAkunEO />} />
 
-          <Route path="/admin/transaksi" element={<Transaksi />} />
+          <Route
+            path="/admin/pengajuan-eo/:id"
+            element={<DetailPengajuanEo />}
+          />
+
+          <Route
+            path="/admin/transaksi"
+            element={<Transaksi />}
+          />
 
           <Route path="/admin/tiket" element={<Tiket />} />
           <Route path="/admin/pengaturan" element={<PengaturanPlatform />} />
