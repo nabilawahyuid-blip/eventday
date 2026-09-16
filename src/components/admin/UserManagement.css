@@ -979,3 +979,347 @@ body {
     min-width: 680px;
   }
 }
+/* =========================================================
+   EXTRA FONT SIZE & GRAY COLOR IMPROVEMENT
+   HANYA FONT + WARNA TEKS
+   TIDAK MENGUBAH LOGIC / STRUKTUR / LAYOUT
+========================================================= */
+
+
+/* =========================================================
+   BODY
+========================================================= */
+
+body {
+  color: #29263a;
+}
+
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar-brand-info h2 {
+  font-size: 20px;
+}
+
+.sidebar-brand-info span {
+  font-size: 11px;
+  color: #5f5b68;
+}
+
+.sidebar-menu-item {
+  font-size: 15px;
+  color: #4f4b58;
+}
+
+.sidebar-menu-label {
+  font-size: 15px;
+}
+
+.sidebar-logout {
+  font-size: 15px;
+  color: #dc3f3f;
+}
+
+.sidebar-logout > span:last-child {
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   PAGE HEADER
+========================================================= */
+
+.user-heading h1 {
+  font-size: 27px;
+  color: #29263a;
+}
+
+.user-heading p {
+  font-size: 15px;
+  color: #6f6a78;
+}
+
+
+/* =========================================================
+   ADD USER BUTTON
+========================================================= */
+
+.add-user-button {
+  font-size: 12px;
+}
+
+.add-user-button span {
+  font-size: 17px;
+}
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+.search-icon {
+  font-size: 17px;
+  color: #686371;
+}
+
+.user-search input {
+  font-size: 12px;
+  color: #383441;
+}
+
+.user-search input::placeholder {
+  color: #77727f;
+}
+
+
+/* =========================================================
+   FILTER TABS
+========================================================= */
+
+.filter-tab {
+  font-size: 11px;
+  color: #595462;
+}
+
+.filter-tab.active {
+  color: #5145c9;
+}
+
+
+/* =========================================================
+   ADVANCED FILTER
+========================================================= */
+
+.advanced-filter {
+  color: #625d6b;
+}
+
+
+/* =========================================================
+   TABLE HEADER
+========================================================= */
+
+.user-table th {
+  font-size: 10px;
+  color: #625e6c;
+}
+
+
+/* =========================================================
+   TABLE BODY
+========================================================= */
+
+.user-table td {
+  font-size: 11px;
+  color: #45414e;
+}
+
+
+/* =========================================================
+   USER AVATAR
+========================================================= */
+
+.user-avatar {
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   USER NAME
+========================================================= */
+
+.user-name-wrapper strong {
+  font-size: 11px;
+  color: #37333f;
+}
+
+.user-name-wrapper span {
+  font-size: 9px;
+  color: #706b78;
+}
+
+
+/* =========================================================
+   USER TYPE
+========================================================= */
+
+.user-type {
+  font-size: 10px;
+  color: #57525f;
+}
+
+
+/* =========================================================
+   JOIN DATE
+========================================================= */
+
+.join-date {
+  font-size: 10px;
+  color: #57525f;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.user-status {
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   ACTION
+========================================================= */
+
+.user-action-button {
+  color: #686371;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.empty-user {
+  font-size: 12px !important;
+  color: #706b78 !important;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.user-count {
+  font-size: 10px;
+  color: #625e6c;
+}
+
+
+/* =========================================================
+   PAGINATION
+========================================================= */
+
+.page-arrow,
+.page-number {
+  font-size: 10px;
+  color: #5b5664;
+}
+
+
+/* =========================================================
+   GRAY COLOR GLOBAL IMPROVEMENT
+========================================================= */
+
+.user-heading p,
+.user-search input::placeholder,
+.filter-tab,
+.user-table th,
+.user-table td,
+.user-name-wrapper span,
+.user-type,
+.join-date,
+.user-count,
+.page-arrow,
+.page-number {
+  font-weight: 400;
+}
+
+
+/* Abu-abu yang tadinya terlalu pucat dibuat lebih jelas */
+
+.user-heading p {
+  color: #6f6a78;
+}
+
+.user-search input::placeholder {
+  color: #77727f;
+}
+
+.user-table th {
+  color: #625e6c;
+}
+
+.user-table td {
+  color: #45414e;
+}
+
+.user-name-wrapper span {
+  color: #706b78;
+}
+
+.user-type,
+.join-date {
+  color: #57525f;
+}
+
+.user-count {
+  color: #625e6c;
+}
+
+.page-arrow,
+.page-number {
+  color: #5b5664;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .user-heading h1 {
+    font-size: 23px;
+  }
+
+  .user-heading p {
+    font-size: 12px;
+  }
+
+  .filter-tab {
+    font-size: 10px;
+  }
+
+  .user-table th {
+    font-size: 10px;
+  }
+
+  .user-table td {
+    font-size: 11px;
+  }
+
+  .user-name-wrapper strong {
+    font-size: 11px;
+  }
+
+  .user-name-wrapper span {
+    font-size: 9px;
+  }
+
+  .user-type,
+  .join-date {
+    font-size: 10px;
+  }
+
+}
+
+
+@media (max-width: 450px) {
+
+  .user-heading h1 {
+    font-size: 21px;
+  }
+
+  .user-heading p {
+    font-size: 11px;
+  }
+
+  .filter-tab {
+    font-size: 9px;
+  }
+
+}
