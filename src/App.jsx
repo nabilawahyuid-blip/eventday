@@ -22,6 +22,7 @@ import DetailPengajuanEo from "./components/admin/DetailPengajuanEo";
 import Transaksi from "./components/admin/Transaksi";
 import Tiket from "./components/admin/Tiket";
 import PengaturanPlatform from "./components/admin/PengaturanPlatform";
+import AuditLog from "./components/admin/AuditLog";
 
 // ==================== CUSTOMER ====================
 import CustomerDashboard from "./components/customer/CustomerDashboard";
@@ -162,6 +163,8 @@ function App() {
   path="/eo/payout/pengajuan"
   element={<PengajuanPayoutEO />}
 />
+
+<Route path="/admin/audit-log" element={<AuditLog />} />
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>

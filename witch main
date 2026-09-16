@@ -1,0 +1,33 @@
+* [33m19199e3[m[33m ([m[1;32madminn[m[33m)[m finalisasi design eo
+*   [33mcd7f7ee[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #24 from nabilawahyuid-blip/fix-navbar-menu-and-footer-menu
+[32m|[m[33m\[m  
+[32m|[m * [33maf8dc0b[m fix: navbar profile button, search dropdown, hamburger menu sidebar style, bottom nav tablet
+[32m|[m[32m/[m  
+*   [33mc77edbb[m Merge pull request #23 from nabilawahyuid-blip/branch-admin-ridwan
+[34m|[m[35m\[m  
+[34m|[m *   [33m7c544f6[m Merge branch 'main' into branch-admin-ridwan
+[34m|[m [36m|[m[34m\[m  
+[34m|[m [36m|[m[34m/[m  
+[34m|[m[34m/[m[36m|[m   
+* [36m|[m   [33mb2e676d[m Merge pull request #22 from nabilawahyuid-blip/fitur-checkout-service-vite-proxy-env
+[1;32m|[m[1;33m\[m [36m\[m  
+[1;32m|[m * [36m\[m   [33m44a8507[m merge: resolve conflicts, fix proxy + env ngrok URL
+[1;32m|[m [1;34m|[m[1;32m\[m [36m\[m  
+[1;32m|[m [1;34m|[m[1;32m/[m [36m/[m  
+[1;32m|[m[1;32m/[m[1;34m|[m [36m|[m   
+* [1;34m|[m [36m|[m   [33mfc4b7c2[m Merge pull request #21 from nabilawahyuid-blip/adminn
+[1;36m|[m[31m\[m [1;34m\[m [36m\[m  
+[1;36m|[m * [1;34m|[m [36m|[m [33m377e6f5[m[33m ([m[1;31morigin/adminn[m[33m)[m ubah tampilan eo dan service link ngrok
+[1;36m|[m[1;36m/[m [1;34m/[m [36m/[m  
+[1;36m|[m * [36m|[m [33ma1e3281[m add: checkout service fix: pakai vite proxy + env ngrok URL, hapus input JWT manual, fix Google button width
+[1;36m|[m [31m|[m * [33m4b6bba8[m merapikan tampilan dashboard admin
+[1;36m|[m [31m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[31m|[m   
+* [31m|[m   [33mc932c52[m[33m ([m[1;31morigin/eo[m[33m, [m[1;32meo[m[33m)[m Merge pull request #20 from nabilawahyuid-blip/branch-admin-ridwan
+[32m|[m[33m\[m [31m\[m  
+[32m|[m * [31m|[m [33mf705b52[m mengubah tampilan dashboard admin user management tiket dan transaksi
+[32m|[m[32m/[m [31m/[m  
+* [31m|[m   [33md111922[m Merge pull request #19 from nabilawahyuid-blip/branch-admin-ridwan
+[34m|[m[35m\[m [31m\[m  
+[34m|[m * [31m|[m [33mc8597b0[m menambahkan halaman pengaturan platform
+[34m|[m[34m/[m [31m/[m  
