@@ -270,8 +270,8 @@ function NavbarCustomer() {
 
         {/* MOBILE SEARCH DROPDOWN */}
         {searchOpen && (
-          <div className="mobile-search-overlay">
-            <div className="mobile-search-form" ref={searchRef}>
+          <div className="mobile-search-overlay" ref={searchRef}>
+            <div className="mobile-search-form">
               <button type="button" className="mobile-search-back" onClick={handleSearchToggle}>
                 <svg viewBox="0 0 24 24">
                   <path d="M19 12H5" />
