@@ -16,6 +16,8 @@
   display: flex;
   flex-direction: column;
 
+  box-sizing: border-box;
+
   background: #ffffff;
 
   border-right: 1px solid #e6e2ed;
@@ -41,6 +43,10 @@
 }
 
 
+/* =========================================================
+   LOGO
+========================================================= */
+
 .sidebar-eo-logo {
   width: 34px;
   height: 34px;
@@ -50,11 +56,13 @@
   align-items: center;
   justify-content: center;
 
+  flex-shrink: 0;
+
   border-radius: 8px;
 
   background: #5b4de2;
 
-  color: white;
+  color: #ffffff;
 
   font-size: 15px;
 
@@ -76,22 +84,25 @@
 
   line-height: 1.1;
 
-  color: #5b4de2;
+  color: #5144d7;
 
   font-weight: 700;
-}
 
+  letter-spacing: -0.2px;
+}
 
 .sidebar-eo-brand-text span {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 4px;
 
-  font-size: 9px;
+  font-size: 8px;
 
-  color: #686373;
+  color: #777181;
 
-  letter-spacing: 0.2px;
+  font-weight: 500;
+
+  letter-spacing: 0.45px;
 }
 
 
@@ -104,7 +115,7 @@
 
   flex-direction: column;
 
-  gap: 5px;
+  gap: 6px;
 }
 
 
@@ -114,8 +125,7 @@
 
 .sidebar-eo-item {
   width: 100%;
-
-  height: 39px;
+  height: 42px;
 
   padding: 0 13px;
 
@@ -125,38 +135,109 @@
 
   gap: 12px;
 
+  box-sizing: border-box;
+
   border: none;
 
-  border-radius: 7px;
+  border-radius: 8px;
 
   background: transparent;
 
-  color: #5f5a6e;
+  color: #625d6f;
 
   font-family: "Poppins", sans-serif;
 
   font-size: 11px;
 
-  font-weight: 500;
+  font-weight: 400;
 
   text-align: left;
 
   cursor: pointer;
 
-  transition: 0.2s ease;
+  outline: none;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 
 /* =========================================================
-   MENU ICON
+   ICON
 ========================================================= */
 
-.sidebar-eo-item span {
-  width: 14px;
+.sidebar-eo-icon {
+  width: 20px;
+  height: 20px;
 
-  text-align: center;
+  display: flex;
 
-  font-size: 12px;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+  margin: 0;
+
+  background: transparent;
+
+  border: none;
+
+  border-radius: 0;
+
+  box-shadow: none;
+
+  color: #5b4de2;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+/* =========================================================
+   ICON SVG
+========================================================= */
+
+.sidebar-eo-icon svg {
+  width: 18px;
+  height: 18px;
+
+  display: block;
+
+  color: #5b4de2;
+
+  stroke: currentColor;
+
+  fill: none;
+
+  transition:
+    color 0.2s ease,
+    stroke 0.2s ease;
+}
+
+
+/* =========================================================
+   LABEL
+========================================================= */
+
+.sidebar-eo-label {
+  display: block;
+
+  line-height: 1.2;
+
+  white-space: nowrap;
+
+  color: inherit;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 400;
 }
 
 
@@ -165,9 +246,21 @@
 ========================================================= */
 
 .sidebar-eo-item:hover {
-  background: #f3f1ff;
+  background: #f4f2ff;
 
-  color: #5b4de2;
+  color: #5144d7;
+}
+
+.sidebar-eo-item:hover .sidebar-eo-icon {
+  color: #5144d7;
+
+  transform: translateX(1px);
+}
+
+.sidebar-eo-item:hover .sidebar-eo-icon svg {
+  color: #5144d7;
+
+  stroke: #5144d7;
 }
 
 
@@ -176,42 +269,219 @@
 ========================================================= */
 
 .sidebar-eo-item.active {
-  background: #5b4de2;
+  background: #5546df;
 
   color: #ffffff;
 
+  font-weight: 500;
+
   box-shadow:
-    0 6px 14px rgba(91, 77, 226, 0.18);
+    0 5px 12px rgba(85, 70, 223, 0.18);
+}
+
+
+/* =========================================================
+   ACTIVE LABEL
+========================================================= */
+
+.sidebar-eo-item.active .sidebar-eo-label {
+  color: #ffffff;
+
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   ACTIVE ICON
+========================================================= */
+
+.sidebar-eo-item.active .sidebar-eo-icon {
+  background: transparent;
+
+  border: none;
+
+  border-radius: 0;
+
+  box-shadow: none;
+
+  color: #ffffff;
+
+  transform: none;
+}
+
+.sidebar-eo-item.active .sidebar-eo-icon svg {
+  color: #ffffff;
+
+  stroke: #ffffff;
+}
+
+
+/* =========================================================
+   ACTIVE HOVER
+========================================================= */
+
+.sidebar-eo-item.active:hover {
+  background: #4d3fd1;
+
+  color: #ffffff;
+}
+
+.sidebar-eo-item.active:hover .sidebar-eo-icon {
+  background: transparent;
+
+  color: #ffffff;
+
+  transform: none;
+}
+
+.sidebar-eo-item.active:hover .sidebar-eo-icon svg {
+  color: #ffffff;
+
+  stroke: #ffffff;
+}
+
+
+/* =========================================================
+   FOCUS
+========================================================= */
+
+.sidebar-eo-item:focus {
+  outline: none;
+}
+
+.sidebar-eo-item:focus-visible {
+  outline: 2px solid rgba(91, 77, 226, 0.25);
+
+  outline-offset: 2px;
 }
 
 
 /* =========================================================
    LOGOUT
 ========================================================= */
+
 .sidebar-eo-logout {
   width: calc(100% - 18px);
-  height: 38px;
+
+  height: 39px;
+
   margin: auto 9px 0;
+
+  padding: 0;
+
   display: flex;
+
   align-items: center;
+
   gap: 10px;
+
+  box-sizing: border-box;
+
   border: none;
+
   background: transparent;
+
   color: #e53935;
+
   font-family: "Poppins", sans-serif;
+
   font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
+
+  font-weight: 400;
+
   text-align: left;
+
+  cursor: pointer;
+
+  outline: none;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
+
+
+/* =========================================================
+   LOGOUT ICON
+========================================================= */
+
+.sidebar-eo-logout-icon {
+  width: 20px;
+  height: 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+  margin: 0;
+
+  background: transparent;
+
+  border: none;
+
+  border-radius: 0;
+
+  box-shadow: none;
+
+  color: #e53935;
+}
+
+
+/* =========================================================
+   LOGOUT ICON SVG
+========================================================= */
+
+.sidebar-eo-logout-icon svg {
+  width: 18px;
+  height: 18px;
+
+  display: block;
+
+  color: #e53935;
+
+  stroke: currentColor;
+
+  fill: none;
+}
+
+
+/* =========================================================
+   LOGOUT LABEL
+========================================================= */
+
+.sidebar-eo-logout-label {
+  line-height: 1.2;
+
+  color: inherit;
+
+  font-weight: 400;
+}
+
+
+/* =========================================================
+   LOGOUT HOVER
+========================================================= */
 
 .sidebar-eo-logout:hover {
   color: #c62828;
+
+  transform: translateX(1px);
 }
 
-.sidebar-eo-logout span {
-  font-size: 13px;
+.sidebar-eo-logout:hover .sidebar-eo-logout-icon {
+  color: #c62828;
 }
+
+.sidebar-eo-logout:hover .sidebar-eo-logout-icon svg {
+  color: #c62828;
+
+  stroke: #c62828;
+}
+
 
 /* =========================================================
    TABLET

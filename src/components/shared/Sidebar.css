@@ -1,199 +1,508 @@
-.sidebar {
-  width: 220px;
-  min-height: 100vh;
+/* =========================================================
+   SIDEBAR ADMIN
+========================================================= */
 
+.sidebar {
   position: fixed;
+
   top: 0;
   left: 0;
-  bottom: 0;
+
+  width: 220px;
+  height: 100vh;
+
+  padding: 25px 14px 18px;
 
   display: flex;
   flex-direction: column;
 
-  padding: 24px 14px;
+  box-sizing: border-box;
 
   background: #ffffff;
 
-  border-right: 1px solid #e9e6f1;
+  border-right: 1px solid #e6e2ed;
 
   z-index: 100;
 }
 
 
-/* BRAND */
+/* =========================================================
+   BRAND
+========================================================= */
 
 .sidebar-brand {
   display: flex;
+
   align-items: center;
 
   gap: 10px;
 
   padding: 0 9px;
 
-  margin-bottom: 34px;
+  margin-bottom: 38px;
 }
 
+
+/* =========================================================
+   LOGO
+========================================================= */
 
 .sidebar-logo {
   width: 34px;
   height: 34px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
-  border-radius: 9px;
+  flex-shrink: 0;
 
-  background: linear-gradient(
-    135deg,
-    #5868ee,
-    #6d4edb
-  );
+  border-radius: 8px;
+
+  background: #5b4de2;
 
   color: #ffffff;
 
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 15px;
+
+  font-weight: 600;
 
   box-shadow:
-    0 7px 15px rgba(91, 86, 226, 0.22);
+    0 5px 12px rgba(91, 77, 226, 0.18);
 }
 
+
+/* =========================================================
+   BRAND TEXT
+========================================================= */
+
+.sidebar-brand-info {
+  display: flex;
+
+  flex-direction: column;
+}
 
 .sidebar-brand-info h2 {
-  color: #5146d8;
+  margin: 0;
 
-  font-size: 15px;
-  font-weight: 800;
+  color: #5144d7;
 
-  line-height: 1.2;
+  font-size: 17px;
+
+  line-height: 1.1;
+
+  font-weight: 700;
+
+  letter-spacing: -0.2px;
 }
-
 
 .sidebar-brand-info span {
   display: block;
 
-  margin-top: 3px;
+  margin-top: 4px;
 
-  color: #9994a6;
+  color: #777181;
 
-  font-size: 7px;
-  font-weight: 500;
+  font-size: 8px;
+
+  font-weight: 400;
+
+  letter-spacing: 0.45px;
 }
 
 
-/* MENU */
+/* =========================================================
+   MENU
+========================================================= */
 
 .sidebar-menu {
   display: flex;
+
   flex-direction: column;
 
-  gap: 4px;
+  gap: 6px;
 }
 
 
+/* =========================================================
+   MENU ITEM
+========================================================= */
+
 .sidebar-menu-item {
   width: 100%;
-  min-height: 40px;
+  min-height: 42px;
+
+  padding: 0 13px;
 
   display: flex;
+
   align-items: center;
 
-  gap: 10px;
+  gap: 12px;
 
-  padding: 0 12px;
+  box-sizing: border-box;
 
   border: none;
+
   border-radius: 8px;
 
   background: transparent;
 
-  color: #777283;
+  color: #625d6f;
 
-  font-family: inherit;
+  font-family: "Poppins", sans-serif;
 
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+
+  font-weight: 400;
 
   text-align: left;
 
   cursor: pointer;
 
-  transition: 0.2s ease;
+  outline: none;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 
-.sidebar-icon {
-  width: 16px;
+/* =========================================================
+   ICON
+   TIDAK ADA BULETAN / BACKGROUND
+========================================================= */
 
-  display: flex;
+.sidebar-icon {
+  width: 20px !important;
+  height: 20px !important;
+
+  min-width: 20px;
+
+  display: flex !important;
+
   align-items: center;
   justify-content: center;
 
-  font-size: 12px;
+  flex-shrink: 0;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  background: transparent !important;
+
+  border: none !important;
+  border-radius: 0 !important;
+
+  box-shadow: none !important;
+
+  color: #706a7d;
+
+  font-size: inherit;
+
+  line-height: 1;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
+
+/* =========================================================
+   ICON SVG
+========================================================= */
+
+.sidebar-icon svg {
+  display: block;
+
+  width: 18px;
+  height: 18px;
+
+  color: inherit;
+
+  fill: none;
+
+  stroke: currentColor;
+
+  transition:
+    color 0.2s ease,
+    stroke 0.2s ease;
+}
+
+
+/* =========================================================
+   MENU LABEL
+========================================================= */
+
+.sidebar-menu-label {
+  display: flex;
+
+  align-items: center;
+
+  line-height: 1.25;
+
+  white-space: nowrap;
+
+  color: inherit;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 11px;
+
+  font-weight: 400 !important;
+}
+
+
+/* =========================================================
+   HOVER
+========================================================= */
 
 .sidebar-menu-item:hover {
-  background: #f3f1ff;
+  background: #f4f2ff;
 
-  color: #574bd7;
+  color: #5144d7;
+}
+
+.sidebar-menu-item:hover .sidebar-icon {
+  color: #5144d7;
+
+  transform: translateX(1px);
 }
 
 
+/* =========================================================
+   ACTIVE
+========================================================= */
+
 .sidebar-menu-item.active {
-  background: linear-gradient(
-    135deg,
-    #5b63ed,
-    #6e50dd
-  );
+  background: #5546df;
 
   color: #ffffff;
 
+  font-weight: 500 !important;
+
   box-shadow:
-    0 7px 15px rgba(91, 91, 230, 0.2);
+    0 5px 12px rgba(85, 70, 223, 0.18);
 }
 
 
-/* LOGOUT */
+/* =========================================================
+   ACTIVE LABEL
+========================================================= */
+
+.sidebar-menu-item.active .sidebar-menu-label {
+  color: #ffffff;
+
+  font-weight: 500 !important;
+}
+
+
+/* =========================================================
+   ACTIVE ICON
+========================================================= */
+
+.sidebar-menu-item.active .sidebar-icon {
+  background: transparent !important;
+
+  border: none !important;
+
+  border-radius: 0 !important;
+
+  box-shadow: none !important;
+
+  color: #ffffff;
+
+  transform: none;
+}
+
+.sidebar-menu-item.active .sidebar-icon svg {
+  color: #ffffff;
+
+  stroke: #ffffff;
+}
+
+
+/* =========================================================
+   ACTIVE HOVER
+========================================================= */
+
+.sidebar-menu-item.active:hover {
+  background: #4d3fd1;
+
+  color: #ffffff;
+}
+
+.sidebar-menu-item.active:hover .sidebar-icon {
+  background: transparent !important;
+
+  color: #ffffff;
+
+  transform: none;
+}
+
+
+/* =========================================================
+   FOCUS
+========================================================= */
+
+.sidebar-menu-item:focus {
+  outline: none;
+}
+
+.sidebar-menu-item:focus-visible {
+  outline: 2px solid rgba(91, 77, 226, 0.25);
+
+  outline-offset: 2px;
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
 
 .sidebar-logout {
-  margin-top: auto;
+  width: calc(100% - 18px);
 
-  min-height: 40px;
+  height: 39px;
+
+  margin: auto 9px 0;
+
+  padding: 0;
 
   display: flex;
+
   align-items: center;
 
   gap: 10px;
 
-  padding: 0 12px;
+  box-sizing: border-box;
 
   border: none;
 
   background: transparent;
 
-  color: #777283;
+  color: #e53935;
 
-  font-family: inherit;
+  font-family: "Poppins", sans-serif;
 
-  font-size: 10px;
+  font-size: 11px;
+
+  font-weight: 400;
+
+  text-align: left;
 
   cursor: pointer;
 
-  transition: 0.2s ease;
+  outline: none;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
+
+/* =========================================================
+   LOGOUT ICON
+========================================================= */
+
+.sidebar-logout-icon {
+  width: 20px !important;
+  height: 20px !important;
+
+  min-width: 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  background: transparent !important;
+
+  border: none !important;
+  border-radius: 0 !important;
+
+  box-shadow: none !important;
+
+  color: #e53935;
+}
+
+
+/* =========================================================
+   LOGOUT SVG
+========================================================= */
+
+.sidebar-logout-icon svg {
+  display: block;
+
+  width: 18px;
+  height: 18px;
+
+  color: inherit;
+
+  fill: none;
+
+  stroke: currentColor;
+}
+
+
+/* =========================================================
+   LOGOUT TEXT
+========================================================= */
+
+.sidebar-logout > span:last-child {
+  line-height: 1.2;
+
+  color: inherit;
+
+  font-weight: 400 !important;
+}
+
+
+/* =========================================================
+   LOGOUT HOVER
+========================================================= */
 
 .sidebar-logout:hover {
-  color: #574bd7;
+  color: #c62828;
+
+  transform: translateX(1px);
+}
+
+.sidebar-logout:hover .sidebar-logout-icon {
+  color: #c62828;
+
+  background: transparent !important;
 }
 
 
-/* MOBILE */
+/* =========================================================
+   TABLET
+========================================================= */
 
-@media (max-width: 700px) {
+@media (max-width: 800px) {
+
+  .sidebar {
+    width: 200px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
   .sidebar {
     display: none;
   }
+
 }

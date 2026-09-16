@@ -36,6 +36,8 @@ import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
 import SyaratKetentuan from "./components/customer/SyaratKetentuan";
 import EditProfileCustomer from "./components/customer/EditProfileCustomer";
 import DetailRefundEO from "./components/eo/DetailRefundEO";
+import PayoutEO from "./components/eo/PayoutEo";
+import PengajuanPayoutEO from "./components/eo/PengajuanPayoutEO";
 // ==================== EO ====================
 import DashboardEO from "./components/eo/DashboardEO";
 import EventEO from "./components/eo/EventEO";
@@ -142,6 +144,15 @@ function App() {
             element={<EditProfileCustomer />}
           />
           <Route path="/eo/refund/detail" element={<DetailRefundEO />} />
+
+        <Route
+          path="/eo/payout"
+          element={<PayoutEO />}
+        />
+        <Route
+  path="/eo/payout/pengajuan"
+  element={<PengajuanPayoutEO />}
+/>
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>

@@ -1,5 +1,16 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+
+import {
+  LayoutDashboard,
+  CalendarDays,
+  ReceiptText,
+  WalletCards,
+  RotateCcw,
+  UserRound,
+  LogOut,
+} from "lucide-react";
+
 import "./SidebarEO.css";
 
 function SidebarEO() {
@@ -13,7 +24,10 @@ function SidebarEO() {
   return (
     <aside className="sidebar-eo">
 
-      {/* BRAND */}
+      {/* =====================================================
+          BRAND
+      ===================================================== */}
+
       <div className="sidebar-eo-brand">
 
         <div className="sidebar-eo-logo">
@@ -27,8 +41,14 @@ function SidebarEO() {
 
       </div>
 
-      {/* MENU */}
+
+      {/* =====================================================
+          MENU
+      ===================================================== */}
+
       <nav className="sidebar-eo-menu">
+
+        {/* DASHBOARD */}
 
         <button
           type="button"
@@ -37,9 +57,20 @@ function SidebarEO() {
           }`}
           onClick={() => navigate("/eo/dashboard")}
         >
-          <span>▦</span>
-          Dashboard
+          <span className="sidebar-eo-icon">
+            <LayoutDashboard
+              size={17}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-eo-label">
+            Dashboard
+          </span>
         </button>
+
+
+        {/* EVENT */}
 
         <button
           type="button"
@@ -50,9 +81,20 @@ function SidebarEO() {
           }`}
           onClick={() => navigate("/eo/event")}
         >
-          <span>□</span>
-          Event
+          <span className="sidebar-eo-icon">
+            <CalendarDays
+              size={17}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-eo-label">
+            Event
+          </span>
         </button>
+
+
+        {/* TRANSAKSI */}
 
         <button
           type="button"
@@ -63,9 +105,44 @@ function SidebarEO() {
           }`}
           onClick={() => navigate("/eo/transaksi")}
         >
-          <span>▣</span>
-          Transaksi
+          <span className="sidebar-eo-icon">
+            <ReceiptText
+              size={17}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-eo-label">
+            Transaksi
+          </span>
         </button>
+
+
+        {/* PENGAJUAN PAYOUT */}
+
+        <button
+          type="button"
+          className={`sidebar-eo-item ${
+            location.pathname.startsWith("/eo/payout")
+              ? "active"
+              : ""
+          }`}
+          onClick={() => navigate("/eo/payout")}
+        >
+          <span className="sidebar-eo-icon">
+            <WalletCards
+              size={17}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-eo-label">
+            Pengajuan Payout
+          </span>
+        </button>
+
+
+        {/* REFUND */}
 
         <button
           type="button"
@@ -76,9 +153,20 @@ function SidebarEO() {
           }`}
           onClick={() => navigate("/eo/refund")}
         >
-          <span>↶</span>
-          Refund
+          <span className="sidebar-eo-icon">
+            <RotateCcw
+              size={17}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-eo-label">
+            Refund
+          </span>
         </button>
+
+
+        {/* PROFIL */}
 
         <button
           type="button"
@@ -89,24 +177,47 @@ function SidebarEO() {
           }`}
           onClick={() => navigate("/eo/profil")}
         >
-          <span>◎</span>
-          Profil
+          <span className="sidebar-eo-icon">
+            <UserRound
+              size={17}
+              strokeWidth={1.9}
+            />
+          </span>
+
+          <span className="sidebar-eo-label">
+            Profil
+          </span>
         </button>
 
       </nav>
 
-      {/* LOGOUT */}
+
+      {/* =====================================================
+          LOGOUT
+      ===================================================== */}
+
       <button
         type="button"
         className="sidebar-eo-logout"
         onClick={() => {
           localStorage.clear();
           sessionStorage.clear();
-          navigate("/", { replace: true });
+
+          navigate("/", {
+            replace: true,
+          });
         }}
       >
-        <span>↪</span>
-        Keluar
+        <span className="sidebar-eo-logout-icon">
+          <LogOut
+            size={17}
+            strokeWidth={1.9}
+          />
+        </span>
+
+        <span className="sidebar-eo-logout-label">
+          Keluar
+        </span>
       </button>
 
     </aside>

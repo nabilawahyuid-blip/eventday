@@ -1,0 +1,737 @@
+/* =====================================================
+   PAGE
+===================================================== */
+
+.payout-eo-page {
+  width: 100%;
+  min-height: 100vh;
+  background: #faf8ff;
+  font-family: "Poppins", sans-serif;
+}
+
+
+/* =====================================================
+   MAIN CONTENT
+===================================================== */
+
+.payout-eo-main {
+  width: calc(100% - 220px);
+  min-height: 100vh;
+  margin-left: 220px;
+  background: #faf8ff;
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.payout-eo-content {
+  width: 100%;
+  padding: 28px 34px 60px;
+  box-sizing: border-box;
+}
+
+
+/* =====================================================
+   PAGE HEADER
+===================================================== */
+
+.payout-page-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 38px;
+}
+
+.payout-page-header h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #171426;
+}
+
+
+/* =====================================================
+   APPLY PAYOUT BUTTON
+===================================================== */
+
+.apply-payout-btn {
+  min-width: 152px;
+  height: 40px;
+  padding: 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: 22px;
+
+  background: #4a38d4;
+  color: #ffffff;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.apply-payout-btn:hover {
+  background: #3d2dc0;
+  transform: translateY(-1px);
+}
+
+.apply-plus {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+
+/* =====================================================
+   SECTION TITLE
+===================================================== */
+
+.payout-section-header {
+  margin-bottom: 34px;
+}
+
+.payout-section-header h2 {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 600;
+  color: #4b4659;
+}
+
+
+/* =====================================================
+   LIST HEADER
+===================================================== */
+
+.payout-list-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.payout-list-header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #272332;
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.payout-search {
+  width: 256px;
+  height: 37px;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  padding: 0 12px;
+
+  border-radius: 9px;
+  background: #f0edf9;
+
+  box-sizing: border-box;
+}
+
+.payout-search svg {
+  flex-shrink: 0;
+  color: #777185;
+}
+
+.payout-search input {
+  width: 100%;
+  height: 100%;
+
+  border: none;
+  outline: none;
+  background: transparent;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  color: #494457;
+}
+
+.payout-search input::placeholder {
+  color: #817b91;
+}
+
+
+/* =====================================================
+   TABLE CARD
+===================================================== */
+
+.payout-table-card {
+  width: 100%;
+
+  overflow: hidden;
+
+  border: 1px solid #e3e0ee;
+  border-radius: 13px;
+
+  background: #f8f9ff;
+
+  box-shadow: 0 2px 7px rgba(48, 40, 85, 0.03);
+}
+
+
+/* =====================================================
+   TABLE WRAPPER
+===================================================== */
+
+.payout-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.payout-table {
+  width: 100%;
+  min-width: 900px;
+
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+
+/* =====================================================
+   TABLE HEADER
+===================================================== */
+
+.payout-table thead {
+  background: #eef2ff;
+}
+
+.payout-table th {
+  height: 64px;
+  padding: 0 20px;
+
+  text-align: left;
+  vertical-align: middle;
+
+  border-bottom: 1px solid #ddddeb;
+
+  color: #484458;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  letter-spacing: 0.2px;
+  line-height: 1.35;
+}
+
+
+/* COLUMN WIDTHS */
+
+.payout-table th:nth-child(1) {
+  width: 14%;
+}
+
+.payout-table th:nth-child(2) {
+  width: 14%;
+}
+
+.payout-table th:nth-child(3) {
+  width: 20%;
+}
+
+.payout-table th:nth-child(4) {
+  width: 17%;
+}
+
+.payout-table th:nth-child(5) {
+  width: 18%;
+}
+
+.payout-table th:nth-child(6) {
+  width: 17%;
+}
+
+
+/* =====================================================
+   TABLE BODY
+===================================================== */
+
+.payout-table tbody tr {
+  height: 88px;
+}
+
+.payout-table td {
+  padding: 0 20px;
+
+  border-bottom: 1px solid #e8e6ef;
+
+  color: #1e1b2c;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  vertical-align: middle;
+}
+
+.payout-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* =====================================================
+   REQUEST ID
+===================================================== */
+
+.request-id {
+  max-width: 100px;
+
+  color: #162039;
+
+  font-size: 12px;
+  font-weight: 400;
+
+  line-height: 1.5;
+}
+
+
+/* =====================================================
+   DATE
+===================================================== */
+
+.date-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  color: #676273;
+
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.date-wrapper small {
+  font-size: 11px;
+  color: #777284;
+}
+
+
+/* =====================================================
+   ORGANIZER
+===================================================== */
+
+.organizer-name {
+  max-width: 145px;
+
+  color: #18243d;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  line-height: 1.45;
+}
+
+
+/* =====================================================
+   AMOUNT
+===================================================== */
+
+.amount-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #18243d;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  line-height: 1.4;
+}
+
+.amount-wrapper .currency {
+  font-weight: 400;
+}
+
+
+/* =====================================================
+   BANK
+===================================================== */
+
+.bank-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.bank-logo {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 4px;
+
+  background: #dce7ff;
+  color: #4036d6;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  flex-shrink: 0;
+}
+
+.bank-account {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  color: #777181;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.payout-status {
+  min-width: 82px;
+  height: 28px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  padding: 0 10px;
+
+  border-radius: 16px;
+
+  font-size: 10px;
+  font-weight: 500;
+
+  box-sizing: border-box;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  display: block;
+}
+
+
+/* SUCCESS */
+
+.payout-status.success {
+  background: #e5f4e9;
+  color: #258044;
+  border: 1px solid #cde8d5;
+}
+
+.payout-status.success .status-dot {
+  background: #208545;
+}
+
+
+/* PENDING */
+
+.payout-status.pending {
+  background: #fff4df;
+  color: #e88719;
+  border: 1px solid #f8dca8;
+}
+
+.payout-status.pending .status-dot {
+  background: #ee8111;
+}
+
+
+/* REJECTED */
+
+.payout-status.rejected {
+  background: #ffdada;
+  color: #bd3434;
+  border: 1px solid #ffcaca;
+}
+
+.payout-status.rejected .status-dot {
+  background: #cf3333;
+}
+
+
+/* =====================================================
+   EMPTY DATA
+===================================================== */
+
+.empty-payout {
+  height: 180px !important;
+
+  text-align: center;
+
+  color: #858092 !important;
+}
+
+.empty-payout svg {
+  margin-bottom: 8px;
+}
+
+
+/* =====================================================
+   TABLE FOOTER
+===================================================== */
+
+.payout-table-footer {
+  min-height: 65px;
+
+  padding: 0 24px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-top: 1px solid #e5e3ed;
+
+  background: #f5f6fc;
+
+  box-sizing: border-box;
+}
+
+
+/* =====================================================
+   ENTRY INFO
+===================================================== */
+
+.entry-info {
+  color: #686273;
+
+  font-size: 11px;
+  font-weight: 400;
+}
+
+
+/* =====================================================
+   PAGINATION
+===================================================== */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pagination button {
+  font-family: "Poppins", sans-serif;
+}
+
+
+/* ARROWS */
+
+.pagination-arrow {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+
+  color: #343044;
+
+  cursor: pointer;
+
+  border-radius: 5px;
+
+  transition: 0.2s ease;
+}
+
+.pagination-arrow:hover:not(:disabled) {
+  background: #e9e7f2;
+}
+
+.pagination-arrow:disabled {
+  color: #bbb7c5;
+  cursor: default;
+}
+
+
+/* NUMBERS */
+
+.pagination-number {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 5px;
+
+  background: transparent;
+
+  color: #676174;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.pagination-number:hover {
+  background: #e9e7f2;
+}
+
+.pagination-number.active {
+  background: #5143dd;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+
+/* DOTS */
+
+.pagination-dots {
+  width: 24px;
+
+  text-align: center;
+
+  color: #6e687c;
+
+  font-size: 11px;
+}
+
+
+/* =====================================================
+   RESPONSIVE - TABLET
+===================================================== */
+
+@media (max-width: 1000px) {
+  .payout-eo-content {
+    padding: 26px 24px 50px;
+  }
+
+  .payout-page-header h1 {
+    font-size: 22px;
+  }
+
+  .payout-section-header h2 {
+    font-size: 21px;
+  }
+
+  .payout-list-header h3 {
+    font-size: 16px;
+  }
+
+  .payout-search {
+    width: 220px;
+  }
+}
+
+
+/* =====================================================
+   RESPONSIVE - MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+  .payout-eo-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .payout-eo-content {
+    padding: 22px 15px 40px;
+  }
+
+  .payout-page-header {
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .payout-page-header h1 {
+    font-size: 21px;
+  }
+
+  .apply-payout-btn {
+    min-width: auto;
+    height: 36px;
+    padding: 0 13px;
+
+    font-size: 10px;
+  }
+
+  .apply-plus {
+    font-size: 16px;
+  }
+
+  .payout-section-header {
+    margin-bottom: 25px;
+  }
+
+  .payout-section-header h2 {
+    font-size: 20px;
+  }
+
+  .payout-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .payout-list-header h3 {
+    font-size: 15px;
+  }
+
+  .payout-search {
+    width: 100%;
+    height: 40px;
+  }
+
+  .payout-table-card {
+    border-radius: 10px;
+  }
+
+  .payout-table-footer {
+    min-height: 62px;
+    padding: 0 12px;
+  }
+
+  .entry-info {
+    font-size: 9px;
+  }
+
+  .pagination {
+    gap: 2px;
+  }
+
+  .pagination-number,
+  .pagination-arrow {
+    width: 27px;
+    height: 27px;
+  }
+}

@@ -1,1198 +1,608 @@
-/* =========================================================
+/* =====================================================
    TRANSAKSI EO
-========================================================= */
+===================================================== */
 
 .transaksi-eo-page {
-  min-height: 100vh;
   width: 100%;
-  background: #f8f7fc;
+  min-height: 100vh;
+
+  background: #faf8ff;
+
+  font-family: "Poppins", sans-serif;
+
+  color: #25222f;
 }
 
 
-/* =========================================================
+/* =====================================================
    MAIN
-========================================================= */
+===================================================== */
 
 .transaksi-eo-main {
+  width: calc(100% - 220px);
   min-height: 100vh;
+
   margin-left: 220px;
-  background: #f8f7fc;
+
+  background: #faf8ff;
 }
 
 
-/* =========================================================
+/* =====================================================
    CONTENT
-========================================================= */
+===================================================== */
 
 .transaksi-eo-content {
   width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 34px 34px 70px;
+
+  padding: 28px 34px 60px;
+
+  box-sizing: border-box;
 }
 
 
-/* =========================================================
-   HEADER
-========================================================= */
+/* =====================================================
+   PAGE HEADER
+===================================================== */
 
-.transaksi-eo-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
+.transaksi-page-header {
+  width: 100%;
+
+  margin-bottom: 35px;
 }
 
-.transaksi-eo-header h1 {
+.transaksi-page-header h1 {
   margin: 0;
-  color: #28263f;
-  font-size: 29px;
+
+  color: #171522;
+
+  font-size: 25px;
+  font-weight: 650;
+
   line-height: 1.2;
-  font-weight: 700;
-}
 
-.transaksi-eo-header p {
-  margin: 7px 0 0;
-  color: #6f6d7c;
-  font-size: 13px;
-  line-height: 1.5;
+  letter-spacing: -0.2px;
 }
 
 
-/* =========================================================
-   TRANSACTION CARD
-========================================================= */
+/* =====================================================
+   LIST HEADER
+===================================================== */
 
-.transaction-card {
+.transaksi-list-header {
   width: 100%;
-  overflow: visible;
-  border: 1px solid #e4e2ec;
-  border-radius: 13px;
-  background: #ffffff;
-  box-shadow:
-    0 4px 15px rgba(45, 40, 90, 0.035);
-}
 
-
-/* =========================================================
-   CARD HEADER
-========================================================= */
-
-.transaction-card-header {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 22px 22px 18px;
-  border-bottom: 1px solid #e7e5ee;
+
+  margin-bottom: 31px;
 }
 
-.transaction-card-header h2 {
+.transaksi-list-header h2 {
   margin: 0;
-  color: #343246;
-  font-size: 17px;
-  font-weight: 700;
-}
 
+  color: #292533;
 
-/* =========================================================
-   TOOLS
-========================================================= */
-
-.transaction-tools {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-
-/* =========================================================
-   SEARCH
-========================================================= */
-
-.transaction-search {
-  position: relative;
-  display: flex;
-  align-items: center;
-
-  width: 250px;
-  height: 42px;
-
-  padding: 4px;
-
-  border: 1px solid #dedbe9;
-  border-radius: 10px;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 2px 7px rgba(50, 45, 100, 0.035);
-
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-
-/* =========================================================
-   SEARCH ICON
-========================================================= */
-
-.transaction-search span {
-  position: absolute;
-
-  left: 10px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 28px;
-  height: 28px;
-
-  border-radius: 7px;
-
-  background: #f2f0ff;
-  color: #6256e8;
-
-  font-size: 17px;
-  font-weight: 600;
-
-  pointer-events: none;
-
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-
-/* =========================================================
-   SEARCH INPUT
-========================================================= */
-
-.transaction-search input {
-  width: 100%;
-  height: 100%;
-
-  padding: 0 13px 0 47px;
-
-  border: none;
-  border-radius: 7px;
-
-  outline: none;
-
-  background: transparent;
-
-  color: #363448;
-
-  font-family: "Poppins", sans-serif;
-
-  font-size: 12px;
-  font-weight: 500;
-}
-
-
-/* =========================================================
-   SEARCH PLACEHOLDER
-========================================================= */
-
-.transaction-search input::placeholder {
-  color: #858391;
-  font-size: 11px;
-  font-weight: 400;
-}
-
-
-/* =========================================================
-   SEARCH HOVER
-========================================================= */
-
-.transaction-search:hover {
-  border-color: #cfcbe0;
-
-  box-shadow:
-    0 4px 12px rgba(50, 45, 100, 0.07);
-}
-
-
-/* =========================================================
-   SEARCH FOCUS
-========================================================= */
-
-.transaction-search:focus-within {
-  border-color: #6256e8;
-
-  box-shadow:
-    0 0 0 3px rgba(98, 86, 232, 0.09),
-    0 4px 12px rgba(50, 45, 100, 0.06);
-}
-
-
-/* =========================================================
-   SEARCH ICON SAAT FOCUS
-========================================================= */
-
-.transaction-search:focus-within span {
-  background: #6256e8;
-  color: #ffffff;
-}
-
-
-/* =========================================================
-   CUSTOM FILTER
-========================================================= */
-
-.transaction-filter-wrapper {
-  position: relative;
-}
-
-
-/* =========================================================
-   FILTER BUTTON
-========================================================= */
-
-.transaction-filter {
-  display: flex;
-  align-items: center;
-
-  width: 125px;
-  height: 42px;
-
-  padding: 0 11px;
-
-  border: 1px solid #dcd9e5;
-  border-radius: 10px;
-
-  outline: none;
-
-  background: #ffffff;
-  color: #4f4d5d;
-
-  font-family: "Poppins", sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-
-  cursor: pointer;
-
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
-}
-
-
-/* =========================================================
-   FILTER HOVER
-========================================================= */
-
-.transaction-filter:hover {
-  border-color: #c9c5df;
-  background: #fcfbff;
-}
-
-
-/* =========================================================
-   FILTER ACTIVE
-========================================================= */
-
-.transaction-filter.active {
-  border-color: #6256e8;
-  background: #ffffff;
-
-  box-shadow:
-    0 0 0 3px rgba(98, 86, 232, 0.09);
-}
-
-
-/* =========================================================
-   FILTER CURRENT ICON
-========================================================= */
-
-.filter-current-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 23px;
-  height: 23px;
-
-  margin-right: 7px;
-
-  border-radius: 6px;
-
-  background: #f0efff;
-  color: #6256e8;
-
-  font-size: 13px;
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   FILTER CURRENT TEXT
-========================================================= */
-
-.filter-current-text {
-  flex: 1;
-
-  text-align: left;
-
-  color: #4d4b5b;
-
-  font-size: 12px;
-  font-weight: 500;
-}
-
-
-/* =========================================================
-   FILTER ARROW
-========================================================= */
-
-.filter-arrow {
-  color: #777583;
-  font-size: 14px;
-
-  transition:
-    transform 0.2s ease;
-}
-
-.filter-arrow.rotate {
-  transform: rotate(180deg);
-}
-
-
-/* =========================================================
-   FILTER POPUP
-========================================================= */
-
-.transaction-filter-popup {
-  position: absolute;
-
-  top: calc(100% + 9px);
-  right: 0;
-
-  z-index: 1000;
-
-  width: 265px;
-
-  padding: 9px;
-
-  border: 1px solid #e3e0ec;
-  border-radius: 12px;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 12px 30px rgba(48, 43, 100, 0.13),
-    0 3px 8px rgba(48, 43, 100, 0.05);
-
-  animation:
-    filterPopupIn 0.18s ease;
-}
-
-
-/* =========================================================
-   POPUP ANIMATION
-========================================================= */
-
-@keyframes filterPopupIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-
-/* =========================================================
-   POPUP TITLE
-========================================================= */
-
-.filter-popup-title {
-  padding: 8px 10px 9px;
-
-  color: #858391;
-
-  font-size: 10px;
-  font-weight: 600;
-
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-
-/* =========================================================
-   FILTER OPTIONS
-========================================================= */
-
-.filter-options {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-
-/* =========================================================
-   FILTER OPTION
-========================================================= */
-
-.filter-option {
-  position: relative;
-
-  display: flex;
-  align-items: center;
-
-  width: 100%;
-
-  padding: 10px 9px;
-
-  border: none;
-  border-radius: 9px;
-
-  background: transparent;
-
-  text-align: left;
-
-  cursor: pointer;
-
-  transition:
-    background 0.18s ease,
-    transform 0.18s ease;
-}
-
-
-/* =========================================================
-   FILTER OPTION HOVER
-========================================================= */
-
-.filter-option:hover {
-  background: #f7f6fc;
-}
-
-
-/* =========================================================
-   FILTER OPTION SELECTED
-========================================================= */
-
-.filter-option.selected {
-  background: #f5f3ff;
-}
-
-
-/* =========================================================
-   FILTER OPTION ACTIVE
-========================================================= */
-
-.filter-option:active {
-  transform: scale(0.985);
-}
-
-
-/* =========================================================
-   OPTION ICON
-========================================================= */
-
-.filter-option-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex: 0 0 auto;
-
-  width: 34px;
-  height: 34px;
-
-  margin-right: 10px;
-
-  border-radius: 9px;
-
-  font-size: 15px;
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   OPTION - SEMUA
-========================================================= */
-
-.filter-option-icon.all {
-  background: #efefff;
-  color: #6256e8;
-}
-
-
-/* =========================================================
-   OPTION - LUNAS
-========================================================= */
-
-.filter-option-icon.paid {
-  background: #e8f8f1;
-  color: #15966f;
-}
-
-
-/* =========================================================
-   OPTION - MENUNGGU
-========================================================= */
-
-.filter-option-icon.pending {
-  background: #fff3dc;
-  color: #c38417;
-}
-
-
-/* =========================================================
-   OPTION - DIBATALKAN
-========================================================= */
-
-.filter-option-icon.cancelled {
-  background: #ffebed;
-  color: #d6535b;
-}
-
-
-/* =========================================================
-   OPTION CONTENT
-========================================================= */
-
-.filter-option-content {
-  display: flex;
-  flex-direction: column;
-
-  min-width: 0;
-
-  gap: 2px;
-}
-
-.filter-option-content strong {
-  color: #3e3c4d;
-
-  font-family: "Poppins", sans-serif;
-
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.filter-option-content small {
-  color: #888693;
-
-  font-family: "Poppins", sans-serif;
-
-  font-size: 9px;
-  font-weight: 400;
-}
-
-
-/* =========================================================
-   FILTER CHECK
-========================================================= */
-
-.filter-check {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  margin-left: auto;
-
-  width: 20px;
-  height: 20px;
-
-  border-radius: 50%;
-
-  background: #6256e8;
-  color: #ffffff;
-
-  font-size: 11px;
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   TRANSACTION LIST
-========================================================= */
-
-.transaction-list {
-  display: flex;
-  flex-direction: column;
-
-  padding: 14px 18px 18px;
-
-  gap: 10px;
-}
-
-
-/* =========================================================
-   TRANSACTION ITEM
-========================================================= */
-
-.transaction-item {
-  display: grid;
-
-  grid-template-columns:
-    minmax(190px, 1.25fr)
-    minmax(230px, 1.4fr)
-    150px;
-
-  align-items: center;
-
-  gap: 20px;
-
-  min-height: 108px;
-
-  padding: 18px 15px;
-
-  border: 1px solid #e1dfe9;
-  border-radius: 9px;
-
-  background: #ffffff;
-
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-
-/* =========================================================
-   TRANSACTION ITEM HOVER
-   HANYA CARD, BUKAN STATUS
-========================================================= */
-
-.transaction-item:hover {
-  border-color: #d5d1f5;
-
-  box-shadow:
-    0 5px 14px rgba(70, 61, 150, 0.06);
-
-  transform: translateY(-1px);
-}
-
-
-/* =========================================================
-   TRANSACTION INFO
-========================================================= */
-
-.transaction-info {
-  min-width: 0;
-}
-
-
-/* =========================================================
-   CUSTOMER NAME
-========================================================= */
-
-.transaction-info h3 {
-  overflow: hidden;
-
-  margin: 0 0 5px;
-
-  color: #2f2d42;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  line-height: 1.4;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-/* =========================================================
-   TICKET
-========================================================= */
-
-.transaction-info p {
-  overflow: hidden;
-
-  margin: 0 0 10px;
-
-  color: #686675;
-
-  font-size: 11px;
-  font-weight: 500;
-
-  line-height: 1.4;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-/* =========================================================
-   ID TRANSAKSI
-========================================================= */
-
-.transaction-info strong {
-  display: block;
-
-  color: #555362;
-
-  font-size: 9px;
-  font-weight: 600;
-
-  line-height: 1.4;
-}
-
-
-/* =========================================================
-   EVENT
-========================================================= */
-
-.transaction-event {
-  min-width: 0;
-}
-
-
-/* =========================================================
-   LABEL EVENT
-========================================================= */
-
-.transaction-event span {
-  display: block;
-
-  margin-bottom: 5px;
-
-  color: #777583;
-
-  font-size: 10px;
-  font-weight: 500;
-}
-
-
-/* =========================================================
-   NAMA EVENT
-========================================================= */
-
-.transaction-event p {
-  overflow: hidden;
-
-  margin: 0 0 6px;
-
-  color: #363448;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  line-height: 1.4;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-/* =========================================================
-   TANGGAL DAN JAM
-========================================================= */
-
-.transaction-event small {
-  color: #666472;
-
-  font-size: 11px;
-  font-weight: 500;
-
-  line-height: 1.4;
-}
-
-
-/* =========================================================
-   TRANSACTION ACTION
-   STATUS + DETAIL
-========================================================= */
-
-.transaction-action {
-  display: flex !important;
-
-  flex-direction: column !important;
-
-  align-items: center !important;
-  justify-content: center !important;
-
-  gap: 8px !important;
-
-  min-width: 130px;
-
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-
-/* =========================================================
-   STATUS
-   SELALU TERLIHAT
-   TIDAK TERGANTUNG HOVER
-========================================================= */
-
-.transaction-status {
-  display: flex !important;
-
-  align-items: center !important;
-  justify-content: center !important;
-
-  width: 100% !important;
-
-  opacity: 1 !important;
-  visibility: visible !important;
-
-  position: static !important;
-
-  transform: none !important;
-}
-
-
-/* =========================================================
-   STATUS BADGE
-========================================================= */
-
-.status-badge {
-  display: inline-flex !important;
-
-  align-items: center !important;
-  justify-content: center !important;
-
-  min-width: 72px;
-
-  padding: 6px 12px;
-
-  border-radius: 20px;
-
-  font-size: 10px;
+  font-size: 18px;
   font-weight: 600;
 
   line-height: 1.3;
-
-  white-space: nowrap;
-
-  opacity: 1 !important;
-  visibility: visible !important;
-
-  position: static !important;
-
-  transform: none !important;
 }
 
 
-/* =========================================================
-   LUNAS
-========================================================= */
+/* =====================================================
+   SEARCH
+===================================================== */
 
-.status-badge.paid {
-  border: 1px solid #c7e9dc;
-
-  background: #e7f8f1;
-
-  color: #118b68;
-}
-
-
-/* =========================================================
-   MENUNGGU
-========================================================= */
-
-.status-badge.pending {
-  border: 1px solid #f0ddb7;
-
-  background: #fff3dc;
-
-  color: #b8790e;
-}
-
-
-/* =========================================================
-   DIBATALKAN
-========================================================= */
-
-.status-badge.cancelled {
-  border: 1px solid #f1cccc;
-
-  background: #ffebed;
-
-  color: #d5535b;
-}
-
-
-/* =========================================================
-   DETAIL BUTTON
-========================================================= */
-
-.detail-transaction-button {
-  width: 130px;
+.transaksi-search {
+  width: 256px;
   height: 37px;
 
-  padding: 0 13px;
+  display: flex;
 
-  border: 1px solid #d3d0e2;
-  border-radius: 7px;
+  align-items: center;
 
-  background: #ffffff;
+  gap: 9px;
 
-  color: #4e49b7;
+  padding: 0 12px;
+
+  box-sizing: border-box;
+
+  border-radius: 8px;
+
+  background: #f0edf8;
+
+  color: #716b7e;
+
+  transition: 0.2s ease;
+}
+
+.transaksi-search:focus-within {
+  background: #eeebf7;
+
+  box-shadow:
+    0 0 0 2px rgba(91, 77, 226, 0.08);
+}
+
+.transaksi-search svg {
+  flex-shrink: 0;
+
+  color: #726c80;
+}
+
+.transaksi-search input {
+  width: 100%;
+  height: 100%;
+
+  padding: 0;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #393442;
 
   font-family: "Poppins", sans-serif;
-
-  font-size: 10px;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
-
-
-/* =========================================================
-   DETAIL BUTTON HOVER
-========================================================= */
-
-.detail-transaction-button:hover {
-  border-color: #6256e8;
-
-  background: #6256e8;
-
-  color: #ffffff;
-
-  transform: translateY(-1px);
-}
-
-
-/* =========================================================
-   EMPTY STATE
-========================================================= */
-
-.empty-transaction {
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  flex-direction: column;
-
-  min-height: 260px;
-
-  text-align: center;
-}
-
-.empty-icon {
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  width: 48px;
-  height: 48px;
-
-  margin-bottom: 12px;
-
-  border-radius: 50%;
-
-  background: #f0efff;
-
-  color: #6256e8;
-
-  font-size: 22px;
-}
-
-.empty-transaction h3 {
-  margin: 0 0 5px;
-
-  color: #373548;
-
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.empty-transaction p {
-  margin: 0;
-
-  color: #777583;
 
   font-size: 11px;
 }
 
+.transaksi-search input::placeholder {
+  color: #817b8d;
+}
 
-/* =========================================================
-   RESPONSIVE - TABLET BESAR
-========================================================= */
 
-@media (max-width: 1100px) {
-  .transaksi-eo-main {
-    margin-left: 200px;
-  }
+/* =====================================================
+   TRANSACTION LIST
+===================================================== */
+
+.transaksi-list {
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+
+/* =====================================================
+   TRANSACTION CARD
+===================================================== */
+
+.transaksi-card {
+  width: 100%;
+
+  min-height: 118px;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #cfc9dc;
+
+  border-radius: 11px;
+
+  box-shadow:
+    0 3px 7px rgba(45, 37, 73, 0.06);
+
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.transaksi-card:hover {
+  border-color: #c4bdd3;
+
+  box-shadow:
+    0 4px 10px rgba(45, 37, 73, 0.08);
+}
+
+
+/* =====================================================
+   LEFT INFO
+===================================================== */
+
+.transaksi-card-info {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  min-width: 0;
+}
+
+.transaksi-card-info h3 {
+  margin: 0 0 3px;
+
+  color: #292631;
+
+  font-size: 16px;
+  font-weight: 500;
+
+  line-height: 1.3;
+}
+
+.transaksi-card-info p {
+  margin: 0 0 14px;
+
+  color: #5f596b;
+
+  font-size: 11px;
+  font-weight: 400;
+
+  line-height: 1.3;
+}
+
+.transaksi-card-info strong {
+  color: #282430;
+
+  font-size: 10px;
+  font-weight: 650;
+
+  line-height: 1.3;
+
+  letter-spacing: 0.05px;
+}
+
+
+/* =====================================================
+   RIGHT ACTIONS
+===================================================== */
+
+.transaksi-card-actions {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-end;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  flex-shrink: 0;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.transaksi-status {
+  min-width: 69px;
+  height: 30px;
+
+  padding: 0 12px;
+
+  box-sizing: border-box;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border-radius: 16px;
+
+  font-size: 10px;
+  font-weight: 500;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   STATUS DOT
+===================================================== */
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+}
+
+
+/* =====================================================
+   LUNAS
+===================================================== */
+
+.status-lunas {
+  color: #257b59;
+
+  background: #e7f5ef;
+
+  border: 1px solid #b8dfd0;
+}
+
+.status-lunas .status-dot {
+  background: #2d916b;
+}
+
+
+/* =====================================================
+   MENUNGGU
+===================================================== */
+
+.status-menunggu {
+  color: #a86d0c;
+
+  background: #fff7e9;
+
+  border: 1px solid #efd8ae;
+}
+
+.status-menunggu .status-dot {
+  background: #d58a16;
+}
+
+
+/* =====================================================
+   DIBATALKAN
+===================================================== */
+
+.status-dibatalkan {
+  color: #d84949;
+
+  background: #fdeaea;
+
+  border: 1px solid #f2c1c1;
+}
+
+.status-dibatalkan .status-dot {
+  background: #df4b4b;
+}
+
+
+/* =====================================================
+   DETAIL BUTTON
+===================================================== */
+
+.detail-transaksi-button {
+  min-width: 141px;
+
+  height: 35px;
+
+  padding: 0 16px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border: 1px solid #797386;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #36313f;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 10px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.detail-transaksi-button:hover {
+  color: #4b3dd4;
+
+  border-color: #5b4de2;
+
+  background: #faf9ff;
+}
+
+
+/* =====================================================
+   EMPTY STATE
+===================================================== */
+
+.empty-transaksi {
+  width: 100%;
+
+  min-height: 200px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 10px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d8d3e0;
+
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  color: #7b7585;
+
+  font-size: 11px;
+}
+
+.empty-transaksi svg {
+  color: #777181;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 900px) {
 
   .transaksi-eo-content {
-    padding: 30px 24px 60px;
+    padding: 26px 24px 50px;
   }
 
-  .transaction-item {
-    grid-template-columns:
-      minmax(170px, 1fr)
-      minmax(200px, 1fr)
-      140px;
+  .transaksi-search {
+    width: 230px;
   }
+
+  .transaksi-card {
+    padding: 18px;
+  }
+
 }
 
 
-/* =========================================================
-   RESPONSIVE - TABLET
-========================================================= */
+/* =====================================================
+   MOBILE
+===================================================== */
 
-@media (max-width: 850px) {
-  .transaction-card-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+@media (max-width: 600px) {
 
-  .transaction-tools {
-    width: 100%;
-  }
-
-  .transaction-search {
-    flex: 1;
-  }
-
-  .transaction-filter {
-    width: 125px;
-  }
-
-  .transaction-item {
-    grid-template-columns:
-      1fr
-      1fr;
-  }
-
-  .transaction-action {
-    grid-column: 1 / -1;
-
-    align-items: flex-start !important;
-
-    flex-direction: row !important;
-
-    justify-content: flex-start !important;
-
-    gap: 10px !important;
-
-    min-width: 0;
-  }
-
-  .transaction-status {
-    width: auto !important;
-
-    justify-content: flex-start !important;
-  }
-
-  .detail-transaction-button {
-    width: 130px;
-  }
-}
-
-
-/* =========================================================
-   RESPONSIVE - MOBILE
-========================================================= */
-
-@media (max-width: 650px) {
   .transaksi-eo-main {
+    width: 100%;
+
     margin-left: 0;
   }
 
   .transaksi-eo-content {
-    padding: 25px 16px 50px;
+    padding: 22px 15px 40px;
   }
 
-  .transaksi-eo-header h1 {
-    font-size: 26px;
+
+  /* PAGE TITLE */
+
+  .transaksi-page-header {
+    margin-bottom: 25px;
   }
 
-  .transaksi-eo-header p {
-    font-size: 12px;
+  .transaksi-page-header h1 {
+    font-size: 21px;
   }
 
-  .transaction-tools {
+
+  /* HEADER */
+
+  .transaksi-list-header {
+    align-items: flex-start;
+
     flex-direction: column;
 
-    align-items: stretch;
+    gap: 14px;
+
+    margin-bottom: 22px;
   }
 
-  .transaction-search {
+  .transaksi-list-header h2 {
+    font-size: 15px;
+  }
+
+
+  /* SEARCH */
+
+  .transaksi-search {
     width: 100%;
   }
 
-  .transaction-filter {
-    width: 100%;
+
+  /* CARD */
+
+  .transaksi-card {
+    min-height: 145px;
+
+    padding: 17px;
+
+    align-items: flex-start;
   }
 
-  .transaction-filter-popup {
-    left: 0;
-    right: 0;
 
-    width: auto;
+  /* LEFT */
 
-    min-width: 100%;
-  }
-
-  .transaction-item {
-    grid-template-columns: 1fr;
-
-    gap: 13px;
-  }
-
-  .transaction-info h3 {
+  .transaksi-card-info h3 {
     font-size: 14px;
   }
 
-  .transaction-info p {
-    font-size: 11px;
-  }
-
-  .transaction-event p {
-    font-size: 14px;
-  }
-
-  .transaction-event small {
+  .transaksi-card-info p {
     font-size: 10px;
+
+    margin-bottom: 12px;
   }
 
-  .transaction-action {
-    grid-column: auto;
-
-    align-items: flex-start !important;
-
-    flex-direction: column !important;
-
-    gap: 8px !important;
+  .transaksi-card-info strong {
+    font-size: 9px;
   }
 
-  .transaction-status {
-    width: auto !important;
 
-    justify-content: flex-start !important;
+  /* RIGHT */
+
+  .transaksi-card-actions {
+    gap: 9px;
   }
 
-  .detail-transaction-button {
-    width: 100%;
+  .transaksi-status {
+    min-width: 63px;
+
+    height: 27px;
+
+    padding: 0 9px;
+
+    font-size: 9px;
   }
+
+  .detail-transaksi-button {
+    min-width: 120px;
+
+    height: 32px;
+
+    padding: 0 11px;
+
+    font-size: 9px;
+  }
+
 }
 
 
-/* =========================================================
-   PENGAMAN TERAKHIR
-   STATUS TIDAK BOLEH HILANG SAAT HOVER
-========================================================= */
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
 
-.transaction-item:hover .transaction-action,
-.transaction-item:hover .transaction-status,
-.transaction-item:hover .status-badge {
-  opacity: 1 !important;
-  visibility: visible !important;
-  display: flex !important;
-  position: static !important;
-  transform: none !important;
+@media (max-width: 430px) {
+
+  .transaksi-card {
+    flex-direction: column;
+
+    gap: 15px;
+  }
+
+  .transaksi-card-actions {
+    width: 100%;
+
+    align-items: flex-end;
+  }
+
+  .detail-transaksi-button {
+    min-width: 125px;
+  }
+
 }

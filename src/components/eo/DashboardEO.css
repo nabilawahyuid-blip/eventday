@@ -1,580 +1,1181 @@
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
-
-/* =========================
-   RESET
-========================= */
-
-* {
-  box-sizing: border-box;
-}
-
-/* =========================
-   PAGE
-========================= */
+/* =====================================================
+   DASHBOARD EO
+===================================================== */
 
 .dashboard-eo-page {
-  min-height: 100vh;
   width: 100%;
-  display: flex;
-  background: #faf9ff;
-  color: #28243f;
+  min-height: 100vh;
+
+  background: #faf8ff;
+
   font-family: "Poppins", sans-serif;
+
+  color: #24212f;
 }
 
-/* =========================
+
+/* =====================================================
    MAIN
-========================= */
+===================================================== */
 
 .dashboard-eo-main {
-  flex: 1;
-  min-width: 0;
+  width: calc(100% - 220px);
   min-height: 100vh;
+
   margin-left: 220px;
-  display: flex;
-  flex-direction: column;
+
+  background: #faf8ff;
 }
 
-/* =========================
+
+/* =====================================================
    CONTENT
-========================= */
+===================================================== */
 
 .dashboard-eo-content {
   width: 100%;
-  padding: 26px 34px 45px;
-  overflow-x: hidden;
+
+  padding: 28px 34px 60px;
+
+  box-sizing: border-box;
 }
 
-/* =========================
-   HEADER
-========================= */
 
-.dashboard-eo-header {
-  margin-bottom: 27px;
-}
+/* =====================================================
+   PAGE HEADER
+===================================================== */
 
-.dashboard-eo-header h1 {
-  margin: 0;
-  font-size: 26px;
-  line-height: 1.3;
-  font-weight: 700;
-  color: #292541;
-}
-
-.dashboard-eo-header p {
-  margin: 4px 0 0;
-  font-size: 13px;
-  color: #625d70;
-}
-
-/* =========================
-   SECTION TITLE
-========================= */
-
-.dashboard-eo-section-title {
-  margin-bottom: 12px;
-}
-
-.dashboard-eo-section-title h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #37334c;
-}
-
-/* =========================
-   STAT GRID
-========================= */
-
-.eo-stat-grid {
+.dashboard-page-header {
   width: 100%;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 20px;
+
+  margin-bottom: 35px;
 }
 
-/* =========================
-   STAT CARD
-========================= */
-
-.eo-stat-card {
-  position: relative;
-  min-height: 104px;
-  padding: 17px;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  background: #ffffff;
-  border: 1px solid #e7e3f0;
-  border-radius: 9px;
-  box-shadow: 0 4px 14px rgba(48, 38, 91, 0.04);
-}
-
-.eo-stat-left {
-  position: relative;
-  z-index: 2;
-}
-
-.eo-stat-label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  color: #666173;
-}
-
-.eo-stat-number-row {
-  margin-top: 7px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.eo-stat-number-row h3 {
+.dashboard-page-header h1 {
   margin: 0;
-  font-size: 28px;
-  line-height: 1;
-  font-weight: 700;
-  color: #292541;
+
+  color: #171522;
+
+  font-size: 25px;
+  font-weight: 650;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.2px;
 }
 
-.eo-stat-growth {
-  margin-top: 4px;
-  font-size: 10px;
-  font-weight: 500;
+
+/* =====================================================
+   DASHBOARD SECTION
+===================================================== */
+
+.dashboard-section {
+  width: 100%;
 }
 
-.eo-stat-growth.green {
-  color: #24aa7b;
+
+/* =====================================================
+   SECTION HEADER
+===================================================== */
+
+.dashboard-section-header {
+  margin-bottom: 14px;
 }
 
-.eo-stat-growth.gray {
-  color: #716b7c;
+.dashboard-section-header h2,
+.dashboard-section-title-row h2 {
+  margin: 0;
+
+  color: #292533;
+
+  font-size: 17px;
+  font-weight: 600;
+
+  line-height: 1.3;
+
+  letter-spacing: -0.1px;
 }
 
-/* =========================
-   STAT ICON
-========================= */
 
-.eo-stat-icon {
+/* =====================================================
+   SUMMARY CARDS
+===================================================== */
+
+.summary-cards {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 22px;
+}
+
+
+/* =====================================================
+   SUMMARY CARD
+===================================================== */
+
+.summary-card {
+  height: 134px;
+
   position: relative;
+
+  overflow: hidden;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  border: 1px solid #f0edf5;
+
+  box-shadow:
+    0 3px 8px rgba(42, 35, 70, 0.07);
+}
+
+
+/* =====================================================
+   SUMMARY CARD CONTENT
+===================================================== */
+
+.summary-card-content {
+  position: relative;
+
   z-index: 2;
-  width: 28px;
-  height: 28px;
+
   display: flex;
+  flex-direction: column;
+
+  height: 100%;
+
+  justify-content: space-between;
+}
+
+
+/* =====================================================
+   SUMMARY LABEL
+===================================================== */
+
+.summary-card-label {
+  color: #4a4655;
+
+  font-size: 10px;
+  font-weight: 650;
+
+  letter-spacing: 0.25px;
+}
+
+
+/* =====================================================
+   SUMMARY VALUE
+===================================================== */
+
+.summary-card-value {
+  color: #1f1d27;
+
+  font-size: 32px;
+  font-weight: 650;
+
+  line-height: 1;
+
+  margin-bottom: 3px;
+
+  letter-spacing: -0.4px;
+}
+
+.income-value {
+  font-size: 29px;
+
+  letter-spacing: -0.5px;
+}
+
+
+/* =====================================================
+   SUMMARY ICON
+===================================================== */
+
+.summary-icon {
+  width: 38px;
+  height: 38px;
+
+  position: absolute;
+
+  top: 20px;
+  right: 20px;
+
+  z-index: 3;
+
+  display: flex;
+
   align-items: center;
   justify-content: center;
-  border-radius: 7px;
-  font-size: 12px;
-}
 
-.eo-stat-icon.purple {
-  color: #5b4de2;
-  background: #ebe8ff;
-}
-
-.eo-stat-icon.green {
-  color: #23aa7a;
-  background: #dff7ed;
-}
-
-.eo-stat-icon.orange {
-  color: #db9838;
-  background: #fff0dc;
-}
-
-/* =========================
-   DECORATION
-========================= */
-
-.eo-stat-decoration {
-  position: absolute;
-  width: 65px;
-  height: 65px;
-  right: -17px;
-  bottom: -22px;
   border-radius: 50%;
-  opacity: 0.55;
+}
+
+
+/* =====================================================
+   PURPLE ICON
+===================================================== */
+
+.summary-icon-purple {
+  background: #dedcff;
+
+  color: #5142dc;
+}
+
+
+/* =====================================================
+   GREEN ICON
+===================================================== */
+
+.summary-icon-green {
+  background: #66e7b0;
+
+  color: #087c52;
+}
+
+
+/* =====================================================
+   ORANGE ICON
+===================================================== */
+
+.summary-icon-orange {
+  background: #ffdcae;
+
+  color: #a86b13;
+}
+
+
+/* =====================================================
+   SUMMARY DECORATION
+===================================================== */
+
+.summary-decoration {
+  position: absolute;
+
+  width: 100px;
+  height: 100px;
+
+  right: -22px;
+  bottom: -38px;
+
+  border-radius: 50%;
 }
 
 .purple-decoration {
-  background: #e9e6ff;
+  background: #f0f0ff;
 }
 
 .green-decoration {
-  background: #d9f5e9;
+  background: #d7f8eb;
 }
 
 .orange-decoration {
-  background: #ffedda;
+  background: #fff0d9;
 }
 
-/* =========================
-   LOWER GRID
-========================= */
 
-.dashboard-eo-lower-grid {
+/* =====================================================
+   EVENT TERBARU
+===================================================== */
+
+.recent-event-section {
+  margin-top: 31px;
+}
+
+
+/* =====================================================
+   SECTION TITLE ROW
+===================================================== */
+
+.dashboard-section-title-row {
   width: 100%;
-  display: grid;
-  grid-template-columns:
-    minmax(0, 1.05fr)
-    minmax(0, 0.95fr);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 14px;
+}
+
+
+/* =====================================================
+   LIHAT SEMUA
+===================================================== */
+
+.see-all-button {
+  border: none;
+
+  background: transparent;
+
+  color: #493bd1;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  padding: 3px 0;
+
+  transition: 0.2s ease;
+}
+
+.see-all-button:hover {
+  color: #3426b8;
+
+  text-decoration: underline;
+}
+
+
+/* =====================================================
+   EVENT LIST
+===================================================== */
+
+.event-list {
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
   gap: 14px;
 }
 
-/* =========================
-   PANEL
-========================= */
 
-.eo-panel {
-  min-width: 0;
-  background: #ffffff;
-  border: 1px solid #e6e2ef;
-  border-radius: 9px;
-  overflow: hidden;
-  box-shadow: 0 4px 14px rgba(48, 38, 91, 0.04);
-}
-
-/* =========================
-   PANEL HEADER
-========================= */
-
-.eo-panel-header {
-  height: 47px;
-  padding: 0 13px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #ebe7f2;
-}
-
-.eo-panel-header h2 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: #37324d;
-}
-
-.eo-view-all {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #5b4de2;
-  font-family: "Poppins", sans-serif;
-  font-size: 10px;
-  cursor: pointer;
-}
-
-.eo-view-all:hover {
-  text-decoration: underline;
-}
-
-/* =========================
-   EVENT LIST
-========================= */
-
-.eo-event-list {
-  padding: 10px;
-}
-
-/* =========================
+/* =====================================================
    EVENT CARD
-========================= */
+===================================================== */
 
-.eo-event-card {
-  padding: 11px;
-  margin-bottom: 8px;
-  border: 1px solid #ebe7f2;
-  border-radius: 7px;
+.event-dashboard-card {
+  width: 100%;
+
+  min-height: 190px;
+
+  padding: 20px;
+
+  box-sizing: border-box;
+
+  border-radius: 12px;
+
   background: #ffffff;
-  transition: 0.2s ease;
+
+  border: 1px solid #e1dce9;
+
+  box-shadow:
+    0 3px 8px rgba(42, 35, 70, 0.06);
 }
 
-.eo-event-card:last-child {
-  margin-bottom: 0;
-}
 
-.eo-event-card:hover {
-  border-color: #d8d1ee;
-  background: #fcfbff;
-  box-shadow: 0 4px 10px rgba(74, 59, 139, 0.05);
-}
-
-/* =========================
+/* =====================================================
    EVENT TOP
-========================= */
+===================================================== */
 
-.eo-event-top {
+.event-card-top {
   display: flex;
+
   align-items: flex-start;
   justify-content: space-between;
-  gap: 10px;
+
+  gap: 15px;
 }
 
-.eo-event-info {
-  min-width: 0;
-}
 
-.eo-event-info h3 {
-  margin: 0;
-  font-size: 13px;
+/* =====================================================
+   EVENT INFO
+===================================================== */
+
+.event-card-info h3 {
+  margin: 0 0 5px;
+
+  color: #25222e;
+
+  font-size: 17px;
   font-weight: 600;
-  color: #37334c;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+
+  letter-spacing: -0.15px;
 }
 
-.eo-event-info p {
-  margin: 4px 0 0;
+
+/* =====================================================
+   EVENT META
+===================================================== */
+
+.event-meta {
+  display: flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  color: #625d6d;
+
   font-size: 10px;
-  color: #686274;
+
+  font-weight: 450;
 }
 
-/* =========================
-   EVENT STATUS
-========================= */
+.event-meta span {
+  display: flex;
 
-.eo-event-status {
-  flex-shrink: 0;
-  padding: 4px 7px;
-  border-radius: 10px;
+  align-items: center;
+
+  gap: 4px;
+}
+
+.event-meta svg {
+  color: #615b6c;
+}
+
+.meta-dot {
+  display: inline-block !important;
+
+  color: #777180;
+}
+
+
+/* =====================================================
+   EVENT STATUS
+===================================================== */
+
+.event-status {
+  min-width: 89px;
+  height: 25px;
+
+  padding: 0 11px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border-radius: 14px;
+
   font-size: 9px;
+  font-weight: 600;
+}
+
+
+/* =====================================================
+   EVENT ACTIVE
+===================================================== */
+
+.event-active {
+  color: #267b59;
+
+  background: #e7f5ef;
+
+  border: 1px solid #b9dfd0;
+}
+
+
+/* =====================================================
+   EVENT ENDED
+===================================================== */
+
+.event-ended {
+  color: #d94848;
+
+  background: #fff0f0;
+
+  border: 1px solid #f0cccc;
+}
+
+
+/* =====================================================
+   EVENT PROGRESS
+===================================================== */
+
+.event-progress-section {
+  width: 100%;
+
+  margin-top: 18px;
+}
+
+.event-progress-info {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+
+  color: #5d5868;
+
+  font-size: 10px;
+
   font-weight: 500;
 }
 
-.eo-event-status.active {
-  background: #def5e9;
-  color: #25a978;
-}
 
-.eo-event-status.finished {
-  background: #ffe3e1;
-  color: #e36c67;
-}
+/* =====================================================
+   PROGRESS BAR
+===================================================== */
 
-/* =========================
-   PROGRESS
-========================= */
-
-.eo-event-progress-info {
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: #686274;
-}
-
-.eo-event-progress {
+.event-progress-bar {
   width: 100%;
-  height: 4px;
-  margin-top: 5px;
+  height: 8px;
+
   overflow: hidden;
+
   border-radius: 10px;
-  background: #eeebf4;
+
+  background: #e5e3eb;
 }
 
-.eo-event-progress-fill {
+.event-progress-fill {
   height: 100%;
-  border-radius: inherit;
-  background: #5b4de2;
+
+  border-radius: 10px;
+
+  transition: width 0.3s ease;
 }
 
-/* =========================
+
+/* =====================================================
+   ACTIVE PROGRESS
+===================================================== */
+
+.progress-active {
+  background: #5143d8;
+}
+
+
+/* =====================================================
+   ENDED PROGRESS
+===================================================== */
+
+.progress-ended {
+  background: #9695a5;
+}
+
+
+/* =====================================================
    EVENT BOTTOM
-========================= */
+===================================================== */
 
-.eo-event-bottom {
+.event-card-bottom {
   display: flex;
+
   justify-content: flex-end;
-  margin-top: 9px;
+
+  margin-top: 22px;
 }
 
-.eo-detail-button {
-  min-width: 62px;
-  height: 23px;
-  padding: 0 8px;
-  border: 1px solid #d8d3e5;
-  border-radius: 5px;
+
+/* =====================================================
+   DETAIL EVENT BUTTON
+===================================================== */
+
+.detail-event-button {
+  height: 34px;
+
+  padding: 0 17px;
+
+  border: 1px solid #767181;
+
+  border-radius: 7px;
+
   background: #ffffff;
-  color: #5f5a70;
+
+  color: #373340;
+
   font-family: "Poppins", sans-serif;
+
   font-size: 10px;
+  font-weight: 550;
+
   cursor: pointer;
+
   transition: 0.2s ease;
 }
 
-.eo-detail-button:hover {
+.detail-event-button:hover {
+  background: #f7f5fa;
+
+  border-color: #4d40d8;
+
+  color: #4d40d8;
+}
+
+
+/* =====================================================
+   TRANSAKSI TERBARU
+===================================================== */
+
+.transaction-section {
+  width: 100%;
+
+  margin-top: 27px;
+}
+
+
+/* =====================================================
+   TRANSACTION LIST
+===================================================== */
+
+.transaction-list {
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 15px;
+}
+
+
+/* =====================================================
+   TRANSACTION CARD
+   DESKTOP = KIRI / KANAN
+===================================================== */
+
+.transaction-card {
+  width: 100%;
+
+  min-height: 113px;
+
+  padding: 19px 20px;
+
+  box-sizing: border-box;
+
+  display: flex !important;
+
+  flex-direction: row !important;
+
+  align-items: center !important;
+
+  justify-content: space-between !important;
+
+  gap: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #cfc9dc;
+
+  border-radius: 11px;
+
+  box-shadow:
+    0 3px 7px rgba(45, 37, 73, 0.06);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* =====================================================
+   TRANSACTION CARD HOVER
+===================================================== */
+
+.transaction-card:hover {
+  border-color: #c4bdd3;
+
+  box-shadow:
+    0 4px 10px rgba(45, 37, 73, 0.08);
+}
+
+
+/* =====================================================
+   TRANSACTION INFO
+   BAGIAN KIRI
+===================================================== */
+
+.transaction-info {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: flex-start !important;
+
+  justify-content: center !important;
+
+  text-align: left !important;
+}
+
+
+/* =====================================================
+   CUSTOMER NAME
+===================================================== */
+
+.transaction-info h3 {
+  margin: 0 0 3px;
+
+  color: #292631;
+
+  font-size: 15px;
+
+  font-weight: 500;
+
+  line-height: 1.3;
+
+  text-align: left;
+}
+
+
+/* =====================================================
+   TICKET
+===================================================== */
+
+.transaction-info p {
+  margin: 0 0 13px;
+
+  color: #5f596b;
+
+  font-size: 11px;
+
+  font-weight: 400;
+
+  line-height: 1.3;
+
+  text-align: left;
+}
+
+
+/* =====================================================
+   TRANSACTION ID
+===================================================== */
+
+.transaction-info strong {
+  color: #282430;
+
+  font-size: 10px;
+
+  font-weight: 650;
+
+  line-height: 1.3;
+
+  text-align: left;
+
+  letter-spacing: 0.05px;
+}
+
+
+/* =====================================================
+   TRANSACTION ACTIONS
+   BAGIAN KANAN
+===================================================== */
+
+.transaction-actions {
+  flex-shrink: 0;
+
+  display: flex !important;
+
+  flex-direction: column !important;
+
+  align-items: flex-end !important;
+
+  justify-content: center !important;
+
+  gap: 12px;
+
+  margin-left: auto;
+
+  text-align: right;
+}
+
+
+/* =====================================================
+   TRANSACTION STATUS
+===================================================== */
+
+.transaction-status {
+  min-width: 69px;
+
+  height: 27px;
+
+  padding: 0 11px;
+
+  box-sizing: border-box;
+
+  display: inline-flex !important;
+
+  flex-direction: row !important;
+
+  align-items: center !important;
+
+  justify-content: center !important;
+
+  gap: 6px;
+
+  border-radius: 14px;
+
+  font-size: 9px;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/* =====================================================
+   STATUS DOT
+===================================================== */
+
+.transaction-dot {
+  width: 6px;
+
+  height: 6px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+}
+
+
+/* =====================================================
+   STATUS LUNAS
+===================================================== */
+
+.status-paid {
+  color: #267b59;
+
+  background: #e7f5ef;
+
+  border: 1px solid #b9dfd0;
+}
+
+.status-paid .transaction-dot {
+  background: #267b59;
+}
+
+
+/* =====================================================
+   STATUS MENUNGGU
+===================================================== */
+
+.status-waiting {
+  color: #a66e0d;
+
+  background: #fff7e8;
+
+  border: 1px solid #efd7aa;
+}
+
+.status-waiting .transaction-dot {
+  background: #d89118;
+}
+
+
+/* =====================================================
+   STATUS DIBATALKAN
+===================================================== */
+
+.status-cancelled {
+  color: #d84949;
+
+  background: #fdeaea;
+
+  border: 1px solid #f2c1c1;
+}
+
+.status-cancelled .transaction-dot {
+  background: #df4b4b;
+}
+
+
+/* =====================================================
+   DETAIL TRANSAKSI BUTTON
+===================================================== */
+
+.detail-transaction-button {
+  min-width: 141px;
+
+  height: 35px;
+
+  padding: 0 16px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border: 1px solid #797386;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  color: #36313f;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 500;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
+}
+
+.detail-transaction-button:hover {
+  color: #4b3dd4;
+
   border-color: #5b4de2;
-  color: #5b4de2;
+
   background: #faf9ff;
 }
 
-/* =========================
-   TRANSACTION LIST
-========================= */
 
-.eo-transaction-list {
-  padding: 10px;
-}
+/* =====================================================
+   TABLET
+===================================================== */
 
-/* =========================
-   TRANSACTION CARD
-========================= */
-
-.eo-transaction-card {
-  min-height: 69px;
-  padding: 10px;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  border: 1px solid #ebe7f2;
-  border-radius: 7px;
-  transition: 0.2s ease;
-}
-
-.eo-transaction-card:last-child {
-  margin-bottom: 0;
-}
-
-.eo-transaction-card:hover {
-  background: #fcfbff;
-  border-color: #d8d1ee;
-}
-
-/* =========================
-   AVATAR
-========================= */
-
-.eo-transaction-avatar {
-  width: 29px;
-  height: 29px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: #eeebf8;
-  color: #746e87;
-  font-size: 10px;
-  font-weight: 500;
-}
-
-/* =========================
-   TRANSACTION INFO
-========================= */
-
-.eo-transaction-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.eo-transaction-info h3 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #37334c;
-}
-
-.eo-transaction-info p {
-  margin: 3px 0;
-  font-size: 10px;
-  color: #686274;
-}
-
-.eo-transaction-info span {
-  font-size: 9px;
-  color: #777181;
-}
-
-/* =========================
-   TRANSACTION RIGHT
-========================= */
-
-.eo-transaction-right {
-  min-width: 78px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
-}
-
-.eo-paid-badge {
-  padding: 3px 6px;
-  border-radius: 8px;
-  background: #dcf5e9;
-  color: #23a978;
-  font-size: 9px;
-}
-
-.eo-transaction-right strong {
-  font-size: 11px;
-  font-weight: 600;
-  color: #39344d;
-}
-
-.eo-transaction-detail {
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #5b4de2;
-  font-family: "Poppins", sans-serif;
-  font-size: 9px;
-  cursor: pointer;
-}
-
-.eo-transaction-detail:hover {
-  text-decoration: underline;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1050px) {
-  .dashboard-eo-main {
-    margin-left: 200px;
-  }
+@media (max-width: 1000px) {
 
   .dashboard-eo-content {
-    padding: 24px 24px 40px;
+    padding: 26px 24px 50px;
   }
 
-  .dashboard-eo-lower-grid {
-    grid-template-columns: 1fr;
+
+  /* SUMMARY */
+
+  .summary-cards {
+    gap: 15px;
   }
+
+  .summary-card {
+    padding: 17px;
+  }
+
+  .summary-card-value {
+    font-size: 28px;
+  }
+
+  .income-value {
+    font-size: 23px;
+  }
+
+  .summary-icon {
+    right: 17px;
+
+    top: 17px;
+  }
+
+
+  /* TRANSACTION */
+
+  .transaction-card {
+    padding: 18px;
+  }
+
 }
 
-@media (max-width: 800px) {
-  .eo-stat-grid {
-    grid-template-columns: 1fr;
-  }
 
-  .dashboard-eo-header {
-    margin-bottom: 20px;
-  }
-
-  .dashboard-eo-lower-grid {
-    grid-template-columns: 1fr;
-  }
-}
+/* =====================================================
+   MOBILE
+===================================================== */
 
 @media (max-width: 600px) {
+
   .dashboard-eo-main {
+    width: 100%;
+
     margin-left: 0;
   }
 
+
   .dashboard-eo-content {
-    padding: 20px 15px 35px;
+    padding: 22px 15px 40px;
   }
 
-  .eo-transaction-card {
-    align-items: flex-start;
+
+  /* ===================================================
+     PAGE TITLE
+  =================================================== */
+
+  .dashboard-page-header {
+    margin-bottom: 27px;
   }
 
-  .eo-transaction-right {
-    min-width: 70px;
+  .dashboard-page-header h1 {
+    font-size: 21px;
   }
+
+
+  /* ===================================================
+     SECTION TITLE
+  =================================================== */
+
+  .dashboard-section-header h2,
+  .dashboard-section-title-row h2 {
+    font-size: 15px;
+  }
+
+
+  /* ===================================================
+     SUMMARY
+  =================================================== */
+
+  .summary-cards {
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+  }
+
+  .summary-card {
+    height: 115px;
+  }
+
+  .summary-card-value {
+    font-size: 27px;
+  }
+
+  .income-value {
+    font-size: 24px;
+  }
+
+
+  /* ===================================================
+     EVENT
+  =================================================== */
+
+  .event-dashboard-card {
+    padding: 17px;
+
+    min-height: 180px;
+  }
+
+  .event-card-top {
+    flex-direction: column;
+  }
+
+  .event-card-info h3 {
+    font-size: 15px;
+  }
+
+  .event-card-bottom {
+    margin-top: 18px;
+  }
+
+
+  /* ===================================================
+     TRANSACTION MOBILE
+  =================================================== */
+
+  .transaction-card {
+    min-height: 145px;
+
+    padding: 17px;
+
+    flex-direction: column !important;
+
+    align-items: flex-start !important;
+
+    justify-content: flex-start !important;
+
+    gap: 15px;
+  }
+
+
+  .transaction-info {
+    width: 100%;
+
+    flex: none;
+
+    align-items: flex-start !important;
+
+    justify-content: flex-start !important;
+  }
+
+
+  .transaction-info h3 {
+    font-size: 14px;
+  }
+
+  .transaction-info p {
+    font-size: 10px;
+
+    margin-bottom: 12px;
+  }
+
+  .transaction-info strong {
+    font-size: 9px;
+  }
+
+
+  .transaction-actions {
+    width: 100%;
+
+    margin-left: 0;
+
+    align-items: flex-end !important;
+
+    justify-content: flex-start !important;
+
+    gap: 9px;
+  }
+
+
+  .transaction-status {
+    min-width: 63px;
+
+    height: 27px;
+
+    padding: 0 9px;
+
+    font-size: 9px;
+  }
+
+
+  .detail-transaction-button {
+    min-width: 120px;
+
+    height: 32px;
+
+    padding: 0 11px;
+
+    font-size: 9px;
+  }
+
+
+  /* ===================================================
+     SEE ALL
+  =================================================== */
+
+  .see-all-button {
+    font-size: 9px;
+  }
+
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 430px) {
+
+  .transaction-card {
+    flex-direction: column !important;
+  }
+
+  .transaction-actions {
+    width: 100%;
+
+    align-items: flex-end !important;
+  }
+
+  .detail-transaction-button {
+    min-width: 125px;
+  }
+
 }
