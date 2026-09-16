@@ -1,104 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { getAdminEvents } from "../../services/adminDashboardService";
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 
 import "./EventManagement.css";
 
-function EventManagement() {
+export default function EventManagement() {
   const navigate = useNavigate();
 
-  // State untuk Search dan Filter
+  // State untuk Data, Loading, Search, dan Filter
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Semua Status");
   const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
 
-  // DATA EVENT
-  const events = [
-    {
-      id: 1,
-      title: "Synchronize Fest 2024",
-      category: "Music Festival",
-      date: "12 - 14 Oktober 2024",
-      time: "15:00 - 23:30 WIB",
-      location: "Gambir Expo Kemayoran, Jakarta",
-      status: "Aktif",
-      statusClass: "active",
-      tickets: "200 / 400",
-      organizer: "Synchronize Festival",
-      imageClass: "event-purple",
-    },
-    {
-      id: 2,
-      title: "Jakarta Tech Week 2024",
-      category: "Technology",
-      date: "20 - 22 Oktober 2024",
-      time: "09:00 - 18:00 WIB",
-      location: "Jakarta Convention Center",
-      status: "Aktif",
-      statusClass: "active",
-      tickets: "350 / 500",
-      organizer: "Tech Indonesia",
-      imageClass: "event-blue",
-    },
-    {
-      id: 3,
-      title: "Annual Gala Dinner",
-      category: "Entertainment",
-      date: "05 November 2024",
-      time: "18:00 - 22:00 WIB",
-      location: "Grand Ballroom Jakarta",
-      status: "Draft",
-      statusClass: "draft",
-      tickets: "0 / 300",
-      organizer: "EventDay Organizer",
-      imageClass: "event-orange",
-    },
-    {
-      id: 4,
-      title: "Creative Youth Festival",
-      category: "Community",
-      date: "18 November 2024",
-      time: "10:00 - 21:00 WIB",
-      location: "Senayan Park, Jakarta",
-      status: "Aktif",
-      statusClass: "active",
-      tickets: "120 / 250",
-      organizer: "Creative Youth",
-      imageClass: "event-pink",
-    },
-    {
-      id: 5,
-      title: "Indonesia Digital Expo",
-      category: "Technology",
-      date: "25 - 27 November 2024",
-      time: "09:00 - 17:00 WIB",
-      location: "ICE BSD City",
-      status: "Aktif",
-      statusClass: "active",
-      tickets: "480 / 700",
-      organizer: "Digital Indonesia",
-      imageClass: "event-green",
-    },
-    {
-      id: 6,
-      title: "Art & Culture Weekend",
-      category: "Art & Culture",
-      date: "01 Desember 2024",
-      time: "10:00 - 20:00 WIB",
-      location: "Taman Ismail Marzuki",
-      status: "Selesai",
-      statusClass: "finished",
-      tickets: "300 / 300",
-      organizer: "Jakarta Art Community",
-      imageClass: "event-yellow",
-    },
-  ];
+  // Ambil data event dari backend saat komponen dimuat
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        const response = await getAdminEvents();
+        const eventData = Array.isArray(response) ? response : response.data || [];
+        setEvents(eventData);
+      } catch (err) {
+        console.error("Gagal memuat data event:", err.message);
+        setError("Gagal menyambungkan ke server backend.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   // KLIK PANAH → DETAIL EVENT
   const handleEventClick = (event) => {
-    navigate(`/admin/event/${event.id}`);
+    const eventId = event.id || event._id;
+    navigate(`/admin/event/${eventId}`);
   };
 
   // BUTTON TAMBAH EVENT → ARAHKAN KE FORM TAMBAH EVENT
@@ -108,14 +50,15 @@ function EventManagement() {
 
   // LOGIKA FILTER DAN SEARCH
   const filteredEvents = events.filter((event) => {
-    const matchesSearch = event.title
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
+    const title = event.title || event.name || "";
+    const status = event.status || "Aktif";
+    const category = event.category || "";
+
+    const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus =
-      selectedStatus === "Semua Status" || event.status === selectedStatus;
+      selectedStatus === "Semua Status" || status === selectedStatus;
     const matchesCategory =
-      selectedCategory === "Semua Kategori" ||
-      event.category === selectedCategory;
+      selectedCategory === "Semua Kategori" || category === selectedCategory;
 
     return matchesSearch && matchesStatus && matchesCategory;
   });
@@ -126,7 +69,10 @@ function EventManagement() {
       <Sidebar />
 
       {/* MAIN AREA */}
-      <div className="dashboard-wrapper" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div
+        className="dashboard-wrapper"
+        style={{ flex: 1, display: "flex", flexDirection: "column" }}
+      >
         {/* NAVBAR */}
         <Navbar />
 
@@ -191,63 +137,84 @@ function EventManagement() {
 
             {/* EVENT GRID */}
             <div className="event-grid">
-              {filteredEvents.length > 0 ? (
-                filteredEvents.map((event) => (
-                  <div className="event-card" key={event.id}>
-                    {/* EVENT COVER */}
-                    <div className={`event-cover ${event.imageClass}`}>
-                      <span>{event.category}</span>
+              {loading ? (
+                <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#8d889a", padding: "30px" }}>
+                  Memuat data event dari server...
+                </p>
+              ) : error ? (
+                <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#dc6868", padding: "30px" }}>
+                  {error}
+                </p>
+              ) : filteredEvents.length > 0 ? (
+                filteredEvents.map((event, index) => {
+                  const eventId = event.id || event._id || index;
+                  const title = event.title || event.name || "Tanpa Judul";
+                  const category = event.category || "Umum";
+                  const date = event.date || "Jadwal belum ditentukan";
+                  const time = event.time || "-";
+                  const location = event.location || event.venueName || "-";
+                  const status = event.status || "Aktif";
+                  const statusClass = event.statusClass || (status === "Draft" ? "draft" : status === "Selesai" ? "finished" : "active");
+                  const tickets = event.tickets || "0 / 0";
+                  const imageClass = event.imageClass || "event-purple";
+
+                  return (
+                    <div className="event-card" key={eventId}>
+                      {/* EVENT COVER */}
+                      <div className={`event-cover ${imageClass}`}>
+                        <span>{category}</span>
+                      </div>
+
+                      {/* EVENT CONTENT */}
+                      <div className="event-card-content">
+                        {/* STATUS */}
+                        <div className="event-card-top">
+                          <span className={`event-status ${statusClass}`}>
+                            {status}
+                          </span>
+                        </div>
+
+                        {/* TITLE */}
+                        <h3>{title}</h3>
+
+                        {/* DATE */}
+                        <div className="event-detail">
+                          <span>▣</span>
+                          {date}
+                        </div>
+
+                        {/* TIME */}
+                        <div className="event-detail">
+                          <span>◷</span>
+                          {time}
+                        </div>
+
+                        {/* LOCATION */}
+                        <div className="event-detail">
+                          <span>◉</span>
+                          {location}
+                        </div>
+
+                        {/* FOOTER */}
+                        <div className="event-card-footer">
+                          <span>{tickets} tiket</span>
+
+                          {/* PANAH → DETAIL EVENT */}
+                          <button
+                            type="button"
+                            className="event-arrow"
+                            onClick={() => handleEventClick(event)}
+                            aria-label={`Lihat detail ${title}`}
+                          >
+                            →
+                          </button>
+                        </div>
+                      </div>
                     </div>
-
-                    {/* EVENT CONTENT */}
-                    <div className="event-card-content">
-                      {/* STATUS */}
-                      <div className="event-card-top">
-                        <span className={`event-status ${event.statusClass}`}>
-                          {event.status}
-                        </span>
-                      </div>
-
-                      {/* TITLE */}
-                      <h3>{event.title}</h3>
-
-                      {/* DATE */}
-                      <div className="event-detail">
-                        <span>▣</span>
-                        {event.date}
-                      </div>
-
-                      {/* TIME */}
-                      <div className="event-detail">
-                        <span>◷</span>
-                        {event.time}
-                      </div>
-
-                      {/* LOCATION */}
-                      <div className="event-detail">
-                        <span>◉</span>
-                        {event.location}
-                      </div>
-
-                      {/* FOOTER */}
-                      <div className="event-card-footer">
-                        <span>{event.tickets} tiket</span>
-
-                        {/* PANAH → DETAIL EVENT */}
-                        <button
-                          type="button"
-                          className="event-arrow"
-                          onClick={() => handleEventClick(event)}
-                          aria-label={`Lihat detail ${event.title}`}
-                        >
-                          →
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#8d889a" }}>
+                <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#8d889a", padding: "30px" }}>
                   Tidak ada event yang sesuai dengan pencarian.
                 </p>
               )}
@@ -258,5 +225,3 @@ function EventManagement() {
     </div>
   );
 }
-
-export default EventManagement;
