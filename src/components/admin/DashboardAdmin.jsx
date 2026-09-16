@@ -1,13 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getRecentTransactions } from '../../services/adminService';
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 
 import "./DashboardAdmin.css";
 
-function DashboardAdmin() {
+export default function DashboardAdmin() {
   const navigate = useNavigate();
+
+  // 1. Siapkan state untuk menampung data dari backend
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 2. Ambil data saat komponen pertama kali dimuat
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const data = await getRecentTransactions(); // Panggil endpoint backend real
+      setTransactions(Array.isArray(data) ? data : []);
+      setLoading(false);
+    }
+
+    loadData();
+  }, []);
 
   // ======
   // VIEW ALL EVENT
@@ -62,15 +79,12 @@ function DashboardAdmin() {
               <div className="stat-card">
 
                 <div className="stat-card-header">
-
                   <span>
                     EVENT AKTIF
                   </span>
-
                   <div className="stat-icon blue">
                     📅
                   </div>
-
                 </div>
 
                 <h2>
@@ -90,15 +104,12 @@ function DashboardAdmin() {
               <div className="stat-card">
 
                 <div className="stat-card-header">
-
                   <span>
                     TOTAL USER
                   </span>
-
                   <div className="stat-icon purple">
                     👥
                   </div>
-
                 </div>
 
                 <h2>
@@ -118,15 +129,12 @@ function DashboardAdmin() {
               <div className="stat-card">
 
                 <div className="stat-card-header">
-
                   <span>
                     TOTAL PENDAPATAN
                   </span>
-
                   <div className="stat-icon orange">
                     Rp
                   </div>
-
                 </div>
 
                 <h2>
@@ -154,7 +162,6 @@ function DashboardAdmin() {
               <div className="dashboard-card events-card">
 
                 <div className="card-header">
-
                   <h3>
                     Event Terbaru
                   </h3>
@@ -166,7 +173,6 @@ function DashboardAdmin() {
                   >
                     Lihat Semua
                   </button>
-
                 </div>
 
                 <div className="event-list">
@@ -180,25 +186,19 @@ function DashboardAdmin() {
                     className="event-item"
                     onClick={() => handleEventClick(2)}
                   >
-
                     <div className="event-image">
-
                       <span>
                         J
                       </span>
-
                     </div>
 
                     <div className="event-info">
-
                       <h4>
                         Konser Musik Jakarta 2024
                       </h4>
-
                       <p>
                         📅 15 Agustus 2024 • 📍 ICE BSD, Tangerang
                       </p>
-
                     </div>
 
                     <div className="event-status published">
@@ -208,7 +208,6 @@ function DashboardAdmin() {
                     <span className="event-more">
                       ⋮
                     </span>
-
                   </button>
 
                   {/* ======
@@ -220,25 +219,19 @@ function DashboardAdmin() {
                     className="event-item"
                     onClick={() => handleEventClick(3)}
                   >
-
                     <div className="event-image event-image-light">
-
                       <span>
                         A
                       </span>
-
                     </div>
 
                     <div className="event-info">
-
                       <h4>
                         Tech Conference Indonesia
                       </h4>
-
                       <p>
                         📅 22 September 2024 • 📍 ICE BSD
                       </p>
-
                     </div>
 
                     <div className="event-status draft">
@@ -248,7 +241,6 @@ function DashboardAdmin() {
                     <span className="event-more">
                       ⋮
                     </span>
-
                   </button>
 
                   {/* ======
@@ -260,25 +252,19 @@ function DashboardAdmin() {
                     className="event-item"
                     onClick={() => handleEventClick(4)}
                   >
-
                     <div className="event-image">
-
                       <span>
                         F
                       </span>
-
                     </div>
 
                     <div className="event-info">
-
                       <h4>
                         Festival Kuliner Nusantara
                       </h4>
-
                       <p>
                         📅 10 Oktober 2024 • 📍 GBK Senayan
                       </p>
-
                     </div>
 
                     <div className="event-status published">
@@ -288,7 +274,6 @@ function DashboardAdmin() {
                     <span className="event-more">
                       ⋮
                     </span>
-
                   </button>
 
                 </div>
@@ -296,7 +281,7 @@ function DashboardAdmin() {
               </div>
 
               {/* =
-                  AKTIVITAS TRANSAKSI (DISAMAKAN UKURAN & STRUKTUR DENGAN EVENT)
+                  AKTIVITAS TRANSAKSI (REAL API DARI BACKEND)
               = */}
 
               <div className="dashboard-card transactions-card">
@@ -306,61 +291,40 @@ function DashboardAdmin() {
                 </div>
 
                 <div className="transaction-list">
+                  {loading ? (
+                    <p style={{ fontSize: '9px', padding: '10px', color: '#8d889a' }}>Memuat data aktivitas...</p>
+                  ) : transactions.length === 0 ? (
+                    <p style={{ fontSize: '9px', padding: '10px', color: '#8d889a' }}>Belum ada aktivitas transaksi.</p>
+                  ) : (
+                    transactions.map((item, index) => (
+                      <button
+                        key={item.id || index}
+                        type="button"
+                        className="transaction-item"
+                        onClick={() => handleTransactionClick(item.customerName || "Customer")}
+                      >
+                        <div className="event-image">
+                          <span>{item.initial || `N${index + 1}`}</span>
+                        </div>
 
-                  {/* TRANSACTION 1 */}
-                  <button
-                    type="button"
-                    className="transaction-item"
-                    onClick={() => handleTransactionClick("Nama Customer 1")}
-                  >
-                    <div className="event-image">
-                      <span>N1</span>
-                    </div>
+                        <div className="event-info">
+                          <h4>{item.customerName || "Nama Customer"}</h4>
+                          <div className="transaction-text-wrapper">
+                            <p className="trx-desc">🎫 {item.description || "Tiket Yang Dipesan"}</p>
+                            <p className="trx-code">{item.code || "TRX-0000"}</p>
+                          </div>
+                        </div>
 
-                    <div className="event-info">
-                      <h4>Nama Customer 1</h4>
-                      <div className="transaction-text-wrapper">
-                        <p className="trx-desc">🎫 Tiket Yang Dipesan</p>
-                        <p className="trx-code">TRX-9922</p>
-                      </div>
-                    </div>
+                        <div className={`event-status ${item.status === 'Lunas' ? 'published' : 'draft'}`}>
+                          {item.status || "Menunggu"}
+                        </div>
 
-                    <div className="event-status published">
-                      Lunas
-                    </div>
-
-                    <span className="event-more">
-                      ⋮
-                    </span>
-                  </button>
-
-                  {/* TRANSACTION 2 */}
-                  <button
-                    type="button"
-                    className="transaction-item"
-                    onClick={() => handleTransactionClick("Nama Customer 2")}
-                  >
-                    <div className="event-image">
-                      <span>N2</span>
-                    </div>
-
-                    <div className="event-info">
-                      <h4>Nama Customer 2</h4>
-                      <div className="transaction-text-wrapper">
-                        <p className="trx-desc">🎫 Tiket Yang Dipesan</p>
-                        <p className="trx-code">TRX-9923</p>
-                      </div>
-                    </div>
-
-                    <div className="event-status draft">
-                      Menunggu
-                    </div>
-
-                    <span className="event-more">
-                      ⋮
-                    </span>
-                  </button>
-
+                        <span className="event-more">
+                          ⋮
+                        </span>
+                      </button>
+                    ))
+                  )}
                 </div>
 
               </div>
@@ -376,5 +340,3 @@ function DashboardAdmin() {
     </div>
   );
 }
-
-export default DashboardAdmin;

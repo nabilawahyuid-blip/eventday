@@ -84,10 +84,7 @@ function Sidebar() {
         <button
           type="button"
           className={`sidebar-menu-item ${
-            isActive("/event-management") ||
-            isActive("/admin/event")
-              ? "active"
-              : ""
+            isActive("/event-management") || isActive("/admin/event") ? "active" : ""
           }`}
           onClick={() =>
             navigate("/event-management")
