@@ -9,6 +9,7 @@ import {
   processCheckout,
   saveAttendees,
 } from "../../services/checkoutService";
+import { chargePayment, openMidtransPayment } from "../../services/paymentService";
 import "./Checkout.css";
 
 function Checkout() {
@@ -360,8 +361,8 @@ function Checkout() {
         identityNumber: buyer.nik.trim(),
       }));
       await saveAttendees(orderId, attendees);
-      await processCheckout(orderId);
 
+      // Ambil summary SEBELUM charge (untuk grossAmount)
       let summary = null;
       try {
         const summaryRes = await getCheckoutSummary(orderId);
@@ -370,14 +371,22 @@ function Checkout() {
         console.error("Gagal memuat ringkasan checkout:", err);
       }
 
-      const result = await Swal.fire({
-        icon: "success",
-        title: "Checkout Berhasil",
-        text: `Order ${summary?.orderNumber || orderId} menunggu pembayaran.`,
-        confirmButtonText: "Lanjut Pembayaran",
-        confirmButtonColor: "#5548dc",
-      });
-      if (result.isConfirmed) {
+      // Charge pembayaran via Midtrans Snap (harus SEBELUM processCheckout — backend require status PENDING)
+      const grossAmount = summary?.totalAmount || totalPayment;
+      const customerName = buyers[0]?.name || "";
+      const customerEmail = buyers[0]?.email || "";
+
+      const chargeRes = await chargePayment(orderId, grossAmount, customerName, customerEmail);
+      const { snapToken } = chargeRes?.data || {};
+
+      if (!snapToken) {
+        throw new Error("Gagal mendapatkan token pembayaran");
+      }
+
+      // Tampilkan Midtrans Snap payment UI
+      const paymentResult = await openMidtransPayment(snapToken);
+
+      if (paymentResult.status === "success" || paymentResult.status === "pending") {
         navigate("/customer/ticket-success", {
           state: {
             event,
@@ -392,11 +401,19 @@ function Checkout() {
             expiredAt: summary?.expiredAt,
           },
         });
+      } else if (paymentResult.status === "closed") {
+        Swal.fire({
+          icon: "info",
+          title: "Pembayaran Dibatalkan",
+          text: "Anda menutup halaman pembayaran. Pembayaran tetap bisa dilakukan sebelum waktu habis.",
+          confirmButtonText: "Oke",
+          confirmButtonColor: "#5548dc",
+        });
       }
     } catch (err) {
       console.error("Checkout gagal:", err);
       const message = err?.message || "Checkout gagal. Silakan coba lagi.";
-      if (/unauthorized|401/i.test(message)) {
+      if (message === "401 Unauthorized" || /^401\b/.test(message)) {
         Swal.fire({
           icon: "warning",
           title: "Sesi Habis",
