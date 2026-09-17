@@ -1,5 +1,6 @@
 // src/services/api.js
-// Semua request lewat Vite proxy (/api/...) → same-origin → cookie HttpOnly ikut otomatis
+
+const API_URL = import.meta.env.VITE_NGROK_URL;
 
 const getHeaders = () => ({
   "Content-Type": "application/json",
@@ -8,6 +9,7 @@ const getHeaders = () => ({
 
 const getResponseData = async (response) => {
   const text = await response.text();
+
   if (!text) return {};
 
   try {
@@ -19,15 +21,21 @@ const getResponseData = async (response) => {
 
 const extractErrorMessage = (result, fallback) => {
   if (!result) return fallback;
-  if (typeof result === "string") return result;
+
+  if (typeof result === "string") {
+    return result;
+  }
 
   return (
     result.msg ||
     result.message ||
     result.error ||
-    (result.data && typeof result.data === "object"
-      ? result.data.msg || result.data.message
-      : null) ||
+    (
+      result.data &&
+      typeof result.data === "object"
+        ? result.data.msg || result.data.message
+        : null
+    ) ||
     fallback
   );
 };
@@ -35,30 +43,44 @@ const extractErrorMessage = (result, fallback) => {
 export const toQueryString = (params = {}) => {
   const query = new URLSearchParams(
     Object.entries(params).filter(
-      ([, value]) => value !== undefined && value !== null && value !== "",
-    ),
+      ([, value]) =>
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+    )
   ).toString();
 
   return query ? `?${query}` : "";
 };
 
-// Path sudah include /api/v1/... mis: "/events", "/checkout/initiate"
 export const apiFetch = async (path, options = {}) => {
-  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const cleanPath = path.startsWith("/")
+    ? path
+    : `/${path}`;
 
-  const response = await fetch(`/api${cleanPath}`, {
-    method: options.method || "GET",
-    credentials: "include",
-    headers: getHeaders(),
-    body: options.body,
-  });
+  const response = await fetch(
+    `${API_URL}${cleanPath}`,
+    {
+      method: options.method || "GET",
+      credentials: "include",
+      headers: {
+        ...getHeaders(),
+        ...(options.headers || {}),
+      },
+      body: options.body,
+    }
+  );
 
   const result = await getResponseData(response);
 
   if (!response.ok) {
     const error = new Error(
-      extractErrorMessage(result, `Request gagal. Status: ${response.status}`),
+      extractErrorMessage(
+        result,
+        `Request gagal. Status: ${response.status}`
+      )
     );
+
     throw error;
   }
 
