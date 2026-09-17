@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getEvents } from "../../services/eventService";
+import { getProfile } from "../../services/profileService";
 import ProfileSidebar from "./ProfileSidebar";
 import "./NavbarCustomer.css";
 
@@ -17,9 +18,49 @@ function NavbarCustomer() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [userProfile, setUserProfile] = useState({
+    name: localStorage.getItem("name") || "USER",
+    email: localStorage.getItem("email") || "",
+    username: "",
+    avatarUrl: null,
+    initials: "U",
+  });
 
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await getProfile();
+        const data = res?.data || {};
+        const name = data.name || localStorage.getItem("name") || "USER";
+        const initials = name
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+        setUserProfile({
+          name,
+          email: data.email || localStorage.getItem("email") || "",
+          username: data.username || "",
+          avatarUrl: data.avatarUrl || localStorage.getItem("avatarUrl") || null,
+          initials,
+        });
+      } catch {
+        const name = localStorage.getItem("name") || "USER";
+        const initials = name
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+        setUserProfile((prev) => ({ ...prev, name, initials, avatarUrl: localStorage.getItem("avatarUrl") || null }));
+      }
+    };
+    loadProfile();
+  }, []);
 
   const isProfilePage = location.pathname === "/customer/profile";
 
@@ -244,8 +285,14 @@ function NavbarCustomer() {
             className={`profile-button ${profileOpen || isProfilePage ? "active" : ""}`}
             onClick={handleProfileClick}
           >
-            <span className="profile-avatar">A</span>
-            <span>Adit</span>
+            <span className="profile-avatar">
+              {userProfile.avatarUrl ? (
+                <img src={userProfile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+              ) : (
+                userProfile.initials
+              )}
+            </span>
+            <span>{userProfile.name}</span>
             <svg className="profile-chevron" viewBox="0 0 24 24">
               <path d="m6 9 6 6 6-6" />
             </svg>
@@ -324,10 +371,16 @@ function NavbarCustomer() {
         {menuOpen && (
           <div className="mobile-hamburger-menu">
             <div className="hamburger-profile">
-              <div className="hamburger-avatar">A</div>
+              <div className="hamburger-avatar">
+                {userProfile.avatarUrl ? (
+                  <img src={userProfile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                ) : (
+                  userProfile.initials
+                )}
+              </div>
               <div className="hamburger-profile-text">
-                <span className="hamburger-name">NAMA PEMILIK AKUN</span>
-                <span className="hamburger-email">account@example.com</span>
+                <span className="hamburger-name">{userProfile.name}</span>
+                <span className="hamburger-email">{userProfile.email}</span>
               </div>
               <button
                 className="hamburger-edit-btn"

@@ -1,48 +1,85 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
+import { getProfile, logoutUser } from "../../services/profileService";
 import "./ProfileCustomer.css";
 
 function ProfileCustomer() {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState({
+    name: "...",
+    email: "",
+    username: "",
+    avatarUrl: null,
+    initials: "",
+  });
 
-  const profile = {
-    name: "NAMA PEMILIK AKUN",
-    email: "account@example.com",
-    initials: "A",
-  };
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await getProfile();
+        const data = res?.data || {};
+        if (cancelled) return;
+        const name = data.name || "User";
+        const initials = name
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+        setProfile({
+          name,
+          email: data.email || "",
+          username: data.username || "",
+          avatarUrl: data.avatarUrl || localStorage.getItem("avatarUrl") || null,
+          initials,
+        });
+      } catch (err) {
+        console.error("Gagal memuat profil:", err);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const accountMenus = [
-    {
-      label: "Tiket Saya",
-      path: "/customer/tickets",
-      type: "ticket",
-    },
-    {
-      label: "Transaksi",
-      path: "/customer/history",
-      type: "transaction",
-    },
-    {
-      label: "Event Dashboard",
-      path: "/eo/dashboard",
-      type: "dashboard",
-    },
+    { label: "Tiket Saya", path: "/customer/tickets", type: "ticket" },
+    { label: "Transaksi", path: "/customer/history", type: "transaction" },
   ];
 
   const securityMenus = [
-    {
-      label: "Ubah Sandi/Reset",
-      path: "/forgot-password",
-      type: "lock",
-    },
-    {
-      label: "Refund",
-      path: "/customer/refund",
-      type: "refund",
-    },
+    { label: "Ubah Sandi", path: "/customer/change-password", type: "lock" },
+    { label: "Refund", path: "/customer/refund", type: "refund" },
   ];
+
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      icon: "question",
+      title: "Keluar?",
+      text: "Apakah kamu yakin ingin keluar?",
+      showCancelButton: true,
+      confirmButtonText: "Ya, Keluar",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#5548dc",
+    });
+    if (!result.isConfirmed) return;
+
+    try {
+      await logoutUser();
+    } catch {
+      // tetap lanjut logout lokal meski API gagal
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("name");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
+    navigate("/");
+  };
 
   return (
     <div className="profile-mobile-page">
@@ -51,18 +88,26 @@ function ProfileCustomer() {
       <main className="profile-mobile-container">
         <section className="profile-mobile-user-card">
           <div className="profile-mobile-avatar">
-            {profile.initials}
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+            ) : (
+              profile.initials
+            )}
           </div>
 
           <h1>{profile.name}</h1>
+
+          {profile.username && (
+            <p style={{ fontSize: "0.85rem", color: "#5143e6", fontWeight: 500, margin: "2px 0 0" }}>
+              @{profile.username}
+            </p>
+          )}
 
           <p>{profile.email}</p>
 
           <button
             className="profile-mobile-edit"
-            onClick={() =>
-              alert("Halaman Edit Profil belum dibuat.")
-            }
+            onClick={() => navigate("/customer/profile/edit")}
           >
             Edit Profil
           </button>
@@ -101,13 +146,7 @@ function ProfileCustomer() {
         </section>
 
         <section className="profile-mobile-general">
-          <button
-            onClick={() =>
-              alert(
-                "Halaman Syarat dan Ketentuan belum dibuat."
-              )
-            }
-          >
+          <button onClick={() => navigate("/customer/terms")}>
             <span className="profile-mobile-icon">
               <svg viewBox="0 0 24 24">
                 <path d="M7 4h10v16H7z" />
@@ -124,13 +163,7 @@ function ProfileCustomer() {
             </span>
           </button>
 
-          <button
-            onClick={() =>
-              alert(
-                "Halaman Kebijakan Privasi belum dibuat."
-              )
-            }
-          >
+          <button onClick={() => navigate("/customer/privacy")}>
             <span className="profile-mobile-icon">
               <svg viewBox="0 0 24 24">
                 <path d="M12 3 20 6v6c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6l8-3Z" />
@@ -149,7 +182,7 @@ function ProfileCustomer() {
 
           <button
             className="profile-mobile-logout"
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
           >
             <span className="profile-mobile-icon">
               <svg viewBox="0 0 24 24">
@@ -187,59 +220,14 @@ function ProfileMobileMenu({ menu, onClick }) {
 
         {menu.type === "transaction" && (
           <svg viewBox="0 0 24 24">
-            <rect
-              x="5"
-              y="3"
-              width="14"
-              height="18"
-              rx="2"
-            />
+            <rect x="5" y="3" width="14" height="18" rx="2" />
             <path d="M8 7h8M8 11h8M8 15h5" />
-          </svg>
-        )}
-
-        {menu.type === "dashboard" && (
-          <svg viewBox="0 0 24 24">
-            <rect
-              x="4"
-              y="4"
-              width="6"
-              height="6"
-              rx="1"
-            />
-            <rect
-              x="14"
-              y="4"
-              width="6"
-              height="6"
-              rx="1"
-            />
-            <rect
-              x="4"
-              y="14"
-              width="6"
-              height="6"
-              rx="1"
-            />
-            <rect
-              x="14"
-              y="14"
-              width="6"
-              height="6"
-              rx="1"
-            />
           </svg>
         )}
 
         {menu.type === "lock" && (
           <svg viewBox="0 0 24 24">
-            <rect
-              x="5"
-              y="10"
-              width="14"
-              height="11"
-              rx="2"
-            />
+            <rect x="5" y="10" width="14" height="11" rx="2" />
             <path d="M8 10V7a4 4 0 0 1 8 0v3" />
             <circle cx="12" cy="15" r="1" />
           </svg>

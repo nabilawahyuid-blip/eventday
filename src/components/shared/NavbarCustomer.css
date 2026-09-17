@@ -275,6 +275,7 @@
   color: #ffffff;
   font-size: 10px;
   font-weight: 800;
+  overflow: hidden;
 }
 
 .profile-chevron {

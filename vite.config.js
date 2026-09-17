@@ -17,18 +17,25 @@ export default defineConfig(({ mode }) => {
           },
           rewrite: (path) => {
             // /api/payments/... dan /api/tickets/... → jangan tambah /v1 (backend base path tanpa /v1)
-            if (path.startsWith("/api/payments") || path.startsWith("/api/tickets")) {
+            if (
+              path.startsWith("/api/payments") ||
+              path.startsWith("/api/tickets")
+            ) {
               return path;
             }
             // Lainnya → tambah /v1 (/api/events → /api/v1/events)
-            return path.replace(/^\/api/, "/api/v1");
+            return path.replace(/^\/api/, "/api/");
           },
           configure: (proxy, _options) => {
             proxy.on("error", (err, _req, _res) => {
               console.log("proxy error", err);
             });
             proxy.on("proxyReq", (proxyReq, req, _res) => {
-              console.log("Sending Request to the Target:", req.method, req.url);
+              console.log(
+                "Sending Request to the Target:",
+                req.method,
+                req.url,
+              );
             });
             proxy.on("proxyRes", (proxyRes, req, _res) => {
               console.log(

@@ -372,6 +372,25 @@
   box-shadow: 0 4px 14px rgba(42, 58, 93, 0.04);
 }
 
+.buyer-card-locked {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+}
+
+.buyer-card-locked .buyer-card-header {
+  background: #f3f4f6;
+}
+
+.buyer-locked-note {
+  margin: 0;
+  padding: 10px 14px;
+  background: #eef2ff;
+  border-radius: 8px;
+  color: #5143e6;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
 
 /* ================================
    BUYER CARD HEADER
