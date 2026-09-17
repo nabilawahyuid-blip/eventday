@@ -1,5 +1,6 @@
 // src/services/api.js
-// Semua request lewat Vite proxy (/api/...) → same-origin → cookie HttpOnly ikut otomatis
+
+const API_URL = import.meta.env.VITE_NGROK_URL;
 
 const getHeaders = () => {
   const headers = {
@@ -15,6 +16,7 @@ const getHeaders = () => {
 
 const getResponseData = async (response) => {
   const text = await response.text();
+
   if (!text) return {};
 
   try {
@@ -26,15 +28,21 @@ const getResponseData = async (response) => {
 
 const extractErrorMessage = (result, fallback) => {
   if (!result) return fallback;
-  if (typeof result === "string") return result;
+
+  if (typeof result === "string") {
+    return result;
+  }
 
   return (
     result.msg ||
     result.message ||
     result.error ||
-    (result.data && typeof result.data === "object"
-      ? result.data.msg || result.data.message
-      : null) ||
+    (
+      result.data &&
+      typeof result.data === "object"
+        ? result.data.msg || result.data.message
+        : null
+    ) ||
     fallback
   );
 };
@@ -42,8 +50,11 @@ const extractErrorMessage = (result, fallback) => {
 export const toQueryString = (params = {}) => {
   const query = new URLSearchParams(
     Object.entries(params).filter(
-      ([, value]) => value !== undefined && value !== null && value !== "",
-    ),
+      ([, value]) =>
+        value !== undefined &&
+        value !== null &&
+        value !== ""
+    )
   ).toString();
 
   return query ? `?${query}` : "";
@@ -66,8 +77,12 @@ export const apiFetch = async (path, options = {}) => {
 
   if (!response.ok) {
     const error = new Error(
-      extractErrorMessage(result, `Request gagal. Status: ${response.status}`),
+      extractErrorMessage(
+        result,
+        `Request gagal. Status: ${response.status}`
+      )
     );
+
     throw error;
   }
 
