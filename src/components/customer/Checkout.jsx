@@ -413,7 +413,7 @@ function Checkout() {
     } catch (err) {
       console.error("Checkout gagal:", err);
       const message = err?.message || "Checkout gagal. Silakan coba lagi.";
-      if (/unauthorized|401/i.test(message)) {
+      if (message === "401 Unauthorized" || /^401\b/.test(message)) {
         Swal.fire({
           icon: "warning",
           title: "Sesi Habis",
