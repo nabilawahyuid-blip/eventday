@@ -20,3 +20,6 @@ export const getAdminRecentTransactions = async () => {
 export const getAdminEvents = async () => {
   return await apiFetch('/admin/dashboard/recent-events');
 };
+
+// Backward-compatible aliases (branch lain mungkin masih pakai nama lama)
+export const getRecentTransactions = getAdminRecentTransactions;

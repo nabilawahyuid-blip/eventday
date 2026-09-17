@@ -1,15 +1,47 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getProfile, logoutUser } from "../../services/profileService";
 import "./ProfileSidebar.css";
 
 function ProfileSidebar({ open, onClose }) {
   const navigate = useNavigate();
+  const [profile, setProfile] = useState({
+    name: localStorage.getItem("name") || "USER",
+    email: localStorage.getItem("email") || "",
+    username: "",
+    avatarUrl: null,
+    initials: "U",
+  });
 
-  const profile = {
-    name: "NAMA PEMILIK AKUN",
-    email: "account@example.com",
-    initials: "A",
-  };
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await getProfile();
+        const data = res?.data || {};
+        if (cancelled) return;
+        const name = data.name || localStorage.getItem("name") || "USER";
+        const initials = name
+          .split(" ")
+          .map((w) => w[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2);
+        setProfile({
+          name,
+          email: data.email || localStorage.getItem("email") || "",
+          username: data.username || "",
+          avatarUrl: data.avatarUrl || localStorage.getItem("avatarUrl") || null,
+          initials,
+        });
+      } catch (err) {
+        console.error("Gagal memuat profil sidebar:", err);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [open]);
 
   const accountMenus = [
     {
@@ -62,8 +94,19 @@ function ProfileSidebar({ open, onClose }) {
     navigate("/customer/privacy");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     onClose();
+    try {
+      await logoutUser();
+    } catch {
+      // tetap lanjut logout lokal meski API gagal
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("name");
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
     navigate("/");
   };
 
@@ -82,10 +125,20 @@ function ProfileSidebar({ open, onClose }) {
         <div className="profile-sidebar-content">
           <section className="sidebar-profile-user">
             <div className="sidebar-avatar">
-              {profile.initials}
+              {profile.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+              ) : (
+                profile.initials
+              )}
             </div>
 
             <h2>{profile.name}</h2>
+
+            {profile.username && (
+              <p style={{ fontSize: "0.8rem", color: "#5143e6", fontWeight: 500, margin: "2px 0 0" }}>
+                @{profile.username}
+              </p>
+            )}
 
             <p>{profile.email}</p>
 

@@ -37,12 +37,9 @@ const extractErrorMessage = (result, fallback) => {
     result.msg ||
     result.message ||
     result.error ||
-    (
-      result.data &&
-      typeof result.data === "object"
-        ? result.data.msg || result.data.message
-        : null
-    ) ||
+    (result.data && typeof result.data === "object"
+      ? result.data.msg || result.data.message
+      : null) ||
     fallback
   );
 };
@@ -50,11 +47,8 @@ const extractErrorMessage = (result, fallback) => {
 export const toQueryString = (params = {}) => {
   const query = new URLSearchParams(
     Object.entries(params).filter(
-      ([, value]) =>
-        value !== undefined &&
-        value !== null &&
-        value !== ""
-    )
+      ([, value]) => value !== undefined && value !== null && value !== "",
+    ),
   ).toString();
 
   return query ? `?${query}` : "";
@@ -66,10 +60,16 @@ export const apiFetch = async (path, options = {}) => {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   const url = options.raw ? cleanPath : `/api${cleanPath}`;
 
+  const isFormData = typeof FormData !== "undefined" && options.body instanceof FormData;
+
+  const headers = isFormData
+    ? { Accept: "application/json" }
+    : getHeaders();
+
   const response = await fetch(url, {
     method: options.method || "GET",
     credentials: "include",
-    headers: getHeaders(),
+    headers,
     body: options.body,
   });
 
@@ -77,10 +77,7 @@ export const apiFetch = async (path, options = {}) => {
 
   if (!response.ok) {
     const error = new Error(
-      extractErrorMessage(
-        result,
-        `Request gagal. Status: ${response.status}`
-      )
+      extractErrorMessage(result, `Request gagal. Status: ${response.status}`),
     );
 
     throw error;
