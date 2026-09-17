@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecentTransactions } from '../../services/adminDashboardService';
+import { getAdminRecentTransactions } from '../../services/adminDashboardService';
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -18,7 +18,7 @@ export default function DashboardAdmin() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
-      const data = await getRecentTransactions(); // Panggil endpoint backend real
+      const data = await getAdminRecentTransactions(); // Panggil endpoint backend real
       setTransactions(Array.isArray(data) ? data : []);
       setLoading(false);
     }

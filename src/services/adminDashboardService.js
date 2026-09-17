@@ -15,3 +15,8 @@ export const getAdminRecentEvents = async () => {
 export const getAdminRecentTransactions = async () => {
   return await apiFetch('/admin/dashboard/recent-transactions');
 };
+
+// 4. Alias untuk EventManagement (sama dengan recent-events, sementara sampai ada endpoint /admin/events)
+export const getAdminEvents = async () => {
+  return await apiFetch('/admin/dashboard/recent-events');
+};
