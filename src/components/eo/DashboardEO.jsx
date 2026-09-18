@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import {
   CalendarDays,
@@ -12,9 +12,19 @@ import {
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
 
+import { getOrganizerDashboard } from "../../services/organizerService";
+
 import "./DashboardEO.css";
 
 function DashboardEO() {
+  // =====================================================
+  // STATE DASHBOARD
+  // =====================================================
+
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
   // =====================================================
   // DATA EVENT
   // =====================================================
@@ -63,6 +73,60 @@ function DashboardEO() {
     },
   ];
 
+  // =====================================================
+  // GET DASHBOARD DATA
+  // =====================================================
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getOrganizerDashboard();
+
+      console.log("Dashboard response:", response);
+
+      // ApiResponse backend:
+      // {
+      //   msg: "...",
+      //   status: 200,
+      //   data: {
+      //      total_revenue: 42500000,
+      //      active_events: 2,
+      //      tickets_sold: 1248
+      //   }
+      // }
+
+      setDashboard(response.data);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil data dashboard:",
+        error
+      );
+
+      setError(
+        error.message ||
+          "Gagal mengambil data dashboard"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================================================
+  // FORMAT RUPIAH
+  // =====================================================
+
+  const formatRupiah = (number) => {
+    return new Intl.NumberFormat("id-ID").format(
+      number || 0
+    );
+  };
+
   return (
     <div className="dashboard-eo-page">
 
@@ -71,7 +135,6 @@ function DashboardEO() {
       ===================================================== */}
 
       <SidebarEO />
-
 
       {/* =====================================================
           MAIN
@@ -84,7 +147,6 @@ function DashboardEO() {
         ===================================================== */}
 
         <NavbarEO />
-
 
         {/* =====================================================
             CONTENT
@@ -100,6 +162,15 @@ function DashboardEO() {
             <h1>Dashboard</h1>
           </div>
 
+          {/* =====================================================
+              ERROR
+          ===================================================== */}
+
+          {error && (
+            <div className="dashboard-error">
+              {error}
+            </div>
+          )}
 
           {/* =====================================================
               RINGKASAN AKTIVITAS
@@ -110,7 +181,6 @@ function DashboardEO() {
             <div className="dashboard-section-header">
               <h2>Ringkasan Aktivitas</h2>
             </div>
-
 
             <div className="summary-cards">
 
@@ -127,11 +197,12 @@ function DashboardEO() {
                   </span>
 
                   <strong className="summary-card-value">
-                    5
+                    {loading
+                      ? "..."
+                      : dashboard?.active_events ?? 0}
                   </strong>
 
                 </div>
-
 
                 <div className="summary-icon summary-icon-purple">
                   <CalendarDays
@@ -140,11 +211,9 @@ function DashboardEO() {
                   />
                 </div>
 
-
                 <div className="summary-decoration purple-decoration"></div>
 
               </div>
-
 
               {/* =================================================
                   TIKET TERJUAL
@@ -159,11 +228,12 @@ function DashboardEO() {
                   </span>
 
                   <strong className="summary-card-value">
-                    500
+                    {loading
+                      ? "..."
+                      : dashboard?.tickets_sold ?? 0}
                   </strong>
 
                 </div>
-
 
                 <div className="summary-icon summary-icon-green">
                   <Ticket
@@ -172,11 +242,9 @@ function DashboardEO() {
                   />
                 </div>
 
-
                 <div className="summary-decoration green-decoration"></div>
 
               </div>
-
 
               {/* =================================================
                   PENDAPATAN BERSIH
@@ -191,11 +259,14 @@ function DashboardEO() {
                   </span>
 
                   <strong className="summary-card-value income-value">
-                    Rp. 30.000.000
+                    {loading
+                      ? "..."
+                      : `Rp. ${formatRupiah(
+                          dashboard?.total_revenue
+                        )}`}
                   </strong>
 
                 </div>
-
 
                 <div className="summary-icon summary-icon-orange">
                   <CircleDollarSign
@@ -204,7 +275,6 @@ function DashboardEO() {
                   />
                 </div>
 
-
                 <div className="summary-decoration orange-decoration"></div>
 
               </div>
@@ -212,7 +282,6 @@ function DashboardEO() {
             </div>
 
           </section>
-
 
           {/* =====================================================
               EVENT TERBARU
@@ -232,7 +301,6 @@ function DashboardEO() {
               </button>
 
             </div>
-
 
             <div className="event-list">
 
@@ -255,7 +323,6 @@ function DashboardEO() {
                         {event.title}
                       </h3>
 
-
                       <div className="event-meta">
 
                         <span>
@@ -269,11 +336,9 @@ function DashboardEO() {
 
                         </span>
 
-
                         <span className="meta-dot">
                           •
                         </span>
-
 
                         <span>
                           {event.location}
@@ -282,7 +347,6 @@ function DashboardEO() {
                       </div>
 
                     </div>
-
 
                     {/* =========================================
                         EVENT STATUS
@@ -299,7 +363,6 @@ function DashboardEO() {
                     </span>
 
                   </div>
-
 
                   {/* =============================================
                       PROGRESS
@@ -319,7 +382,6 @@ function DashboardEO() {
 
                     </div>
 
-
                     <div className="event-progress-bar">
 
                       <div
@@ -336,7 +398,6 @@ function DashboardEO() {
                     </div>
 
                   </div>
-
 
                   {/* =============================================
                       BUTTON
@@ -361,7 +422,6 @@ function DashboardEO() {
 
           </section>
 
-
           {/* =====================================================
               TRANSAKSI TERBARU
           ===================================================== */}
@@ -380,7 +440,6 @@ function DashboardEO() {
               </button>
 
             </div>
-
 
             <div className="transaction-list">
 
@@ -401,18 +460,15 @@ function DashboardEO() {
                       {transaction.customer}
                     </h3>
 
-
                     <p>
                       {transaction.ticket}
                     </p>
-
 
                     <strong>
                       ID TRANSAKSI: {transaction.transactionId}
                     </strong>
 
                   </div>
-
 
                   {/* =============================================
                       STATUS & ACTION
@@ -435,7 +491,6 @@ function DashboardEO() {
                       {transaction.status}
 
                     </span>
-
 
                     <button
                       type="button"
