@@ -1,42 +1,104 @@
-import { defineConfig, loadEnv } from "vite";
+// vite.config.js
+
+import {
+  defineConfig,
+  loadEnv,
+} from "vite";
+
 import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
+  const env = loadEnv(
+    mode,
+    process.cwd(),
+    ""
+  );
 
   return {
     plugins: [react()],
+
     server: {
       proxy: {
         "/api": {
+          // ==================================
+          // BACKEND NGROK
+          // ==================================
+
           target: env.VITE_NGROK_URL,
+
+          // ==================================
+          // PROXY CONFIG
+          // ==================================
+
           changeOrigin: true,
+
           secure: false,
+
+          // ==================================
+          // NGROK
+          // ==================================
+
           headers: {
-            "ngrok-skip-browser-warning": "true",
+            "ngrok-skip-browser-warning":
+              "true",
           },
-          rewrite: (path) => {
-            // /api/payments/... dan /api/tickets/... → jangan tambah /v1 (backend base path tanpa /v1)
-            if (path.startsWith("/api/payments") || path.startsWith("/api/tickets")) {
-              return path;
-            }
-            // Lainnya → tambah /v1 (/api/events → /api/v1/events)
-            return path.replace(/^\/api/, "/api/v1");
-          },
-          configure: (proxy, _options) => {
-            proxy.on("error", (err, _req, _res) => {
-              console.log("proxy error", err);
-            });
-            proxy.on("proxyReq", (proxyReq, req, _res) => {
-              console.log("Sending Request to the Target:", req.method, req.url);
-            });
-            proxy.on("proxyRes", (proxyRes, req, _res) => {
-              console.log(
-                "Received Response from the Target:",
-                proxyRes.statusCode,
-                req.url,
-              );
-            });
+
+          // ==================================
+          // DEBUG PROXY
+          // ==================================
+
+          configure: (proxy) => {
+            // --------------------------------
+            // ERROR
+            // --------------------------------
+
+            proxy.on(
+              "error",
+              (err, req, res) => {
+                console.error(
+                  "❌ Proxy error:",
+                  err
+                );
+              }
+            );
+
+            // --------------------------------
+            // REQUEST
+            // --------------------------------
+
+            proxy.on(
+              "proxyReq",
+              (
+                proxyReq,
+                req,
+                res
+              ) => {
+                console.log(
+                  "➡️ Sending Request:",
+                  req.method,
+                  req.url
+                );
+              }
+            );
+
+            // --------------------------------
+            // RESPONSE
+            // --------------------------------
+
+            proxy.on(
+              "proxyRes",
+              (
+                proxyRes,
+                req,
+                res
+              ) => {
+                console.log(
+                  "⬅️ Received Response:",
+                  proxyRes.statusCode,
+                  req.url
+                );
+              }
+            );
           },
         },
       },

@@ -1,54 +1,689 @@
-import React from "react";
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
+
+import {
+  getOrganizerProfile,
+  updateOrganizerProfile,
+  uploadOrganizerAvatar,
+  uploadOrganizerPortfolio,
+  uploadOrganizerDeed,
+  getOrganizerProfileDocuments,
+  changeOrganizerPassword,
+} from "../../services/organizerProfileService";
+
 import "./ProfileEO.css";
 
 function ProfileEO() {
-  const [showPassword, setShowPassword] = useState(false);
+  // ==========================================
+  // STATE PROFILE
+  // ==========================================
+
+  const [profile, setProfile] = useState({
+    name: "",
+    pic_name: "",
+    email: "",
+    phone: "",
+    npwp: "",
+    bank_name: "",
+    bank_account_number: "",
+    verification_status: "",
+    avatar_url: "",
+  });
+
+  // ==========================================
+  // STATE EDIT
+  // ==========================================
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [editForm, setEditForm] = useState({
+    name: "",
+    pic_name: "",
+    phone: "",
+    npwp: "",
+    bank_name: "",
+    bank_account_number: "",
+  });
+
+  // ==========================================
+  // STATE PASSWORD
+  // ==========================================
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [passwordForm, setPasswordForm] =
+    useState({
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    });
+
+  // ==========================================
+  // STATE UI
+  // ==========================================
+
+  const [loading, setLoading] = useState(true);
+
+  const [saving, setSaving] = useState(false);
+
+  const [passwordSaving, setPasswordSaving] =
+    useState(false);
+
+  const [message, setMessage] = useState("");
+
+  const [error, setError] = useState("");
+
+  // ==========================================
+  // STATE DOCUMENT
+  // ==========================================
+
+  const [documents, setDocuments] =
+    useState({
+      portfolio_name: "",
+      deed_name: "",
+      ktp_name: "",
+    });
+
+  // ==========================================
+  // FILE INPUT REFS
+  // ==========================================
+
+  const avatarInputRef = useRef(null);
+
+  const portfolioInputRef = useRef(null);
+
+  const deedInputRef = useRef(null);
+
+  // ==========================================
+  // GET PROFILE
+  // ==========================================
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response =
+        await getOrganizerProfile();
+
+      console.log(
+        "PROFILE RESPONSE:",
+        response
+      );
+
+      const data = response?.data || {};
+
+      setProfile({
+        name: data.name || "",
+        pic_name: data.pic_name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        npwp: data.npwp || "",
+        bank_name: data.bank_name || "",
+        bank_account_number:
+          data.bank_account_number || "",
+        verification_status:
+          data.verification_status || "",
+        avatar_url:
+          data.avatar_url || "",
+      });
+
+      setEditForm({
+        name: data.name || "",
+        pic_name: data.pic_name || "",
+        phone: data.phone || "",
+        npwp: data.npwp || "",
+        bank_name: data.bank_name || "",
+        bank_account_number:
+          data.bank_account_number || "",
+      });
+
+    } catch (err) {
+      console.error(
+        "Gagal mengambil profile:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Gagal mengambil data profil."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // GET DOCUMENTS
+  // ==========================================
+
+  const fetchDocuments = async () => {
+    try {
+      const response =
+        await getOrganizerProfileDocuments();
+
+      console.log(
+        "PROFILE DOCUMENT RESPONSE:",
+        response
+      );
+
+      setDocuments(
+        response?.data || {}
+      );
+    } catch (err) {
+      console.error(
+        "Gagal mengambil dokumen profile:",
+        err
+      );
+    }
+  };
+
+  // ==========================================
+  // INITIAL LOAD
+  // ==========================================
+
+  useEffect(() => {
+    fetchProfile();
+    fetchDocuments();
+  }, []);
+
+  // ==========================================
+  // EDIT FORM CHANGE
+  // ==========================================
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // ==========================================
+  // OPEN EDIT
+  // ==========================================
+
+  const handleEditProfile = () => {
+    setMessage("");
+    setError("");
+
+    setEditForm({
+      name: profile.name,
+      pic_name: profile.pic_name,
+      phone: profile.phone,
+      npwp: profile.npwp,
+      bank_name: profile.bank_name,
+      bank_account_number:
+        profile.bank_account_number,
+    });
+
+    setIsEditing(true);
+  };
+
+  // ==========================================
+  // CANCEL EDIT
+  // ==========================================
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+
+    setEditForm({
+      name: profile.name,
+      pic_name: profile.pic_name,
+      phone: profile.phone,
+      npwp: profile.npwp,
+      bank_name: profile.bank_name,
+      bank_account_number:
+        profile.bank_account_number,
+    });
+  };
+
+  // ==========================================
+  // SAVE PROFILE
+  // ==========================================
+
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      setMessage("");
+      setError("");
+
+      const response =
+        await updateOrganizerProfile(
+          editForm
+        );
+
+      console.log(
+        "UPDATE PROFILE RESPONSE:",
+        response
+      );
+
+      setMessage(
+        "Profil berhasil diperbarui."
+      );
+
+      setIsEditing(false);
+
+      // Ambil ulang data terbaru
+      await fetchProfile();
+
+    } catch (err) {
+      console.error(
+        "Gagal update profile:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Gagal memperbarui profil."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ==========================================
+  // AVATAR
+  // ==========================================
+
+  const handleAvatarClick = () => {
+    avatarInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e) => {
+    const file =
+      e.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      setMessage("");
+      setError("");
+
+      const response =
+        await uploadOrganizerAvatar(
+          file
+        );
+
+      console.log(
+        "UPLOAD AVATAR RESPONSE:",
+        response
+      );
+
+      const avatarUrl =
+        response?.data?.avatar_url;
+
+      if (avatarUrl) {
+        setProfile((prev) => ({
+          ...prev,
+          avatar_url: avatarUrl,
+        }));
+      }
+
+      setMessage(
+        "Foto profil berhasil diperbarui."
+      );
+
+    } catch (err) {
+      console.error(
+        "Gagal upload avatar:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Gagal mengunggah foto profil."
+      );
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  // ==========================================
+  // PORTFOLIO
+  // ==========================================
+
+  const handlePortfolioClick = () => {
+    portfolioInputRef.current?.click();
+  };
+
+  const handlePortfolioChange =
+    async (e) => {
+      const file =
+        e.target.files?.[0];
+
+      if (!file) return;
+
+      try {
+        setMessage("");
+        setError("");
+
+        const response =
+          await uploadOrganizerPortfolio(
+            file
+          );
+
+        console.log(
+          "UPLOAD PORTFOLIO RESPONSE:",
+          response
+        );
+
+        setDocuments((prev) => ({
+          ...prev,
+          portfolio_name:
+            response?.data?.file_name ||
+            file.name,
+        }));
+
+        setMessage(
+          "Portfolio berhasil diunggah."
+        );
+
+      } catch (err) {
+        console.error(
+          "Gagal upload portfolio:",
+          err
+        );
+
+        setError(
+          err?.message ||
+            "Gagal mengunggah portfolio."
+        );
+      } finally {
+        e.target.value = "";
+      }
+    };
+
+  // ==========================================
+  // DEED / AKTA
+  // ==========================================
+
+  const handleDeedClick = () => {
+    deedInputRef.current?.click();
+  };
+
+  const handleDeedChange = async (e) => {
+    const file =
+      e.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      setMessage("");
+      setError("");
+
+      const response =
+        await uploadOrganizerDeed(
+          file
+        );
+
+      console.log(
+        "UPLOAD DEED RESPONSE:",
+        response
+      );
+
+      setDocuments((prev) => ({
+        ...prev,
+        deed_name:
+          response?.data?.file_name ||
+          file.name,
+      }));
+
+      setMessage(
+        "Akta perusahaan berhasil diunggah."
+      );
+
+    } catch (err) {
+      console.error(
+        "Gagal upload akta:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Gagal mengunggah akta perusahaan."
+      );
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  // ==========================================
+  // PASSWORD CHANGE
+  // ==========================================
+
+  const handlePasswordChange = (e) => {
+    const { name, value } =
+      e.target;
+
+    setPasswordForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSavePassword =
+    async () => {
+      setMessage("");
+      setError("");
+
+      if (
+        !passwordForm.oldPassword ||
+        !passwordForm.newPassword ||
+        !passwordForm.confirmPassword
+      ) {
+        setError(
+          "Semua field password wajib diisi."
+        );
+
+        return;
+      }
+
+      if (
+        passwordForm.newPassword !==
+        passwordForm.confirmPassword
+      ) {
+        setError(
+          "Konfirmasi password tidak cocok."
+        );
+
+        return;
+      }
+
+      if (
+        passwordForm.newPassword.length <
+        6
+      ) {
+        setError(
+          "Password baru minimal 6 karakter."
+        );
+
+        return;
+      }
+
+      try {
+        setPasswordSaving(true);
+
+        await changeOrganizerPassword({
+          oldPassword:
+            passwordForm.oldPassword,
+
+          newPassword:
+            passwordForm.newPassword,
+        });
+
+        setMessage(
+          "Password berhasil diperbarui."
+        );
+
+        setPasswordForm({
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+
+        setShowPassword(false);
+
+      } catch (err) {
+        console.error(
+          "Gagal mengganti password:",
+          err
+        );
+
+        setError(
+          err?.message ||
+            "Gagal mengganti password."
+        );
+      } finally {
+        setPasswordSaving(false);
+      }
+    };
+
+  // ==========================================
+  // AVATAR INITIAL
+  // ==========================================
+
+  const getInitials = () => {
+    const name =
+      profile.name ||
+      profile.pic_name ||
+      "EO";
+
+    const words =
+      name.trim().split(/\s+/);
+
+    if (words.length >= 2) {
+      return (
+        words[0][0] +
+        words[1][0]
+      ).toUpperCase();
+    }
+
+    return name
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  // ==========================================
+  // RENDER
+  // ==========================================
 
   return (
     <div className="profile-eo-page">
 
       {/* SIDEBAR */}
+
       <SidebarEO />
 
       {/* MAIN */}
+
       <main className="profile-eo-main">
 
         {/* NAVBAR */}
+
         <NavbarEO />
 
         {/* CONTENT */}
+
         <div className="profile-eo-content">
 
           {/* PAGE TITLE */}
+
           <div className="profile-page-header">
             <h1>Profil</h1>
           </div>
 
+          {/* MESSAGE */}
+
+          {message && (
+            <div
+              style={{
+                marginBottom: "15px",
+                padding: "12px 15px",
+                borderRadius: "8px",
+                background: "#eaf8ef",
+                color: "#218838",
+                fontSize: "13px",
+              }}
+            >
+              {message}
+            </div>
+          )}
+
+          {error && (
+            <div
+              style={{
+                marginBottom: "15px",
+                padding: "12px 15px",
+                borderRadius: "8px",
+                background: "#fff0f0",
+                color: "#c62828",
+                fontSize: "13px",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
           {/* PROFILE HEADER CARD */}
+
           <section className="profile-main-card">
 
             <div className="profile-company">
 
               <div className="profile-image-wrapper">
-                <div className="profile-image">
-                  IM
-                </div>
+
+                {profile.avatar_url ? (
+                  <img
+                    src={profile.avatar_url}
+                    alt="Foto profil"
+                    className="profile-image"
+                  />
+                ) : (
+                  <div className="profile-image">
+                    {getInitials()}
+                  </div>
+                )}
 
                 <button
                   type="button"
                   className="profile-image-edit"
-                  onClick={() => alert("Ubah foto profil")}
+                  onClick={
+                    handleAvatarClick
+                  }
                 >
                   ✎
                 </button>
+
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={
+                    handleAvatarChange
+                  }
+                />
+
               </div>
 
               <div className="profile-company-info">
-                <h2>IM Entertainment</h2>
-                <span>Nama Event Organizer</span>
+
+                <h2>
+                  {loading
+                    ? "Memuat..."
+                    : profile.name ||
+                      "Nama Organizer"}
+                </h2>
+
+                <span>
+                  Nama Event Organizer
+                </span>
+
               </div>
 
             </div>
@@ -58,28 +693,62 @@ function ProfileEO() {
               <button
                 type="button"
                 className="change-password-btn"
-                onClick={() => setShowPassword(true)}
+                onClick={() => {
+                  setError("");
+                  setMessage("");
+                  setShowPassword(true);
+                }}
               >
                 Ganti Password
               </button>
 
-              <button
-                type="button"
-                className="edit-profile-btn"
-                onClick={() => alert("Edit profil")}
-              >
-                ✎ Edit Profil
-              </button>
+              {!isEditing ? (
+                <button
+                  type="button"
+                  className="edit-profile-btn"
+                  onClick={
+                    handleEditProfile
+                  }
+                >
+                  ✎ Edit Profil
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="change-password-btn"
+                    onClick={
+                      handleCancelEdit
+                    }
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="button"
+                    className="edit-profile-btn"
+                    onClick={
+                      handleSaveProfile
+                    }
+                    disabled={saving}
+                  >
+                    {saving
+                      ? "Menyimpan..."
+                      : "Simpan Profil"}
+                  </button>
+                </>
+              )}
 
             </div>
 
           </section>
 
-
           {/* INFORMATION CARD */}
+
           <section className="profile-information-card">
 
             <div className="profile-section-title">
+
               <div className="profile-section-icon">
                 ⓘ
               </div>
@@ -87,15 +756,15 @@ function ProfileEO() {
               <h2>
                 Informasi Event Organizer
               </h2>
+
             </div>
 
             <div className="profile-divider"></div>
 
-
-            {/* INFORMATION GRID */}
             <div className="profile-info-grid">
 
               {/* NAMA PERUSAHAAN */}
+
               <div className="profile-field">
 
                 <label>
@@ -106,8 +775,16 @@ function ProfileEO() {
 
                   <input
                     type="text"
-                    value="IM Entertainment"
-                    readOnly
+                    name="name"
+                    value={
+                      isEditing
+                        ? editForm.name
+                        : profile.name
+                    }
+                    onChange={
+                      handleEditChange
+                    }
+                    readOnly={!isEditing}
                   />
 
                   <span className="field-icon">
@@ -118,8 +795,8 @@ function ProfileEO() {
 
               </div>
 
+              {/* NIB / NIK */}
 
-              {/* NIB */}
               <div className="profile-field">
 
                 <label>
@@ -130,7 +807,9 @@ function ProfileEO() {
 
                   <input
                     type="text"
-                    value="0898478578748"
+                    value={
+                      profile.npwp || "-"
+                    }
                     readOnly
                   />
 
@@ -142,8 +821,8 @@ function ProfileEO() {
 
               </div>
 
-
               {/* EMAIL */}
+
               <div className="profile-field">
 
                 <label>
@@ -154,7 +833,9 @@ function ProfileEO() {
 
                   <input
                     type="email"
-                    value="im@gmail.com"
+                    value={
+                      profile.email || "-"
+                    }
                     readOnly
                   />
 
@@ -166,20 +847,92 @@ function ProfileEO() {
 
               </div>
 
+              {/* PIC */}
 
-              {/* AKTA */}
               <div className="profile-field">
 
                 <label>
-                  AKTA PERUSAHAAN
+                  NAMA PIC
                 </label>
 
                 <div className="profile-input-wrapper">
 
                   <input
                     type="text"
-                    value="im@gmail.com"
-                    readOnly
+                    name="pic_name"
+                    value={
+                      isEditing
+                        ? editForm.pic_name
+                        : profile.pic_name
+                    }
+                    onChange={
+                      handleEditChange
+                    }
+                    readOnly={!isEditing}
+                  />
+
+                  <span className="field-icon">
+                    ✎
+                  </span>
+
+                </div>
+
+              </div>
+
+              {/* PHONE */}
+
+              <div className="profile-field">
+
+                <label>
+                  NOMOR TELEPON
+                </label>
+
+                <div className="profile-input-wrapper">
+
+                  <input
+                    type="text"
+                    name="phone"
+                    value={
+                      isEditing
+                        ? editForm.phone
+                        : profile.phone
+                    }
+                    onChange={
+                      handleEditChange
+                    }
+                    readOnly={!isEditing}
+                  />
+
+                  <span className="field-icon">
+                    ✎
+                  </span>
+
+                </div>
+
+              </div>
+
+              {/* BANK */}
+
+              <div className="profile-field">
+
+                <label>
+                  BANK
+                </label>
+
+                <div className="profile-input-wrapper">
+
+                  <input
+                    type="text"
+                    name="bank_name"
+                    value={
+                      isEditing
+                        ? editForm.bank_name
+                        : profile.bank_name
+                    }
+                    onChange={
+                      handleEditChange
+                    }
+                    readOnly={!isEditing}
                   />
 
                   <span className="field-icon">
@@ -192,8 +945,8 @@ function ProfileEO() {
 
             </div>
 
-
             {/* PORTFOLIO */}
+
             <div className="profile-document">
 
               <label>
@@ -209,7 +962,8 @@ function ProfileEO() {
                   </div>
 
                   <span>
-                    Portfolio.pdf
+                    {documents.portfolio_name ||
+                      "Belum ada portfolio"}
                   </span>
 
                 </div>
@@ -217,12 +971,69 @@ function ProfileEO() {
                 <button
                   type="button"
                   className="download-document"
-                  onClick={() =>
-                    alert("Download Portfolio.pdf")
+                  onClick={
+                    handlePortfolioClick
                   }
                 >
-                  ↓
+                  ↑
                 </button>
+
+                <input
+                  ref={portfolioInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  hidden
+                  onChange={
+                    handlePortfolioChange
+                  }
+                />
+
+              </div>
+
+            </div>
+
+            {/* AKTA */}
+
+            <div className="profile-document">
+
+              <label>
+                AKTA PERUSAHAAN
+              </label>
+
+              <div className="document-box">
+
+                <div className="document-left">
+
+                  <div className="document-icon">
+                    📄
+                  </div>
+
+                  <span>
+                    {documents.deed_name ||
+                      "Belum ada akta"}
+                  </span>
+
+                </div>
+
+                <button
+                  type="button"
+                  className="download-document"
+                  onClick={
+                    handleDeedClick
+                  }
+                >
+                  ↑
+                </button>
+
+                <input
+                  ref={deedInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  hidden
+                  onChange={
+                    handleDeedChange
+                  }
+                />
 
               </div>
 
@@ -234,8 +1045,8 @@ function ProfileEO() {
 
       </main>
 
-
       {/* PASSWORD MODAL */}
+
       {showPassword && (
         <div className="password-overlay">
 
@@ -244,16 +1055,22 @@ function ProfileEO() {
             <div className="password-modal-header">
 
               <div>
-                <h2>Ganti Password</h2>
+
+                <h2>
+                  Ganti Password
+                </h2>
 
                 <p>
                   Masukkan password baru Anda.
                 </p>
+
               </div>
 
               <button
                 type="button"
-                onClick={() => setShowPassword(false)}
+                onClick={() =>
+                  setShowPassword(false)
+                }
               >
                 ×
               </button>
@@ -268,6 +1085,13 @@ function ProfileEO() {
 
               <input
                 type="password"
+                name="oldPassword"
+                value={
+                  passwordForm.oldPassword
+                }
+                onChange={
+                  handlePasswordChange
+                }
                 placeholder="Masukkan password lama"
               />
 
@@ -277,6 +1101,13 @@ function ProfileEO() {
 
               <input
                 type="password"
+                name="newPassword"
+                value={
+                  passwordForm.newPassword
+                }
+                onChange={
+                  handlePasswordChange
+                }
                 placeholder="Masukkan password baru"
               />
 
@@ -286,18 +1117,29 @@ function ProfileEO() {
 
               <input
                 type="password"
+                name="confirmPassword"
+                value={
+                  passwordForm.confirmPassword
+                }
+                onChange={
+                  handlePasswordChange
+                }
                 placeholder="Konfirmasi password baru"
               />
 
               <button
                 type="button"
                 className="save-password-btn"
-                onClick={() => {
-                  alert("Password berhasil diperbarui");
-                  setShowPassword(false);
-                }}
+                onClick={
+                  handleSavePassword
+                }
+                disabled={
+                  passwordSaving
+                }
               >
-                Simpan Password
+                {passwordSaving
+                  ? "Menyimpan..."
+                  : "Simpan Password"}
               </button>
 
             </div>

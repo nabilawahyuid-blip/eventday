@@ -1,228 +1,747 @@
-import React from "react";
-import { Check, X } from "lucide-react";
-
+import React, { useEffect, useState } from "react";
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
-
 import "./RefundEO.css";
-const refundData = [
-  {
-    id: 1,
-    customer: "Ahmad Hidayat",
-    ticket: "VIP Festival Day 1",
-    transaction: "TRX-9982-A",
-    reason: "Acara berbenturan dengan jadwal dinas...",
-    status: "Approved",
-  },
-  {
-    id: 2,
-    customer: "Budi Santoso",
-    ticket: "Regular Pass",
-    transaction: "TRX-7712-B",
-    reason: "Sakit parah, surat dokter terlampir...",
-    status: "Approved",
-  },
-  {
-    id: 3,
-    customer: "Siti Rahma",
-    ticket: "Early Bird Pass",
-    transaction: "TRX-4421-P",
-    reason: "Salah beli tiket untuk hari yang berbeda...",
-    status: "Menunggu",
-  },
-  {
-    id: 4,
-    customer: "Dian Sastro",
-    ticket: "Group Package (5 Pax)",
-    transaction: "TRX-1102-R",
-    reason: "Alasan tidak valid sesuai S&K...",
-    status: "Rejected",
-  },
-  {
-    id: 5,
-    customer: "Eka Putra",
-    ticket: "VIP Backstage",
-    transaction: "TRX-1103-R",
-    reason: "Permintaan melewati batas waktu H-7...",
-    status: "Rejected",
-  },
-];
 
-function Refund() {
-  const handleDetail = (refund) => {
-    console.log("Detail refund:", refund);
+import {
+  getOrganizerRefunds,
+  getOrganizerRefundDetail,
+  updateOrganizerRefundStatus,
+} from "../../services/organizerRefundService";
+
+function RefundEO() {
+  // =========================================
+  // STATE
+  // =========================================
+
+  const [refunds, setRefunds] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Detail modal
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailData, setDetailData] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  // Loading approve / reject
+  const [processingId, setProcessingId] = useState(null);
+
+  // =========================================
+  // FORMAT RUPIAH
+  // =========================================
+
+  const formatRupiah = (amount) => {
+    return `Rp ${Number(amount || 0).toLocaleString("id-ID")}`;
   };
 
-  const handleApprove = (refund) => {
-    console.log("Setujui refund:", refund);
+  // =========================================
+  // FORMAT TANGGAL
+  // =========================================
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return "-";
+    }
+
+    return parsedDate.toLocaleString("id-ID", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
-  const handleReject = (refund) => {
-    console.log("Tolak refund:", refund);
+  // =========================================
+  // STATUS CLASS
+  // =========================================
+
+  const getStatusClass = (status) => {
+    const normalizedStatus = String(status || "").toUpperCase();
+
+    if (
+      normalizedStatus === "APPROVED" ||
+      normalizedStatus === "ACCEPTED"
+    ) {
+      return "status-approved";
+    }
+
+    if (
+      normalizedStatus === "REJECTED" ||
+      normalizedStatus === "DENIED"
+    ) {
+      return "status-rejected";
+    }
+
+    return "status-pending";
   };
+
+  // =========================================
+  // STATUS LABEL
+  // =========================================
+
+  const getStatusLabel = (status) => {
+    const normalizedStatus = String(status || "").toUpperCase();
+
+    switch (normalizedStatus) {
+      case "APPROVED":
+      case "ACCEPTED":
+        return "Disetujui";
+
+      case "PENDING":
+      case "WAITING":
+        return "Menunggu";
+
+      case "REJECTED":
+      case "DENIED":
+        return "Ditolak";
+
+      default:
+        return status || "-";
+    }
+  };
+
+  // =========================================
+  // GET REFUND LIST
+  // =========================================
+
+  const fetchRefunds = async () => {
+    try {
+      setLoading(true);
+
+      const response = await getOrganizerRefunds();
+
+      console.log("REFUND LIST RESPONSE:", response);
+
+      setRefunds(response?.data || []);
+    } catch (error) {
+      console.error("Gagal mengambil data refund:", error);
+
+      setRefunds([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =========================================
+  // LOAD DATA SAAT HALAMAN DIBUKA
+  // =========================================
+
+  useEffect(() => {
+    fetchRefunds();
+  }, []);
+
+  // =========================================
+  // DETAIL REFUND
+  // =========================================
+
+  const handleDetail = async (refundId) => {
+    try {
+      setShowDetail(true);
+      setLoadingDetail(true);
+      setDetailData(null);
+
+      const response = await getOrganizerRefundDetail(refundId);
+
+      console.log("DETAIL REFUND RESPONSE:", response);
+
+      setDetailData(response?.data || null);
+    } catch (error) {
+      console.error("Gagal mengambil detail refund:", error);
+
+      alert(
+        error?.message || "Gagal mengambil detail refund."
+      );
+
+      setShowDetail(false);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  // =========================================
+  // CLOSE DETAIL
+  // =========================================
+
+  const closeDetail = () => {
+    setShowDetail(false);
+    setDetailData(null);
+  };
+
+  // =========================================
+  // APPROVE REFUND
+  // =========================================
+
+  const handleApprove = async (refundId) => {
+    const confirmed = window.confirm(
+      "Apakah kamu yakin ingin menyetujui refund ini?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setProcessingId(refundId);
+
+      await updateOrganizerRefundStatus(
+        refundId,
+        "APPROVED"
+      );
+
+      alert("Refund berhasil disetujui.");
+
+      await fetchRefunds();
+    } catch (error) {
+      console.error("Gagal menyetujui refund:", error);
+
+      alert(
+        error?.message || "Gagal menyetujui refund."
+      );
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  // =========================================
+  // REJECT REFUND
+  // =========================================
+
+  const handleReject = async (refundId) => {
+    const confirmed = window.confirm(
+      "Apakah kamu yakin ingin menolak refund ini?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setProcessingId(refundId);
+
+      await updateOrganizerRefundStatus(
+        refundId,
+        "REJECTED"
+      );
+
+      alert("Refund berhasil ditolak.");
+
+      await fetchRefunds();
+    } catch (error) {
+      console.error("Gagal menolak refund:", error);
+
+      alert(
+        error?.message || "Gagal menolak refund."
+      );
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  // =========================================
+  // RENDER
+  // =========================================
 
   return (
     <div className="refund-layout">
 
-      {/* SIDEBAR */}
+      {/* =====================================
+          SIDEBAR EO
+      ===================================== */}
+
       <SidebarEO />
 
-      {/* AREA UTAMA */}
-      <div className="refund-main">
+      {/* =====================================
+          MAIN CONTENT
+      ===================================== */}
 
-        {/* NAVBAR */}
+      <main className="refund-main">
+
+        {/* NAVBAR EO */}
+
         <NavbarEO />
 
-        <main className="refund-content">
+        {/* CONTENT */}
 
-          {/* TITLE */}
+        <div className="refund-content">
+
+          {/* =====================================
+              HEADER
+          ===================================== */}
+
           <div className="refund-header">
+
             <h1>Refund</h1>
 
             <div className="refund-description">
+
               <h2>Daftar Refund</h2>
+
               <p>
                 Kelola permintaan pengembalian dana tiket.
               </p>
+
             </div>
+
           </div>
 
-          {/* LIST REFUND */}
+          {/* =====================================
+              REFUND LIST
+          ===================================== */}
+
           <div className="refund-list">
 
-            {refundData.map((refund) => (
-              <div
-                key={refund.id}
-                className={`refund-card ${
-                  refund.status === "Menunggu"
-                    ? "refund-card-pending"
-                    : ""
-                }`}
-              >
+            {/* LOADING */}
 
-                {/* DATA REFUND */}
-                <div className="refund-info">
+            {loading && (
+              <div className="refund-empty">
+                Memuat data refund...
+              </div>
+            )}
 
-                  {/* CUSTOMER */}
-                  <div className="refund-column">
-                    <div className="refund-item">
-                      <span className="refund-label">
-                        {refund.id >= 3
-                          ? `NAMA CUSTOMER ${refund.id}`
-                          : "NAMA CUSTOMER"}
-                      </span>
+            {/* EMPTY */}
 
-                      <span className="refund-value customer-name">
-                        {refund.customer}
-                      </span>
-                    </div>
+            {!loading && refunds.length === 0 && (
+              <div className="refund-empty">
+                Tidak ada permintaan refund.
+              </div>
+            )}
 
-                    <div className="refund-item transaction-item">
-                      <span className="refund-label">
-                        ID TRANSAKSI
-                      </span>
+            {/* DATA REFUND */}
 
-                      <span className="refund-value transaction-id">
-                        {refund.transaction}
-                      </span>
-                    </div>
-                  </div>
+            {!loading &&
+              refunds.map((refund) => {
 
-                  {/* TICKET */}
-                  <div className="refund-column">
-                    <div className="refund-item">
-                      <span className="refund-label">
-                        TIKET YANG DIPESAN
-                      </span>
+                const status = String(
+                  refund.status || ""
+                ).toUpperCase();
 
-                      <span className="refund-value">
-                        {refund.ticket}
-                      </span>
-                    </div>
+                const isPending =
+                  status === "PENDING";
 
-                    <div className="refund-item reason-item">
-                      <span className="refund-label">
-                        ALASAN REFUND
-                      </span>
+                const isProcessing =
+                  processingId === refund.refund_id;
 
-                      <span className="refund-value reason-text">
-                        {refund.reason}
-                      </span>
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* ACTION AREA */}
-                <div className="refund-action">
-
-                  {/* STATUS */}
-                  <span
-                    className={`refund-status ${
-                      refund.status === "Approved"
-                        ? "status-approved"
-                        : refund.status === "Menunggu"
-                        ? "status-pending"
-                        : "status-rejected"
-                    }`}
-                  >
-                    {refund.status}
-                  </span>
-
-                  {/* DETAIL */}
-                  <button
-                    className={`detail-refund-btn ${
-                      refund.status === "Rejected"
-                        ? "detail-disabled"
+                return (
+                  <div
+                    className={`refund-card ${
+                      isPending
+                        ? "refund-card-pending"
                         : ""
                     }`}
-                    onClick={() => handleDetail(refund)}
+                    key={refund.refund_id}
                   >
-                    Detail Refund
-                  </button>
 
-                </div>
+                    {/* =================================
+                        REFUND INFORMATION
+                    ================================= */}
 
-                {/* PENDING ACTION */}
-                {refund.status === "Menunggu" && (
-                  <div className="pending-action">
+                    <div className="refund-info">
 
-                    <span className="pending-text">
-                      Tindakan Diperlukan
-                    </span>
+                      {/* COLUMN 1 */}
 
-                    <div className="pending-buttons">
+                      <div className="refund-column">
+
+                        {/* ID REFUND */}
+
+                        <div className="refund-item">
+
+                          <span className="refund-label">
+                            ID REFUND
+                          </span>
+
+                          <span className="refund-value">
+                            {refund.refund_id || "-"}
+                          </span>
+
+                        </div>
+
+                        {/* ID TRANSAKSI */}
+
+                        <div className="transaction-item">
+
+                          <span className="refund-label">
+                            ID TRANSAKSI
+                          </span>
+
+                          <span className="transaction-id">
+                            {refund.order_id || "-"}
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                      {/* COLUMN 2 */}
+
+                      <div className="refund-column">
+
+                        {/* JUMLAH REFUND */}
+
+                        <div className="refund-item">
+
+                          <span className="refund-label">
+                            JUMLAH REFUND
+                          </span>
+
+                          <span className="refund-value">
+                            {formatRupiah(
+                              refund.amount
+                            )}
+                          </span>
+
+                        </div>
+
+                        {/* ALASAN REFUND */}
+
+                        <div className="reason-item">
+
+                          <span className="refund-label">
+                            ALASAN REFUND
+                          </span>
+
+                          <span className="reason-text">
+                            {refund.reason || "-"}
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    {/* =================================
+                        RIGHT ACTION
+                    ================================= */}
+
+                    <div className="refund-action">
+
+                      {/* STATUS */}
+
+                      <span
+                        className={`refund-status ${getStatusClass(
+                          refund.status
+                        )}`}
+                      >
+                        {getStatusLabel(
+                          refund.status
+                        )}
+                      </span>
+
+                      {/* DETAIL BUTTON */}
 
                       <button
-                        className="reject-btn"
-                        onClick={() => handleReject(refund)}
+                        type="button"
+                        className="detail-refund-btn"
+                        onClick={() =>
+                          handleDetail(
+                            refund.refund_id
+                          )
+                        }
                       >
-                        <X size={15} strokeWidth={2.5} />
-                        Tolak
-                      </button>
-
-                      <button
-                        className="approve-btn"
-                        onClick={() => handleApprove(refund)}
-                      >
-                        <Check size={15} strokeWidth={2.5} />
-                        Setujui
+                        Detail Refund
                       </button>
 
                     </div>
 
-                  </div>
-                )}
+                    {/* =================================
+                        PENDING ACTION
+                    ================================= */}
 
-              </div>
-            ))}
+                    {isPending && (
+                      <div className="pending-action">
+
+                        <p className="pending-text">
+                          Tindakan Diperlukan
+                        </p>
+
+                        <div className="pending-buttons">
+
+                          {/* TOLAK */}
+
+                          <button
+                            type="button"
+                            className="reject-btn"
+                            disabled={isProcessing}
+                            onClick={() =>
+                              handleReject(
+                                refund.refund_id
+                              )
+                            }
+                          >
+
+                            <span>✕</span>
+
+                            {isProcessing
+                              ? "Memproses..."
+                              : "Tolak"}
+
+                          </button>
+
+                          {/* SETUJUI */}
+
+                          <button
+                            type="button"
+                            className="approve-btn"
+                            disabled={isProcessing}
+                            onClick={() =>
+                              handleApprove(
+                                refund.refund_id
+                              )
+                            }
+                          >
+
+                            <span>✓</span>
+
+                            {isProcessing
+                              ? "Memproses..."
+                              : "Setujui"}
+
+                          </button>
+
+                        </div>
+
+                      </div>
+                    )}
+
+                  </div>
+                );
+              })}
 
           </div>
 
-        </main>
-      </div>
+        </div>
+
+      </main>
+
+      {/* =========================================
+          DETAIL REFUND MODAL
+      ========================================= */}
+
+      {showDetail && (
+        <div
+          className="refund-modal-overlay"
+          onClick={closeDetail}
+        >
+
+          <div
+            className="refund-modal"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+
+            {/* =================================
+                MODAL HEADER
+            ================================= */}
+
+            <div className="refund-modal-header">
+
+              <h2>Detail Refund</h2>
+
+              <button
+                type="button"
+                className="refund-modal-close"
+                onClick={closeDetail}
+              >
+                ✕
+              </button>
+
+            </div>
+
+            {/* =================================
+                LOADING DETAIL
+            ================================= */}
+
+            {loadingDetail && (
+              <div className="refund-modal-loading">
+                Memuat detail refund...
+              </div>
+            )}
+
+            {/* =================================
+                DETAIL DATA
+            ================================= */}
+
+            {!loadingDetail && detailData && (
+              <div className="refund-detail-content">
+
+                {/* ID REFUND */}
+
+                <div className="detail-row">
+
+                  <span>ID Refund</span>
+
+                  <strong>
+                    {detailData.refund_id || "-"}
+                  </strong>
+
+                </div>
+
+                {/* ID TRANSAKSI */}
+
+                <div className="detail-row">
+
+                  <span>ID Transaksi</span>
+
+                  <strong>
+                    {detailData.order_id || "-"}
+                  </strong>
+
+                </div>
+
+                {/* ALASAN */}
+
+                <div className="detail-row">
+
+                  <span>Alasan Refund</span>
+
+                  <strong>
+                    {detailData.reason || "-"}
+                  </strong>
+
+                </div>
+
+                {/* JUMLAH */}
+
+                <div className="detail-row">
+
+                  <span>Jumlah Refund</span>
+
+                  <strong>
+                    {formatRupiah(
+                      detailData.amount
+                    )}
+                  </strong>
+
+                </div>
+
+                {/* PEMILIK REKENING */}
+
+                <div className="detail-row">
+
+                  <span>
+                    Nama Pemilik Rekening
+                  </span>
+
+                  <strong>
+                    {detailData.account_holder ||
+                      "-"}
+                  </strong>
+
+                </div>
+
+                {/* BANK */}
+
+                <div className="detail-row">
+
+                  <span>Bank</span>
+
+                  <strong>
+                    {detailData.bank_name || "-"}
+                  </strong>
+
+                </div>
+
+                {/* NOMOR REKENING */}
+
+                <div className="detail-row">
+
+                  <span>Nomor Rekening</span>
+
+                  <strong>
+                    {detailData.account_number ||
+                      "-"}
+                  </strong>
+
+                </div>
+
+                {/* STATUS */}
+
+                <div className="detail-row">
+
+                  <span>Status</span>
+
+                  <strong>
+                    {getStatusLabel(
+                      detailData.status
+                    )}
+                  </strong>
+
+                </div>
+
+                {/* TANGGAL */}
+
+                <div className="detail-row">
+
+                  <span>
+                    Tanggal Pengajuan
+                  </span>
+
+                  <strong>
+                    {formatDate(
+                      detailData.created_at
+                    )}
+                  </strong>
+
+                </div>
+
+                {/* CATATAN ADMIN */}
+
+                <div className="detail-row">
+
+                  <span>Catatan Admin</span>
+
+                  <strong>
+                    {detailData.admin_note || "-"}
+                  </strong>
+
+                </div>
+
+                {/* ALASAN PENOLAKAN */}
+
+                <div className="detail-row">
+
+                  <span>
+                    Alasan Penolakan
+                  </span>
+
+                  <strong>
+                    {detailData.rejection_reason ||
+                      "-"}
+                  </strong>
+
+                </div>
+
+              </div>
+            )}
+
+            {/* =================================
+                MODAL FOOTER
+            ================================= */}
+
+            <div className="refund-modal-footer">
+
+              <button
+                type="button"
+                className="btn-close-modal"
+                onClick={closeDetail}
+              >
+                Tutup
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 }
 
-export default Refund;
+export default RefundEO;

@@ -1,28 +1,31 @@
-// src/services/adminUserService.js
-import { apiFetch } from './api';
+import { apiFetch } from "./api";
 
-// 1. Mengambil daftar master user platform (bisa difilter berdasarkan role: CUSTOMER/ORGANIZER/ADMIN)[cite: 2]
-export const getAdminUsers = async (role = '') => {
-  const query = role ? `?role=${role}` : '';
-  return await apiFetch(`/admin/users${query}`);
+export const getAdminUsers = async () => {
+  return apiFetch("/api/admin/users");
 };
 
-// 2. Mengambil rincian biodata profil & status akun user berdasarkan ID[cite: 2]
 export const getAdminUserDetail = async (id) => {
-  return await apiFetch(`/admin/users/${id}`);
+  return apiFetch(
+    `/api/admin/users/${encodeURIComponent(id)}`
+  );
 };
 
-// 3. Memperbarui status akun pengguna (ACTIVE / INACTIVE / SUSPENDED)[cite: 2]
-export const updateAdminUserStatus = async (id, status) => {
-  return await apiFetch(`/admin/users/${id}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify({ status }),
-  });
+export const updateAdminUserStatus = async (id, data) => {
+  return apiFetch(
+    `/api/admin/users/${encodeURIComponent(id)}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
 };
 
-// 4. Menangguhkan akun pengguna secara langsung menjadi SUSPENDED[cite: 2]
-export const suspendAdminUser = async (id) => {
-  return await apiFetch(`/admin/users/${id}/suspend`, {
-    method: 'PATCH',
-  });
+export const suspendAdminUser = async (id, data = {}) => {
+  return apiFetch(
+    `/api/admin/users/${encodeURIComponent(id)}/suspend`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
 };
