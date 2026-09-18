@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getRecentTransactions } from '../../services/adminDashboardService';
+
+import { getAdminRecentTransactions } from "../../services/adminDashboardService";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -10,39 +11,65 @@ import "./DashboardAdmin.css";
 export default function DashboardAdmin() {
   const navigate = useNavigate();
 
-  // 1. Siapkan state untuk menampung data dari backend
+  // ==========================================
+  // STATE TRANSAKSI
+  // ==========================================
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 2. Ambil data saat komponen pertama kali dimuat
+  // ==========================================
+  // AMBIL DATA TRANSAKSI DARI BACKEND
+  // ==========================================
   useEffect(() => {
     async function loadData() {
-      setLoading(true);
-      const data = await getRecentTransactions(); // Panggil endpoint backend real
-      setTransactions(Array.isArray(data) ? data : []);
-      setLoading(false);
+      try {
+        setLoading(true);
+
+        const response = await getAdminRecentTransactions();
+
+        console.log("Recent transactions:", response);
+
+        // Response backend menggunakan ApiResponse:
+        // {
+        //   msg: "...",
+        //   status: 200,
+        //   data: [...]
+        // }
+
+        setTransactions(
+          Array.isArray(response?.data)
+            ? response.data
+            : []
+        );
+      } catch (error) {
+        console.error("Gagal mengambil transaksi:", error);
+
+        setTransactions([]);
+      } finally {
+        setLoading(false);
+      }
     }
 
     loadData();
   }, []);
 
-  // ======
+  // ==========================================
   // VIEW ALL EVENT
-  // ======
+  // ==========================================
   const handleViewAll = () => {
     navigate("/event-management");
   };
 
-  // ======
+  // ==========================================
   // EVENT CLICK
-  // ======
+  // ==========================================
   const handleEventClick = (eventId) => {
     navigate(`/admin/event/${eventId}`);
   };
 
-  // ======
+  // ==========================================
   // TRANSACTION CLICK
-  // ======
+  // ==========================================
   const handleTransactionClick = (name) => {
     alert(`Transaksi ${name} dipilih`);
   };
@@ -50,38 +77,50 @@ export default function DashboardAdmin() {
   return (
     <div className="admin-dashboard">
 
-      {/* ======
-          SHARED COMPONENTS (SIDEBAR & NAVBAR)
-      ====== */}
+      {/* ======================================
+          SIDEBAR
+      ====================================== */}
       <Sidebar />
-      
-      <div className="dashboard-wrapper" style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+
+      {/* ======================================
+          DASHBOARD WRAPPER
+      ====================================== */}
+      <div
+        className="dashboard-wrapper"
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+
+        {/* ====================================
+            NAVBAR
+        ==================================== */}
         <Navbar />
 
-        {/* =
+        {/* ====================================
             MAIN CONTENT
-        = */}
-
+        ==================================== */}
         <main className="dashboard-main">
 
           <div className="dashboard-content">
 
-            {/* =
+            {/* ==================================
                 STATISTICS
-            = */}
-
+            ================================== */}
             <section className="stats-grid">
 
-              {/* ======
+              {/* ================================
                   EVENT AKTIF
-              ====== */}
-
+              ================================= */}
               <div className="stat-card">
 
                 <div className="stat-card-header">
                   <span>
                     EVENT AKTIF
                   </span>
+
                   <div className="stat-icon blue">
                     📅
                   </div>
@@ -97,16 +136,16 @@ export default function DashboardAdmin() {
 
               </div>
 
-              {/* ======
+              {/* ================================
                   TOTAL USER
-              ====== */}
-
+              ================================= */}
               <div className="stat-card">
 
                 <div className="stat-card-header">
                   <span>
                     TOTAL USER
                   </span>
+
                   <div className="stat-icon purple">
                     👥
                   </div>
@@ -122,16 +161,16 @@ export default function DashboardAdmin() {
 
               </div>
 
-              {/* ======
+              {/* ================================
                   TOTAL PENDAPATAN
-              ====== */}
-
+              ================================= */}
               <div className="stat-card">
 
                 <div className="stat-card-header">
                   <span>
                     TOTAL PENDAPATAN
                   </span>
+
                   <div className="stat-icon orange">
                     Rp
                   </div>
@@ -149,19 +188,18 @@ export default function DashboardAdmin() {
 
             </section>
 
-            {/* =
+            {/* ==================================
                 LOWER CONTENT
-            = */}
-
+            ================================== */}
             <section className="dashboard-grid">
 
-              {/* =
+              {/* =================================
                   EVENT TERBARU
-              = */}
-
+              ================================== */}
               <div className="dashboard-card events-card">
 
                 <div className="card-header">
+
                   <h3>
                     Event Terbaru
                   </h3>
@@ -173,19 +211,20 @@ export default function DashboardAdmin() {
                   >
                     Lihat Semua
                   </button>
+
                 </div>
 
                 <div className="event-list">
 
-                  {/* ======
+                  {/* =============================
                       EVENT 1
-                  ====== */}
-
+                  ============================== */}
                   <button
                     type="button"
                     className="event-item"
                     onClick={() => handleEventClick(2)}
                   >
+
                     <div className="event-image">
                       <span>
                         J
@@ -193,12 +232,15 @@ export default function DashboardAdmin() {
                     </div>
 
                     <div className="event-info">
+
                       <h4>
                         Konser Musik Jakarta 2024
                       </h4>
+
                       <p>
                         📅 15 Agustus 2024 • 📍 ICE BSD, Tangerang
                       </p>
+
                     </div>
 
                     <div className="event-status published">
@@ -208,17 +250,18 @@ export default function DashboardAdmin() {
                     <span className="event-more">
                       ⋮
                     </span>
+
                   </button>
 
-                  {/* ======
+                  {/* =============================
                       EVENT 2
-                  ====== */}
-
+                  ============================== */}
                   <button
                     type="button"
                     className="event-item"
                     onClick={() => handleEventClick(3)}
                   >
+
                     <div className="event-image event-image-light">
                       <span>
                         A
@@ -226,12 +269,15 @@ export default function DashboardAdmin() {
                     </div>
 
                     <div className="event-info">
+
                       <h4>
                         Tech Conference Indonesia
                       </h4>
+
                       <p>
                         📅 22 September 2024 • 📍 ICE BSD
                       </p>
+
                     </div>
 
                     <div className="event-status draft">
@@ -241,17 +287,18 @@ export default function DashboardAdmin() {
                     <span className="event-more">
                       ⋮
                     </span>
+
                   </button>
 
-                  {/* ======
+                  {/* =============================
                       EVENT 3
-                  ====== */}
-
+                  ============================== */}
                   <button
                     type="button"
                     className="event-item"
                     onClick={() => handleEventClick(4)}
                   >
+
                     <div className="event-image">
                       <span>
                         F
@@ -259,12 +306,15 @@ export default function DashboardAdmin() {
                     </div>
 
                     <div className="event-info">
+
                       <h4>
                         Festival Kuliner Nusantara
                       </h4>
+
                       <p>
                         📅 10 Oktober 2024 • 📍 GBK Senayan
                       </p>
+
                     </div>
 
                     <div className="event-status published">
@@ -274,57 +324,132 @@ export default function DashboardAdmin() {
                     <span className="event-more">
                       ⋮
                     </span>
+
                   </button>
 
                 </div>
 
               </div>
 
-              {/* =
-                  AKTIVITAS TRANSAKSI (REAL API DARI BACKEND)
-              = */}
-
+              {/* =================================
+                  AKTIVITAS TRANSAKSI
+              ================================== */}
               <div className="dashboard-card transactions-card">
 
                 <div className="card-header">
-                  <h3>Aktivitas Terbaru</h3>
+
+                  <h3>
+                    Aktivitas Terbaru
+                  </h3>
+
                 </div>
 
                 <div className="transaction-list">
+
+                  {/* =============================
+                      LOADING
+                  ============================== */}
                   {loading ? (
-                    <p style={{ fontSize: '9px', padding: '10px', color: '#8d889a' }}>Memuat data aktivitas...</p>
+
+                    <p
+                      style={{
+                        fontSize: "9px",
+                        padding: "10px",
+                        color: "#8d889a",
+                      }}
+                    >
+                      Memuat data aktivitas...
+                    </p>
+
                   ) : transactions.length === 0 ? (
-                    <p style={{ fontSize: '9px', padding: '10px', color: '#8d889a' }}>Belum ada aktivitas transaksi.</p>
+
+                    /* ===========================
+                       DATA KOSONG
+                    ============================ */
+                    <p
+                      style={{
+                        fontSize: "9px",
+                        padding: "10px",
+                        color: "#8d889a",
+                      }}
+                    >
+                      Belum ada aktivitas transaksi.
+                    </p>
+
                   ) : (
+
+                    /* ===========================
+                       DATA TRANSAKSI
+                    ============================ */
                     transactions.map((item, index) => (
+
                       <button
-                        key={item.id || index}
+                        key={item?.id || index}
                         type="button"
                         className="transaction-item"
-                        onClick={() => handleTransactionClick(item.customerName || "Customer")}
+                        onClick={() =>
+                          handleTransactionClick(
+                            item?.customerName || "Customer"
+                          )
+                        }
                       >
+
+                        {/* IMAGE / INITIAL */}
                         <div className="event-image">
-                          <span>{item.initial || `N${index + 1}`}</span>
+
+                          <span>
+                            {item?.initial ||
+                              `N${index + 1}`}
+                          </span>
+
                         </div>
 
+                        {/* TRANSACTION INFO */}
                         <div className="event-info">
-                          <h4>{item.customerName || "Nama Customer"}</h4>
+
+                          <h4>
+                            {item?.customerName ||
+                              "Nama Customer"}
+                          </h4>
+
                           <div className="transaction-text-wrapper">
-                            <p className="trx-desc">🎫 {item.description || "Tiket Yang Dipesan"}</p>
-                            <p className="trx-code">{item.code || "TRX-0000"}</p>
+
+                            <p className="trx-desc">
+                              🎫{" "}
+                              {item?.description ||
+                                "Tiket Yang Dipesan"}
+                            </p>
+
+                            <p className="trx-code">
+                              {item?.code ||
+                                "TRX-0000"}
+                            </p>
+
                           </div>
+
                         </div>
 
-                        <div className={`event-status ${item.status === 'Lunas' ? 'published' : 'draft'}`}>
-                          {item.status || "Menunggu"}
+                        {/* STATUS */}
+                        <div
+                          className={`event-status ${
+                            item?.status === "Lunas"
+                              ? "published"
+                              : "draft"
+                          }`}
+                        >
+                          {item?.status || "Menunggu"}
                         </div>
 
+                        {/* MORE */}
                         <span className="event-more">
                           ⋮
                         </span>
+
                       </button>
+
                     ))
                   )}
+
                 </div>
 
               </div>
