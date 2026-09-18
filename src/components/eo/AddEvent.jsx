@@ -1,5 +1,3 @@
-// src/components/eo/AddEvent.jsx
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,18 +14,10 @@ import "./AddEvent.css";
 function AddEvent() {
   const navigate = useNavigate();
 
-  // =====================================================
-  // BASIC EVENT
-  // =====================================================
-
   const [eventName, setEventName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-
-  // =====================================================
-  // SCHEDULE
-  // =====================================================
 
   const [schedules, setSchedules] = useState([
     {
@@ -36,10 +26,6 @@ function AddEvent() {
       endTime: "",
     },
   ]);
-
-  // =====================================================
-  // TICKET
-  // =====================================================
 
   const [tickets, setTickets] = useState([
     {
@@ -54,34 +40,13 @@ function AddEvent() {
     },
   ]);
 
-  // =====================================================
-  // LINE UP
-  // =====================================================
-
-  const [lineups, setLineups] = useState([
-    "For Revenge",
-  ]);
-
-  // =====================================================
-  // FILE
-  // =====================================================
+  const [lineups, setLineups] = useState(["For Revenge"]);
 
   const [banner, setBanner] = useState(null);
-  const [permissionFile, setPermissionFile] =
-    useState(null);
+  const [permissionFile, setPermissionFile] = useState(null);
 
-  // =====================================================
-  // SUBMIT STATE
-  // =====================================================
-
-  const [submitting, setSubmitting] =
-    useState(false);
-
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-
-  // =====================================================
-  // SCHEDULE
-  // =====================================================
 
   const handleAddSchedule = () => {
     setSchedules([
@@ -94,11 +59,7 @@ function AddEvent() {
     ]);
   };
 
-  const handleScheduleChange = (
-    index,
-    field,
-    value
-  ) => {
+  const handleScheduleChange = (index, field, value) => {
     const updated = [...schedules];
 
     updated[index] = {
@@ -115,15 +76,9 @@ function AddEvent() {
     }
 
     setSchedules(
-      schedules.filter(
-        (_, i) => i !== index
-      )
+      schedules.filter((_, i) => i !== index)
     );
   };
-
-  // =====================================================
-  // TICKET
-  // =====================================================
 
   const handleAddTicket = () => {
     setTickets([
@@ -136,11 +91,7 @@ function AddEvent() {
     ]);
   };
 
-  const handleTicketChange = (
-    index,
-    field,
-    value
-  ) => {
+  const handleTicketChange = (index, field, value) => {
     const updated = [...tickets];
 
     updated[index] = {
@@ -157,27 +108,15 @@ function AddEvent() {
     }
 
     setTickets(
-      tickets.filter(
-        (_, i) => i !== index
-      )
+      tickets.filter((_, i) => i !== index)
     );
   };
 
-  // =====================================================
-  // LINE UP
-  // =====================================================
-
   const handleAddLineup = () => {
-    setLineups([
-      ...lineups,
-      "",
-    ]);
+    setLineups([...lineups, ""]);
   };
 
-  const handleLineupChange = (
-    index,
-    value
-  ) => {
+  const handleLineupChange = (index, value) => {
     const updated = [...lineups];
 
     updated[index] = value;
@@ -191,15 +130,9 @@ function AddEvent() {
     }
 
     setLineups(
-      lineups.filter(
-        (_, i) => i !== index
-      )
+      lineups.filter((_, i) => i !== index)
     );
   };
-
-  // =====================================================
-  // FILE
-  // =====================================================
 
   const handleBannerChange = (e) => {
     const file = e.target.files?.[0];
@@ -208,12 +141,14 @@ function AddEvent() {
       return;
     }
 
-    // MAX 5 MB
     if (file.size > 5 * 1024 * 1024) {
-      alert(
-        "Ukuran banner maksimal 5MB."
-      );
+      alert("Ukuran banner maksimal 5MB.");
+      e.target.value = "";
+      return;
+    }
 
+    if (!file.type.startsWith("image/")) {
+      alert("File banner harus berupa gambar.");
       e.target.value = "";
       return;
     }
@@ -228,12 +163,29 @@ function AddEvent() {
       return;
     }
 
-    // MAX 10 MB
     if (file.size > 10 * 1024 * 1024) {
-      alert(
-        "Ukuran dokumen maksimal 10MB."
-      );
+      alert("Ukuran dokumen maksimal 10MB.");
+      e.target.value = "";
+      return;
+    }
 
+    const allowedTypes = [
+      "application/pdf",
+      "application/zip",
+      "application/x-zip-compressed",
+    ];
+
+    const fileName = file.name.toLowerCase();
+
+    const validExtension =
+      fileName.endsWith(".pdf") ||
+      fileName.endsWith(".zip");
+
+    if (
+      !allowedTypes.includes(file.type) &&
+      !validExtension
+    ) {
+      alert("Dokumen harus berupa file PDF atau ZIP.");
       e.target.value = "";
       return;
     }
@@ -241,84 +193,96 @@ function AddEvent() {
     setPermissionFile(file);
   };
 
-  // =====================================================
-  // VALIDATION
-  // =====================================================
-
   const validateForm = () => {
     if (!eventName.trim()) {
-      alert(
-        "Nama event wajib diisi."
-      );
+      alert("Nama event wajib diisi.");
       return false;
     }
 
     if (!category) {
-      alert(
-        "Kategori event wajib dipilih."
-      );
+      alert("Kategori event wajib dipilih.");
       return false;
     }
 
     if (!description.trim()) {
-      alert(
-        "Deskripsi event wajib diisi."
-      );
+      alert("Deskripsi event wajib diisi.");
       return false;
     }
 
     if (!location.trim()) {
-      alert(
-        "Lokasi event wajib diisi."
-      );
+      alert("Lokasi event wajib diisi.");
       return false;
     }
 
-    const firstSchedule =
-      schedules[0];
-
-    if (!firstSchedule?.date) {
-      alert(
-        "Tanggal event wajib diisi."
-      );
+    if (!schedules.length) {
+      alert("Minimal harus ada satu jadwal event.");
       return false;
     }
 
-    if (!firstSchedule?.startTime) {
-      alert(
-        "Jam mulai event wajib diisi."
-      );
-      return false;
+    for (let i = 0; i < schedules.length; i++) {
+      const schedule = schedules[i];
+
+      if (!schedule.date) {
+        alert(`Tanggal jadwal ${i + 1} wajib diisi.`);
+        return false;
+      }
+
+      if (!schedule.startTime) {
+        alert(`Jam mulai jadwal ${i + 1} wajib diisi.`);
+        return false;
+      }
+
+      if (!schedule.endTime) {
+        alert(`Jam selesai jadwal ${i + 1} wajib diisi.`);
+        return false;
+      }
+
+      if (
+        schedule.endTime <=
+        schedule.startTime
+      ) {
+        alert(
+          `Jam selesai jadwal ${i + 1} harus lebih besar dari jam mulai.`
+        );
+        return false;
+      }
     }
 
-    if (!firstSchedule?.endTime) {
-      alert(
-        "Jam selesai event wajib diisi."
-      );
-      return false;
-    }
+    for (let i = 0; i < tickets.length; i++) {
+      const ticket = tickets[i];
 
-    if (
-      firstSchedule.endTime <=
-      firstSchedule.startTime
-    ) {
-      alert(
-        "Jam selesai harus lebih besar dari jam mulai."
-      );
-      return false;
+      if (!ticket.name.trim()) {
+        alert(
+          `Nama kategori tiket ${i + 1} wajib diisi.`
+        );
+        return false;
+      }
+
+      if (
+        ticket.price === "" ||
+        Number(ticket.price) < 0
+      ) {
+        alert(
+          `Harga tiket ${i + 1} tidak valid.`
+        );
+        return false;
+      }
+
+      if (
+        ticket.quota === "" ||
+        Number(ticket.quota) <= 0
+      ) {
+        alert(
+          `Kuota tiket ${i + 1} harus lebih dari 0.`
+        );
+        return false;
+      }
     }
 
     return true;
   };
 
-  // =====================================================
-  // BUILD DATE TIME
-  // =====================================================
-
-  const buildDateTime = (
-    date,
-    time
-  ) => {
+  const buildDateTime = (date, time) => {
     if (!date || !time) {
       return null;
     }
@@ -326,88 +290,38 @@ function AddEvent() {
     return `${date}T${time}:00`;
   };
 
-  // =====================================================
-  // BUILD PAYLOAD
-  // =====================================================
-
   const buildEventPayload = () => {
-    const firstSchedule =
-      schedules[0];
+    const firstSchedule = schedules[0];
 
-    const startDate =
-      buildDateTime(
-        firstSchedule?.date,
-        firstSchedule?.startTime
-      );
+    const startDate = buildDateTime(
+      firstSchedule?.date,
+      firstSchedule?.startTime
+    );
 
-    const endDate =
-      buildDateTime(
-        firstSchedule?.date,
-        firstSchedule?.endTime
-      );
+    const endDate = buildDateTime(
+      firstSchedule?.date,
+      firstSchedule?.endTime
+    );
 
-    const lineupData =
-      lineups
-        .map((item) =>
-          item.trim()
-        )
-        .filter(Boolean)
-        .join(", ");
-
-    /*
-      Backend createEvent menerima:
-      title
-      description
-      category
-      venue_name
-      banner_url
-      facility
-      lineup
-      start_date
-      end_date
-
-      Ticket & multiple schedules belum
-      diproses oleh createEvent backend.
-    */
+    const lineupData = lineups
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join(", ");
 
     return {
       title: eventName.trim(),
-
-      description:
-        description.trim(),
-
+      description: description.trim(),
       category,
-
-      venue_name:
-        location.trim(),
-
-      start_date:
-        startDate,
-
-      end_date:
-        endDate,
-
-      lineup:
-        lineupData || null,
-
-      // Banner URL belum tersedia
-      // karena upload banner event belum
-      // memiliki endpoint khusus.
+      venue_name: location.trim(),
+      start_date: startDate,
+      end_date: endDate,
+      lineup: lineupData || null,
       banner_url: null,
     };
   };
 
-  // =====================================================
-  // CREATE EVENT
-  // =====================================================
-
   const createEvent = async () => {
-    if (!validateForm()) {
-      return null;
-    }
-
-    const payload =
-      buildEventPayload();
+    const payload = buildEventPayload();
 
     console.log(
       "CREATE EVENT PAYLOAD:",
@@ -415,9 +329,7 @@ function AddEvent() {
     );
 
     const response =
-      await createOrganizerEvent(
-        payload
-      );
+      await createOrganizerEvent(payload);
 
     console.log(
       "CREATE EVENT RESPONSE:",
@@ -427,222 +339,147 @@ function AddEvent() {
     return response;
   };
 
-  // =====================================================
-  // SAVE DRAFT
-  // =====================================================
+  const handleSaveDraft = async () => {
+    try {
+      setSubmitting(true);
+      setError("");
 
-  const handleSaveDraft =
-    async () => {
-      try {
-        setSubmitting(true);
-        setError("");
-
-        /*
-          Untuk draft, kita tetap melakukan
-          validasi dasar agar data tidak kosong.
-        */
-
-        if (!eventName.trim()) {
-          alert(
-            "Nama event wajib diisi."
-          );
-          return;
-        }
-
-        if (!category) {
-          alert(
-            "Kategori event wajib dipilih."
-          );
-          return;
-        }
-
-        if (!location.trim()) {
-          alert(
-            "Lokasi event wajib diisi."
-          );
-          return;
-        }
-
-        const response =
-          await createEvent();
-
-        if (!response) {
-          return;
-        }
-
-        const eventId =
-          response?.data?.event_id;
-
-        alert(
-          "Event berhasil disimpan sebagai draft."
-        );
-
-        console.log(
-          "DRAFT EVENT ID:",
-          eventId
-        );
-
-        navigate("/eo/event");
-
-      } catch (error) {
-        console.error(
-          "Gagal menyimpan draft:",
-          error
-        );
-
-        setError(
-          error?.message ||
-            "Gagal menyimpan draft event."
-        );
-
-        alert(
-          error?.message ||
-            "Gagal menyimpan draft event."
-        );
-      } finally {
-        setSubmitting(false);
+      if (!eventName.trim()) {
+        alert("Nama event wajib diisi.");
+        return;
       }
-    };
 
-  // =====================================================
-  // CREATE + PUBLISH EVENT
-  // =====================================================
-
-  const handleCreateEvent =
-    async () => {
-      try {
-        setSubmitting(true);
-        setError("");
-
-        if (!validateForm()) {
-          return;
-        }
-
-        // ================================================
-        // STEP 1
-        // CREATE EVENT AS DRAFT
-        // ================================================
-
-        const createResponse =
-          await createEvent();
-
-        console.log(
-          "CREATE EVENT RESPONSE:",
-          createResponse
-        );
-
-        const eventId =
-          createResponse?.data?.event_id;
-
-        if (!eventId) {
-          throw new Error(
-            "Event berhasil dibuat tetapi event ID tidak ditemukan."
-          );
-        }
-
-        console.log(
-          "EVENT ID:",
-          eventId
-        );
-
-        // ================================================
-        // STEP 2
-        // PUBLISH EVENT
-        // ================================================
-
-        const publishResponse =
-          await publishOrganizerEvent({
-            eventId,
-          });
-
-        console.log(
-          "PUBLISH EVENT RESPONSE:",
-          publishResponse
-        );
-
-        alert(
-          "Event berhasil dibuat dan dipublikasikan."
-        );
-
-        // ================================================
-        // STEP 3
-        // BACK TO EVENT PAGE
-        // ================================================
-
-        navigate("/eo/event");
-
-      } catch (error) {
-        console.error(
-          "Gagal membuat event:",
-          error
-        );
-
-        setError(
-          error?.message ||
-            "Gagal membuat event."
-        );
-
-        alert(
-          error?.message ||
-            "Gagal membuat event."
-        );
-      } finally {
-        setSubmitting(false);
+      if (!category) {
+        alert("Kategori event wajib dipilih.");
+        return;
       }
-    };
 
-  // =====================================================
-  // TOTAL QUOTA
-  // =====================================================
+      if (!location.trim()) {
+        alert("Lokasi event wajib diisi.");
+        return;
+      }
 
-  const totalQuota =
-    tickets.reduce(
-      (total, ticket) => {
-        return (
-          total +
-          (Number(
-            ticket.quota
-          ) || 0)
+      const response = await createEvent();
+
+      const eventId =
+        response?.data?.event_id ||
+        response?.data?.id;
+
+      if (!eventId) {
+        throw new Error(
+          "Event berhasil dibuat tetapi ID event tidak ditemukan."
         );
-      },
-      0
-    );
+      }
 
-  // =====================================================
-  // RENDER
-  // =====================================================
+      console.log(
+        "DRAFT EVENT ID:",
+        eventId
+      );
+
+      alert(
+        "Event berhasil disimpan sebagai draft."
+      );
+
+      navigate("/eo/event");
+    } catch (error) {
+      console.error(
+        "Gagal menyimpan draft:",
+        error
+      );
+
+      const message =
+        error?.message ||
+        "Gagal menyimpan draft event.";
+
+      setError(message);
+      alert(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCreateEvent = async () => {
+    try {
+      setSubmitting(true);
+      setError("");
+
+      if (!validateForm()) {
+        return;
+      }
+
+      const createResponse =
+        await createEvent();
+
+      console.log(
+        "CREATE EVENT RESPONSE:",
+        createResponse
+      );
+
+      const eventId =
+        createResponse?.data?.event_id ||
+        createResponse?.data?.id;
+
+      if (!eventId) {
+        throw new Error(
+          "Event berhasil dibuat tetapi event ID tidak ditemukan."
+        );
+      }
+
+      console.log(
+        "EVENT ID:",
+        eventId
+      );
+
+      const publishResponse =
+        await publishOrganizerEvent({
+          eventId,
+        });
+
+      console.log(
+        "PUBLISH EVENT RESPONSE:",
+        publishResponse
+      );
+
+      alert(
+        "Event berhasil dibuat dan dipublikasikan."
+      );
+
+      navigate("/eo/event");
+    } catch (error) {
+      console.error(
+        "Gagal membuat event:",
+        error
+      );
+
+      const message =
+        error?.message ||
+        "Gagal membuat event.";
+
+      setError(message);
+      alert(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const totalQuota = tickets.reduce(
+    (total, ticket) => {
+      return (
+        total +
+        (Number(ticket.quota) || 0)
+      );
+    },
+    0
+  );
 
   return (
     <div className="add-event-page">
-
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
-
       <SidebarEO />
 
-      {/* =====================================================
-          MAIN
-      ===================================================== */}
-
       <main className="add-event-main">
-
-        {/* =====================================================
-            NAVBAR
-        ===================================================== */}
-
         <NavbarEO />
 
-        {/* =====================================================
-            CONTENT
-        ===================================================== */}
-
         <div className="add-event-content">
-
-          {/* =====================================================
-              ERROR
-          ===================================================== */}
-
           {error && (
             <div
               className="dashboard-error"
@@ -654,14 +491,8 @@ function AddEvent() {
             </div>
           )}
 
-          {/* =====================================================
-              PAGE HEADER
-          ===================================================== */}
-
           <div className="add-event-header">
-
             <div className="add-event-title">
-
               <span className="add-event-small-title">
                 Event
               </span>
@@ -674,21 +505,13 @@ function AddEvent() {
                 Isi detail di bawah untuk
                 mempublikasikan event Anda.
               </p>
-
             </div>
 
             <div className="add-event-header-actions">
-
-              {/* =============================================
-                  SAVE DRAFT
-              ============================================= */}
-
               <button
                 type="button"
                 className="draft-button"
-                onClick={
-                  handleSaveDraft
-                }
+                onClick={handleSaveDraft}
                 disabled={submitting}
               >
                 {submitting
@@ -696,16 +519,10 @@ function AddEvent() {
                   : "Simpan Draft"}
               </button>
 
-              {/* =============================================
-                  CREATE EVENT
-              ============================================= */}
-
               <button
                 type="button"
                 className="create-event-button"
-                onClick={
-                  handleCreateEvent
-                }
+                onClick={handleCreateEvent}
                 disabled={submitting}
               >
                 <span>+</span>
@@ -714,27 +531,16 @@ function AddEvent() {
                   ? "Memproses..."
                   : "Buat Event"}
               </button>
-
             </div>
-
           </div>
 
-          {/* =====================================================
-              INFORMASI DASAR
-          ===================================================== */}
-
           <section className="form-card">
-
             <h2>
               Informasi Dasar
             </h2>
 
             <div className="form-grid">
-
-              {/* NAMA EVENT */}
-
               <div className="form-field">
-
                 <label>
                   NAMA EVENT
                 </label>
@@ -749,13 +555,9 @@ function AddEvent() {
                   }
                   placeholder="Contoh: Sedih Fest 2024"
                 />
-
               </div>
 
-              {/* KATEGORI */}
-
               <div className="form-field">
-
                 <label>
                   KATEGORI EVENT
                 </label>
@@ -768,7 +570,6 @@ function AddEvent() {
                     )
                   }
                 >
-
                   <option value="">
                     Pilih Kategori...
                   </option>
@@ -800,12 +601,10 @@ function AddEvent() {
                   <option value="Lainnya">
                     Lainnya
                   </option>
-
                 </select>
 
                 {category && (
                   <span className="category-tag">
-
                     {category}
 
                     <button
@@ -816,18 +615,12 @@ function AddEvent() {
                     >
                       ×
                     </button>
-
                   </span>
                 )}
-
               </div>
-
             </div>
 
-            {/* DESKRIPSI */}
-
             <div className="form-field description-field">
-
               <label>
                 DESKRIPSI EVENT
               </label>
@@ -841,29 +634,20 @@ function AddEvent() {
                 }
                 placeholder="Ceritakan detail menarik tentang event Anda..."
               />
-
             </div>
-
           </section>
 
-          {/* =====================================================
-              LOKASI EVENT
-          ===================================================== */}
-
           <section className="form-card">
-
             <h2>
               Lokasi Event
             </h2>
 
             <div className="form-field">
-
               <label>
                 DETAIL LOKASI / VENUE
               </label>
 
               <div className="input-with-icon">
-
                 <span>
                   ⌕
                 </span>
@@ -878,19 +662,11 @@ function AddEvent() {
                   }
                   placeholder="Cari gedung, stadion, atau alamat lengkap..."
                 />
-
               </div>
-
             </div>
-
           </section>
 
-          {/* =====================================================
-              BANNER EVENT
-          ===================================================== */}
-
           <section className="form-card">
-
             <h2>
               Banner Event
             </h2>
@@ -902,7 +678,6 @@ function AddEvent() {
                   : ""
               }`}
             >
-
               <input
                 type="file"
                 accept="image/*"
@@ -938,19 +713,11 @@ function AddEvent() {
                   </span>
                 </>
               )}
-
             </label>
-
           </section>
 
-          {/* =====================================================
-              JADWAL EVENT
-          ===================================================== */}
-
           <section className="form-card">
-
             <div className="section-header">
-
               <h2>
                 Jadwal Event
               </h2>
@@ -964,26 +731,19 @@ function AddEvent() {
               >
                 + Tambah Jadwal
               </button>
-
             </div>
 
             <div className="schedule-list">
-
               {schedules.map(
                 (
                   schedule,
                   index
                 ) => (
-
                   <div
                     className="schedule-row"
                     key={index}
                   >
-
-                    {/* TANGGAL */}
-
                     <div className="schedule-field">
-
                       <label>
                         TANGGAL
                       </label>
@@ -1001,13 +761,9 @@ function AddEvent() {
                           )
                         }
                       />
-
                     </div>
 
-                    {/* JAM MULAI */}
-
                     <div className="schedule-field">
-
                       <label>
                         JAM MULAI
                       </label>
@@ -1025,13 +781,9 @@ function AddEvent() {
                           )
                         }
                       />
-
                     </div>
 
-                    {/* JAM SELESAI */}
-
                     <div className="schedule-field">
-
                       <label>
                         JAM SELESAI
                       </label>
@@ -1049,10 +801,7 @@ function AddEvent() {
                           )
                         }
                       />
-
                     </div>
-
-                    {/* DELETE */}
 
                     <button
                       type="button"
@@ -1065,24 +814,14 @@ function AddEvent() {
                     >
                       🗑
                     </button>
-
                   </div>
-
                 )
               )}
-
             </div>
-
           </section>
 
-          {/* =====================================================
-              KATEGORI TIKET
-          ===================================================== */}
-
           <section className="form-card">
-
             <div className="section-header">
-
               <h2>
                 Kategori Tiket
               </h2>
@@ -1096,13 +835,10 @@ function AddEvent() {
               >
                 + Tambah Kategori
               </button>
-
             </div>
 
             <div className="ticket-table">
-
               <div className="ticket-header">
-
                 <span>
                   NAMA KATEGORI
                 </span>
@@ -1116,7 +852,6 @@ function AddEvent() {
                 </span>
 
                 <span></span>
-
               </div>
 
               {tickets.map(
@@ -1124,12 +859,10 @@ function AddEvent() {
                   ticket,
                   index
                 ) => (
-
                   <div
                     className="ticket-row"
                     key={index}
                   >
-
                     <input
                       type="text"
                       value={
@@ -1167,7 +900,7 @@ function AddEvent() {
                         ticket.quota
                       }
                       placeholder="Kuota"
-                      min="0"
+                      min="1"
                       onChange={(e) =>
                         handleTicketChange(
                           index,
@@ -1188,16 +921,12 @@ function AddEvent() {
                     >
                       ×
                     </button>
-
                   </div>
-
                 )
               )}
-
             </div>
 
             <div className="total-quota">
-
               <span>
                 Total Kuota:
               </span>
@@ -1205,19 +934,11 @@ function AddEvent() {
               <strong>
                 {totalQuota}
               </strong>
-
             </div>
-
           </section>
 
-          {/* =====================================================
-              LINE UP
-          ===================================================== */}
-
           <section className="form-card">
-
             <div className="section-header">
-
               <h2>
                 Line Up Event
               </h2>
@@ -1231,22 +952,18 @@ function AddEvent() {
               >
                 + Tambah LineUp
               </button>
-
             </div>
 
             <div className="lineup-list">
-
               {lineups.map(
                 (
                   lineup,
                   index
                 ) => (
-
                   <div
                     className="lineup-row"
                     key={index}
                   >
-
                     <input
                       type="text"
                       value={lineup}
@@ -1269,22 +986,13 @@ function AddEvent() {
                     >
                       ×
                     </button>
-
                   </div>
-
                 )
               )}
-
             </div>
-
           </section>
 
-          {/* =====================================================
-              PERIZINAN EVENT
-          ===================================================== */}
-
           <section className="form-card">
-
             <h2>
               Perizinan Event
             </h2>
@@ -1296,7 +1004,6 @@ function AddEvent() {
                   : ""
               }`}
             >
-
               <input
                 type="file"
                 accept=".pdf,.zip"
@@ -1331,15 +1038,10 @@ function AddEvent() {
                   </span>
                 </>
               )}
-
             </label>
-
           </section>
-
         </div>
-
       </main>
-
     </div>
   );
 }

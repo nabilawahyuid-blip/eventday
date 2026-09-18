@@ -1,8 +1,14 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
+
+import {
+  getAdminUserDetail,
+  updateAdminUserStatus,
+  suspendAdminUser,
+} from "../../services/adminUserService";
 
 import "./DetailUser.css";
 
@@ -10,80 +16,360 @@ function DetailUser() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // Dummy data sementara
-  // Nanti bisa diganti dengan data dari database/API
-  const users = {
-    1: {
-      name: "Sarah Lee",
-      email: "sarah.lee@gmail.com",
-      role: "Event Organizer",
-      joined: "Jan 2023",
-      company: "PT Imajinasi Musik Entertainment",
-      phone: "+62 812-3456-7890",
-      status: "Active",
-      verified: true,
-      events: 42,
-    },
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
-    2: {
-      name: "Alex Johnson",
-      email: "alex.j@example.com",
-      role: "Event Organizer",
-      joined: "Oct 2023",
-      company: "PT Alex Organizer Indonesia",
-      phone: "+62 812-1234-5678",
-      status: "Active",
-      verified: true,
-      events: 18,
-    },
+  // ==================================================
+  // GET DETAIL USER
+  // ==================================================
+  const fetchUserDetail = async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-    3: {
-      name: "Marcus Rodriguez",
-      email: "m.rodriguez@example.com",
-      role: "Event Organizer",
-      joined: "Jul 2023",
-      company: "PT Creative Event Indonesia",
-      phone: "+62 813-9876-5432",
-      status: "Suspended",
-      verified: false,
-      events: 12,
-    },
+      const response = await getAdminUserDetail(id);
 
-    4: {
-      name: "Emily Wong",
-      email: "emily.w@designco.com",
-      role: "Regular User",
-      joined: "Dec 2023",
-      company: "-",
-      phone: "+62 811-2345-6789",
-      status: "Active",
-      verified: true,
-      events: 5,
-    },
+      console.log("DETAIL USER RESPONSE:", response);
+
+      const userData = response?.data ?? response;
+
+      if (!userData || typeof userData !== "object") {
+        throw new Error("Data user tidak ditemukan.");
+      }
+
+      setUser(userData);
+    } catch (err) {
+      console.error("Gagal mengambil detail user:", err);
+
+      setError(
+        err?.message || "Gagal mengambil data user."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const user = users[id] || users[1];
+  // ==================================================
+  // LOAD DATA
+  // ==================================================
+  useEffect(() => {
+    if (!id) {
+      setError("ID user tidak ditemukan.");
+      setLoading(false);
+      return;
+    }
 
+    fetchUserDetail();
+  }, [id]);
+
+  // ==================================================
+  // BACK
+  // ==================================================
   const handleBack = () => {
     navigate("/admin/users");
   };
 
+  // ==================================================
+  // UPDATE STATUS
+  // ==================================================
+  const handleUpdateStatus = async (newStatus) => {
+    if (!user?.userId || actionLoading) return;
+
+    try {
+      setActionLoading(true);
+
+      console.log(
+        "UPDATE USER STATUS:",
+        user.userId,
+        newStatus
+      );
+
+      await updateAdminUserStatus(
+        user.userId,
+        newStatus
+      );
+
+      alert(
+        `Status user berhasil diubah menjadi ${getStatusLabel(
+          newStatus
+        )}.`
+      );
+
+      await fetchUserDetail();
+    } catch (err) {
+      console.error(
+        "Gagal update status user:",
+        err
+      );
+
+      alert(
+        err?.message ||
+          "Gagal mengubah status user."
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ==================================================
+  // SUSPEND
+  // ==================================================
+  const handleSuspend = async () => {
+    if (!user?.userId || actionLoading) return;
+
+    const confirmed = window.confirm(
+      `Yakin ingin suspend user "${user.name || "ini"}"?`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setActionLoading(true);
+
+      console.log(
+        "SUSPEND USER:",
+        user.userId
+      );
+
+      await suspendAdminUser(user.userId);
+
+      alert("User berhasil di-suspend.");
+
+      await fetchUserDetail();
+    } catch (err) {
+      console.error(
+        "Gagal suspend user:",
+        err
+      );
+
+      alert(
+        err?.message ||
+          "Gagal suspend user."
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // ==================================================
+  // COPY
+  // ==================================================
+  const handleCopy = async (text) => {
+    if (!text) return;
+
+    try {
+      await navigator.clipboard.writeText(
+        String(text)
+      );
+
+      alert("Berhasil disalin.");
+    } catch (err) {
+      console.error("Gagal copy:", err);
+
+      alert("Gagal menyalin data.");
+    }
+  };
+
+  // ==================================================
+  // ROLE
+  // ==================================================
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case "ORGANIZER":
+        return "Event Organizer";
+
+      case "CUSTOMER":
+        return "Regular User";
+
+      case "ADMIN":
+        return "Administrator";
+
+      default:
+        return role || "-";
+    }
+  };
+
+  // ==================================================
+  // STATUS
+  // ==================================================
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "ACTIVE":
+        return "Active";
+
+      case "INACTIVE":
+        return "Inactive";
+
+      case "SUSPENDED":
+        return "Suspended";
+
+      default:
+        return status || "-";
+    }
+  };
+
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "ACTIVE":
+        return "status-active";
+
+      case "INACTIVE":
+        return "status-inactive";
+
+      case "SUSPENDED":
+        return "status-suspended";
+
+      default:
+        return "";
+    }
+  };
+
+  // ==================================================
+  // DATE
+  // ==================================================
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    try {
+      return new Date(date).toLocaleDateString(
+        "id-ID",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }
+      );
+    } catch {
+      return date;
+    }
+  };
+
+  // ==================================================
+  // AVATAR
+  // ==================================================
+  const getInitials = (name) => {
+    if (!name) return "U";
+
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  // ==================================================
+  // LOADING
+  // ==================================================
+  if (loading) {
+    return (
+      <div className="detail-user-page">
+        <Sidebar />
+
+        <main className="detail-user-main">
+          <Navbar />
+
+          <div className="detail-user-content">
+            <div className="detail-user-heading">
+              <button
+                type="button"
+                className="back-button"
+                onClick={handleBack}
+              >
+                ←
+              </button>
+
+              <h1>User Management</h1>
+            </div>
+
+            <div
+              className="information-card"
+              style={{
+                padding: "40px",
+                textAlign: "center",
+              }}
+            >
+              Memuat data user...
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ==================================================
+  // ERROR
+  // ==================================================
+  if (error || !user) {
+    return (
+      <div className="detail-user-page">
+        <Sidebar />
+
+        <main className="detail-user-main">
+          <Navbar />
+
+          <div className="detail-user-content">
+            <div className="detail-user-heading">
+              <button
+                type="button"
+                className="back-button"
+                onClick={handleBack}
+              >
+                ←
+              </button>
+
+              <h1>User Management</h1>
+            </div>
+
+            <div
+              className="information-card"
+              style={{
+                padding: "40px",
+                textAlign: "center",
+              }}
+            >
+              <h3>
+                Gagal mengambil data user
+              </h3>
+
+              <p>
+                {error ||
+                  "User tidak ditemukan."}
+              </p>
+
+              <button
+                type="button"
+                onClick={fetchUserDetail}
+              >
+                Coba Lagi
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // ==================================================
+  // IMPORTANT
+  // ==================================================
+  const status = user.authStatus;
+
   return (
     <div className="detail-user-page">
-
-      {/* = SIDEBAR = */}
       <Sidebar />
 
-      {/* = MAIN AREA = */}
       <main className="detail-user-main">
-
-        {/* = NAVBAR = */}
         <Navbar />
 
-        {/* = CONTENT = */}
         <div className="detail-user-content">
 
-          {/* PAGE TITLE */}
+          {/* =========================
+              TITLE
+          ========================= */}
           <div className="detail-user-heading">
             <button
               type="button"
@@ -96,267 +382,344 @@ function DetailUser() {
             <h1>User Management</h1>
           </div>
 
-          {/* = USER PROFILE CARD = */}
+          {/* =========================
+              PROFILE
+          ========================= */}
           <section className="user-profile-card">
 
             <div className="user-profile-left">
 
               <div className="user-avatar">
-                {user.name
-                  .split(" ")
-                  .map((word) => word[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
+                {getInitials(user.name)}
               </div>
 
               <div className="user-profile-info">
 
-                <h2>{user.name}</h2>
+                <h2>
+                  {user.name || "-"}
+                </h2>
 
                 <div className="user-role">
-                  {user.role}
+                  {getRoleLabel(user.role)}
+
                   <span>•</span>
-                  Joined {user.joined}
+
+                  Joined{" "}
+                  {formatDate(user.createdAt)}
                 </div>
 
                 <div className="user-badges">
 
-                  {user.verified && (
+                  {user.role === "ORGANIZER" && (
                     <span className="user-badge verified-badge">
-                      ✓ Top Rated
+                      Event Organizer
                     </span>
                   )}
 
-                  <span className="user-badge event-badge">
-                    {user.events} Events
+                  <span
+                    className={`user-badge event-badge ${getStatusClass(
+                      status
+                    )}`}
+                  >
+                    {getStatusLabel(status)}
                   </span>
 
                 </div>
-
               </div>
-
             </div>
 
+            {/* =========================
+                ACTION BUTTON
+            ========================= */}
             <div className="user-profile-actions">
 
-              <button
-                type="button"
-                className="suspend-button"
-                onClick={() => console.log("Suspend user:", user.name)}
-              >
-                Suspend
-              </button>
+              {status !== "SUSPENDED" && (
+                <button
+                  type="button"
+                  className="suspend-button"
+                  disabled={actionLoading}
+                  onClick={handleSuspend}
+                >
+                  {actionLoading
+                    ? "Processing..."
+                    : "Suspend"}
+                </button>
+              )}
 
-              <button
-                type="button"
-                className="edit-profile-button"
-                onClick={() => console.log("Edit profile:", user.name)}
-              >
-                Edit Profile
-              </button>
+              {status === "SUSPENDED" && (
+                <button
+                  type="button"
+                  className="edit-profile-button"
+                  disabled={actionLoading}
+                  onClick={() =>
+                    handleUpdateStatus("ACTIVE")
+                  }
+                >
+                  {actionLoading
+                    ? "Processing..."
+                    : "Aktifkan User"}
+                </button>
+              )}
 
             </div>
-
           </section>
 
-          {/* = INFORMATION GRID = */}
+          {/* =========================
+              INFORMATION GRID
+          ========================= */}
           <div className="user-information-grid">
 
-            {/* = CONTACT = */}
+            {/* =========================
+                CONTACT
+            ========================= */}
             <section className="information-card">
 
               <div className="information-header">
 
                 <div className="information-icon">
-                  □
+                  ☎
                 </div>
 
-                <h3>Informasi Kontak</h3>
+                <h3>
+                  Informasi Kontak
+                </h3>
 
               </div>
 
-              <div className="information-divider"></div>
+              <div className="information-divider" />
 
               <div className="information-content">
 
+                {/* USERNAME */}
                 <div className="information-field">
 
-                  <label>Nama Perusahaan</label>
+                  <label>
+                    Username
+                  </label>
 
                   <div className="information-value">
-                    {user.company}
+                    {user.username || "-"}
                   </div>
 
                 </div>
 
+                {/* EMAIL */}
                 <div className="information-field">
 
-                  <label>Email</label>
+                  <label>
+                    Email
+                  </label>
 
                   <div className="information-value email-value">
-                    <span>{user.email}</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigator.clipboard?.writeText(user.email)
-                      }
-                    >
-                      □
-                    </button>
-                  </div>
 
-                </div>
+                    <span>
+                      {user.email || "-"}
+                    </span>
 
-                <div className="information-field">
-
-                  <label>Nomor Telepon</label>
-
-                  <div className="information-value phone-value">
-                    <span>{user.phone}</span>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigator.clipboard?.writeText(user.phone)
-                      }
-                    >
-                      □
-                    </button>
-                  </div>
-
-                </div>
-
-              </div>
-
-            </section>
-
-            {/* = DOCUMENT = */}
-            <section className="information-card">
-
-              <div className="information-header">
-
-                <div className="information-icon">
-                  □
-                </div>
-
-                <h3>Dokumen & Verifikasi</h3>
-
-              </div>
-
-              <div className="information-divider"></div>
-
-              <div className="information-content">
-
-                {/* STATUS */}
-                <div className="verification-status">
-
-                  <label>Status Verifikasi</label>
-
-                  <div className="verification-row">
-
-                    {user.verified ? (
-                      <>
-                        <span className="verified-status">
-                          ✓ Verified
-                        </span>
-
-                        <span className="verification-date">
-                          Sejak 15 Jan 2023
-                        </span>
-                      </>
-                    ) : (
-                      <span className="not-verified-status">
-                        Belum Terverifikasi
-                      </span>
+                    {user.email && (
+                      <button
+                        type="button"
+                        className="copy-button"
+                        title="Salin email"
+                        onClick={() =>
+                          handleCopy(user.email)
+                        }
+                      >
+                        ⧉
+                      </button>
                     )}
 
                   </div>
 
                 </div>
 
-                {/* PORTFOLIO */}
+                {/* PHONE */}
                 <div className="information-field">
 
                   <label>
-                    Portfolio / Company Profile
+                    Nomor Telepon
                   </label>
 
-                  <div className="document-box">
+                  <div className="information-value phone-value">
 
-                    <div className="document-icon">
-                      PDF
-                    </div>
+                    <span>
+                      {user.phone || "-"}
+                    </span>
 
-                    <div className="document-info">
-
-                      <strong>
-                        IM_Entertainment_Profile_2023.pdf
-                      </strong>
-
-                      <span>
-                        4.2 MB
-                      </span>
-
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        console.log("Download portfolio")
-                      }
-                    >
-                      ↓
-                    </button>
+                    {user.phone && (
+                      <button
+                        type="button"
+                        className="copy-button"
+                        title="Salin nomor telepon"
+                        onClick={() =>
+                          handleCopy(user.phone)
+                        }
+                      >
+                        ⧉
+                      </button>
+                    )}
 
                   </div>
 
                 </div>
 
-                {/* KTP */}
+                {/* NIK */}
                 <div className="information-field">
 
                   <label>
-                    KTP Penanggung Jawab
+                    NIK
                   </label>
 
-                  <div className="document-box">
+                  <div className="information-value">
+                    {user.nik || "-"}
+                  </div>
 
-                    <div className="document-icon image-document">
-                      IMG
-                    </div>
+                </div>
 
-                    <div className="document-info">
+              </div>
+            </section>
 
-                      <strong>
-                        KTP_Direktur_Utama.jpg
-                      </strong>
+            {/* =========================
+                ACCOUNT
+            ========================= */}
+            <section className="information-card">
 
-                      <span>
-                        1.1 MB
-                      </span>
+              <div className="information-header">
 
-                    </div>
+                <div className="information-icon">
+                  ◉
+                </div>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        console.log("Preview KTP")
-                      }
+                <h3>
+                  Informasi Akun
+                </h3>
+
+              </div>
+
+              <div className="information-divider" />
+
+              <div className="information-content">
+
+                {/* ROLE */}
+                <div className="information-field">
+
+                  <label>
+                    Role
+                  </label>
+
+                  <div className="information-value">
+                    {getRoleLabel(user.role)}
+                  </div>
+
+                </div>
+
+                {/* STATUS */}
+                <div className="information-field">
+
+                  <label>
+                    Status Akun
+                  </label>
+
+                  <div className="verification-row">
+
+                    <span
+                      className={`verified-status ${getStatusClass(
+                        status
+                      )}`}
                     >
-                      ◉
-                    </button>
+                      {getStatusLabel(status)}
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {/* JOINED */}
+                <div className="information-field">
+
+                  <label>
+                    Bergabung Sejak
+                  </label>
+
+                  <div className="information-value">
+                    {formatDate(user.createdAt)}
+                  </div>
+
+                </div>
+
+                {/* USER ID */}
+                <div className="information-field">
+
+                  <label>
+                    User ID
+                  </label>
+
+                  <div className="information-value">
+
+                    <span>
+                      {user.userId || id}
+                    </span>
+
+                    {user.userId && (
+                      <button
+                        type="button"
+                        className="copy-button"
+                        title="Salin User ID"
+                        onClick={() =>
+                          handleCopy(user.userId)
+                        }
+                      >
+                        ⧉
+                      </button>
+                    )}
 
                   </div>
 
                 </div>
 
               </div>
-
             </section>
-
           </div>
 
-          {/* = ACCOUNT STATUS = */}
+          {/* =========================
+              DOCUMENT
+          ========================= */}
+          <section className="information-card">
+
+            <div className="information-header">
+
+              <div className="information-icon">
+                ▣
+              </div>
+
+              <h3>
+                Dokumen & Verifikasi
+              </h3>
+
+            </div>
+
+            <div className="information-divider" />
+
+            <div className="information-content">
+
+              <p>
+                Data dokumen/verifikasi
+                perusahaan tidak tersedia
+                pada endpoint detail user
+                yang disediakan backend.
+              </p>
+
+              <p>
+                Halaman hanya menampilkan
+                data yang dikirim oleh API.
+              </p>
+
+            </div>
+          </section>
+
+          {/* =========================
+              SUMMARY
+          ========================= */}
           <section className="account-summary-card">
 
             <div className="account-summary-item">
@@ -366,13 +729,11 @@ function DetailUser() {
               </span>
 
               <span
-                className={`account-status ${
-                  user.status === "Active"
-                    ? "status-active"
-                    : "status-suspended"
-                }`}
+                className={`account-status ${getStatusClass(
+                  status
+                )}`}
               >
-                {user.status}
+                {getStatusLabel(status)}
               </span>
 
             </div>
@@ -384,7 +745,7 @@ function DetailUser() {
               </span>
 
               <strong>
-                {user.role}
+                {getRoleLabel(user.role)}
               </strong>
 
             </div>
@@ -392,11 +753,11 @@ function DetailUser() {
             <div className="account-summary-item">
 
               <span className="summary-label">
-                Total Event
+                Username
               </span>
 
               <strong>
-                {user.events} Events
+                {user.username || "-"}
               </strong>
 
             </div>
@@ -408,7 +769,7 @@ function DetailUser() {
               </span>
 
               <strong>
-                USR-{String(id).padStart(4, "0")}
+                {user.userId || id}
               </strong>
 
             </div>
@@ -416,9 +777,7 @@ function DetailUser() {
           </section>
 
         </div>
-
       </main>
-
     </div>
   );
 }

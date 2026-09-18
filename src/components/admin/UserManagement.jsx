@@ -1,136 +1,223 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
+
+import { getAdminUsers } from "../../services/adminUserService";
 
 import "./UserManagement.css";
 
 function UserManagement() {
   const navigate = useNavigate();
 
-  // ==
-  // DATA USER SEMENTARA
-  // ==
-
-  const users = [
-    {
-      id: 1,
-      name: "Alex Johnson",
-      email: "alex.j@example.com",
-      type: "Event Organizer",
-      joinDate: "Oct 24, 2023",
-      status: "Active",
-      initials: "AJ",
-      color: "purple",
-    },
-    {
-      id: 2,
-      name: "Sarah Lee",
-      email: "sarah.lee@gmail.com",
-      type: "Regular User",
-      joinDate: "Nov 02, 2023",
-      status: "Active",
-      initials: "SL",
-      color: "image",
-    },
-    {
-      id: 3,
-      name: "Marcus Rodriguez",
-      email: "m.rodriguez@eventper.site",
-      type: "Event Organizer",
-      joinDate: "Jul 15, 2023",
-      status: "Suspended",
-      initials: "MR",
-      color: "orange",
-    },
-    {
-      id: 4,
-      name: "Emily Wong",
-      email: "emily.w@designco.com",
-      type: "Regular User",
-      joinDate: "Dec 10, 2023",
-      status: "Active",
-      initials: "EW",
-      color: "blue",
-    },
-    {
-      id: 5,
-      name: "Daniel Smith",
-      email: "daniel.smith@gmail.com",
-      type: "Regular User",
-      joinDate: "Dec 15, 2023",
-      status: "Active",
-      initials: "DS",
-      color: "green",
-    },
-    {
-      id: 6,
-      name: "Jessica Brown",
-      email: "jessica.brown@gmail.com",
-      type: "Event Organizer",
-      joinDate: "Jan 04, 2024",
-      status: "Active",
-      initials: "JB",
-      color: "pink",
-    },
-    {
-      id: 7,
-      name: "Michael Wilson",
-      email: "michael.w@example.com",
-      type: "Regular User",
-      joinDate: "Jan 12, 2024",
-      status: "Suspended",
-      initials: "MW",
-      color: "yellow",
-    },
-    {
-      id: 8,
-      name: "Olivia Taylor",
-      email: "olivia.taylor@gmail.com",
-      type: "Regular User",
-      joinDate: "Jan 18, 2024",
-      status: "Active",
-      initials: "OT",
-      color: "cyan",
-    },
-  ];
-
-  // ==
+  // ==========================================
   // STATE
-  // ==
+  // ==========================================
+
+  const [users, setUsers] = useState([]);
 
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState("All Users");
+
+  const [filterType, setFilterType] =
+    useState("All Users");
+
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [loading, setLoading] = useState(true);
+
+  const [error, setError] = useState("");
 
   const usersPerPage = 4;
 
-  // ==
+  // ==========================================
+  // GET USERS FROM API
+  // ==========================================
+
+  const fetchUsers = async (role = "") => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getAdminUsers(role);
+
+      console.log("Admin users response:", response);
+
+      /*
+        Backend response:
+
+        {
+          msg: "...",
+          status: 200,
+          data: [
+            {
+              userId: "...",
+              name: "...",
+              email: "...",
+              username: "...",
+              phone: "...",
+              nik: "...",
+              role: "CUSTOMER",
+              authStatus: "ACTIVE",
+              createdAt: "..."
+            }
+          ]
+        }
+      */
+
+      const userData = response?.data ?? response;
+
+      if (!Array.isArray(userData)) {
+        throw new Error(
+          "Format data user dari API tidak sesuai."
+        );
+      }
+
+      setUsers(userData);
+    } catch (err) {
+      console.error(
+        "Gagal mengambil data users:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Gagal mengambil data users."
+      );
+
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // INITIAL LOAD
+  // ==========================================
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  // ==========================================
+  // ROLE LABEL
+  // ==========================================
+
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case "ORGANIZER":
+        return "Event Organizer";
+
+      case "CUSTOMER":
+        return "Regular User";
+
+      case "ADMIN":
+        return "Administrator";
+
+      default:
+        return role || "-";
+    }
+  };
+
+  // ==========================================
+  // STATUS LABEL
+  // ==========================================
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "ACTIVE":
+        return "Active";
+
+      case "INACTIVE":
+        return "Inactive";
+
+      case "SUSPENDED":
+        return "Suspended";
+
+      default:
+        return status || "-";
+    }
+  };
+
+  // ==========================================
+  // INITIALS
+  // ==========================================
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+
+    return name
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  // ==========================================
+  // FORMAT DATE
+  // ==========================================
+
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    try {
+      return new Date(date).toLocaleDateString(
+        "id-ID",
+        {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        }
+      );
+    } catch {
+      return date;
+    }
+  };
+
+  // ==========================================
   // FILTER USER
-  // ==
+  // ==========================================
 
   const filteredUsers = users.filter((user) => {
     const keyword = search.toLowerCase();
 
+    const name =
+      user.name?.toLowerCase() || "";
+
+    const email =
+      user.email?.toLowerCase() || "";
+
+    const username =
+      user.username?.toLowerCase() || "";
+
+    const userId =
+      user.userId?.toLowerCase() || "";
+
+    const role =
+      getRoleLabel(user.role).toLowerCase();
+
     const matchesSearch =
-      user.name.toLowerCase().includes(keyword) ||
-      user.email.toLowerCase().includes(keyword) ||
-      user.type.toLowerCase().includes(keyword);
+      name.includes(keyword) ||
+      email.includes(keyword) ||
+      username.includes(keyword) ||
+      userId.includes(keyword) ||
+      role.includes(keyword);
 
     const matchesType =
       filterType === "All Users" ||
       (filterType === "Regular Users" &&
-        user.type === "Regular User") ||
+        user.role === "CUSTOMER") ||
       (filterType === "Event Organizers" &&
-        user.type === "Event Organizer");
+        user.role === "ORGANIZER");
 
     return matchesSearch && matchesType;
   });
 
-  // ==
+  // ==========================================
   // PAGINATION
-  // ==
+  // ==========================================
 
   const totalPages = Math.ceil(
     filteredUsers.length / usersPerPage
@@ -144,94 +231,105 @@ function UserManagement() {
     startIndex + usersPerPage
   );
 
-  // ==
+  // ==========================================
   // SEARCH
-  // ==
+  // ==========================================
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
     setCurrentPage(1);
   };
 
-  // ==
+  // ==========================================
   // FILTER
-  // ==
+  // ==========================================
 
-  const handleFilter = (type) => {
+  const handleFilter = async (type) => {
     setFilterType(type);
     setCurrentPage(1);
+
+    /*
+      Kita bisa filter langsung dari data yang
+      sudah diambil.
+
+      Jadi tidak perlu request API lagi setiap
+      kali klik tab.
+    */
   };
 
-  // ==
-  // ADD USER
-  // ==
-
-  const handleAddUser = () => {
-    console.log("Tambah user");
-  };
-
-  // ==
+  // ==========================================
   // DETAIL USER
-  // ==
+  // ==========================================
 
   const handleUserClick = (user) => {
-    navigate(`/admin/users/${user.id}`);
+    if (!user?.userId) {
+      console.error(
+        "User ID tidak tersedia:",
+        user
+      );
+      return;
+    }
+
+    navigate(
+      `/admin/users/${encodeURIComponent(
+        user.userId
+      )}`
+    );
   };
 
-  // ==
+  // ==========================================
   // USER ACTION
-  // ==
+  // ==========================================
 
   const handleUserAction = (user) => {
-    console.log("Action untuk:", user.name);
+    if (!user?.userId) return;
+
+    navigate(
+      `/admin/users/${encodeURIComponent(
+        user.userId
+      )}`
+    );
   };
 
-  // ==
+  // ==========================================
   // PAGE CHANGE
-  // ==
+  // ==========================================
 
   const handlePageChange = (page) => {
-    if (page < 1 || page > totalPages) {
+    if (
+      page < 1 ||
+      page > totalPages
+    ) {
       return;
     }
 
     setCurrentPage(page);
   };
 
-  // ==
+  // ==========================================
   // RENDER
-  // ==
+  // ==========================================
 
   return (
     <div className="user-management-page">
 
-      {/* ======
-          SIDEBAR
-      ======= */}
+      {/* ================= SIDEBAR ================= */}
 
       <Sidebar />
 
-      {/* ======
-          MAIN AREA
-      ======= */}
+      {/* ================= MAIN AREA ================= */}
 
       <main className="user-main">
 
-        {/* ======
-            NAVBAR
-        ======= */}
+        {/* ================= NAVBAR ================= */}
 
         <Navbar />
 
-        {/* ======
-            CONTENT
-        ======= */}
+        {/* ================= CONTENT ================= */}
 
         <section className="user-content">
 
-          {/* ====
-              PAGE HEADER
-          ===== */}
+          {/* ================= PAGE HEADER ================= */}
 
           <div className="user-page-header">
 
@@ -242,24 +340,20 @@ function UserManagement() {
               </h1>
 
               <p>
-                Manage platform users, event organizers,
-                and system administrators.
+                Manage platform users, event
+                organizers, and system
+                administrators.
               </p>
 
             </div>
-    
 
           </div>
 
-          {/* ====
-              USER PANEL
-          ===== */}
+          {/* ================= USER PANEL ================= */}
 
           <div className="user-panel">
 
-            {/* ==
-                TOOLBAR
-            === */}
+            {/* ================= TOOLBAR ================= */}
 
             <div className="user-toolbar">
 
@@ -292,7 +386,9 @@ function UserManagement() {
                       : "filter-tab"
                   }
                   onClick={() =>
-                    handleFilter("All Users")
+                    handleFilter(
+                      "All Users"
+                    )
                   }
                 >
                   All Users
@@ -301,12 +397,15 @@ function UserManagement() {
                 <button
                   type="button"
                   className={
-                    filterType === "Regular Users"
+                    filterType ===
+                    "Regular Users"
                       ? "filter-tab active"
                       : "filter-tab"
                   }
                   onClick={() =>
-                    handleFilter("Regular Users")
+                    handleFilter(
+                      "Regular Users"
+                    )
                   }
                 >
                   Regular Users
@@ -315,12 +414,15 @@ function UserManagement() {
                 <button
                   type="button"
                   className={
-                    filterType === "Event Organizers"
+                    filterType ===
+                    "Event Organizers"
                       ? "filter-tab active"
                       : "filter-tab"
                   }
                   onClick={() =>
-                    handleFilter("Event Organizers")
+                    handleFilter(
+                      "Event Organizers"
+                    )
                   }
                 >
                   Event Organizers
@@ -334,7 +436,9 @@ function UserManagement() {
                 type="button"
                 className="advanced-filter"
                 onClick={() =>
-                  console.log("Advanced filter")
+                  console.log(
+                    "Advanced filter"
+                  )
                 }
               >
                 ☰
@@ -342,9 +446,30 @@ function UserManagement() {
 
             </div>
 
-            {/* ==
-                TABLE
-            === */}
+            {/* ================= ERROR ================= */}
+
+            {error && (
+              <div
+                style={{
+                  padding: "20px",
+                  textAlign: "center",
+                  color: "#c0392b",
+                }}
+              >
+                <p>{error}</p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    fetchUsers()
+                  }
+                >
+                  Coba Lagi
+                </button>
+              </div>
+            )}
+
+            {/* ================= TABLE ================= */}
 
             <div className="user-table-wrapper">
 
@@ -380,117 +505,145 @@ function UserManagement() {
 
                 <tbody>
 
-                  {displayedUsers.length > 0 ? (
+                  {/* LOADING */}
 
-                    displayedUsers.map((user) => (
+                  {loading ? (
 
-                      <tr
-                        key={user.id}
-                        className="user-row-clickable"
-                        onClick={() =>
-                          handleUserClick(user)
-                        }
-                        title={`Lihat detail ${user.name}`}
+                    <tr>
+
+                      <td
+                        colSpan="5"
+                        className="empty-user"
                       >
+                        Memuat data user...
+                      </td>
 
-                        {/* =
-                            NAME
-                        == */}
+                    </tr>
 
-                        <td>
+                  ) : displayedUsers.length > 0 ? (
 
-                          <div className="user-info">
+                    displayedUsers.map(
+                      (user) => (
 
-                            <div
-                              className={`user-avatar ${user.color}`}
+                        <tr
+                          key={user.userId}
+                          className="user-row-clickable"
+                          onClick={() =>
+                            handleUserClick(
+                              user
+                            )
+                          }
+                          title={`Lihat detail ${
+                            user.name || "user"
+                          }`}
+                        >
+
+                          {/* ================= NAME ================= */}
+
+                          <td>
+
+                            <div className="user-info">
+
+                              <div
+                                className="user-avatar"
+                              >
+                                {getInitials(
+                                  user.name
+                                )}
+                              </div>
+
+                              <div className="user-name-wrapper">
+
+                                <strong>
+                                  {user.name ||
+                                    "-"}
+                                </strong>
+
+                                <span>
+                                  {user.email ||
+                                    "-"}
+                                </span>
+
+                              </div>
+
+                            </div>
+
+                          </td>
+
+                          {/* ================= TYPE ================= */}
+
+                          <td>
+
+                            <span className="user-type">
+                              {getRoleLabel(
+                                user.role
+                              )}
+                            </span>
+
+                          </td>
+
+                          {/* ================= JOIN DATE ================= */}
+
+                          <td>
+
+                            <span className="join-date">
+                              {formatDate(
+                                user.createdAt
+                              )}
+                            </span>
+
+                          </td>
+
+                          {/* ================= STATUS ================= */}
+
+                          <td>
+
+                            <span
+                              className={`user-status ${
+                                user.authStatus ===
+                                "ACTIVE"
+                                  ? "active"
+                                  : user.authStatus ===
+                                    "SUSPENDED"
+                                  ? "suspended"
+                                  : "inactive"
+                              }`}
                             >
-                              {user.initials}
-                            </div>
 
-                            <div className="user-name-wrapper">
+                              <span className="status-dot"></span>
 
-                              <strong>
-                                {user.name}
-                              </strong>
+                              {getStatusLabel(
+                                user.authStatus
+                              )}
 
-                              <span>
-                                {user.email}
-                              </span>
+                            </span>
 
-                            </div>
+                          </td>
 
-                          </div>
+                          {/* ================= ACTION ================= */}
 
-                        </td>
+                          <td>
 
-                        {/* =
-                            TYPE
-                        == */}
+                            <button
+                              type="button"
+                              className="user-action-button"
+                              onClick={(e) => {
+                                e.stopPropagation();
 
-                        <td>
+                                handleUserAction(
+                                  user
+                                );
+                              }}
+                            >
+                              ⋮
+                            </button>
 
-                          <span className="user-type">
-                            {user.type}
-                          </span>
+                          </td>
 
-                        </td>
+                        </tr>
 
-                        {/* =
-                            JOIN DATE
-                        == */}
-
-                        <td>
-
-                          <span className="join-date">
-                            {user.joinDate}
-                          </span>
-
-                        </td>
-
-                        {/* =
-                            STATUS
-                        == */}
-
-                        <td>
-
-                          <span
-                            className={`user-status ${
-                              user.status === "Active"
-                                ? "active"
-                                : "suspended"
-                            }`}
-                          >
-
-                            <span className="status-dot"></span>
-
-                            {user.status}
-
-                          </span>
-
-                        </td>
-
-                        {/* =
-                            ACTION
-                        == */}
-
-                        <td>
-
-                          <button
-                            type="button"
-                            className="user-action-button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleUserAction(user);
-                            }}
-                          >
-                            ⋮
-                          </button>
-
-                        </td>
-
-                      </tr>
-
-                    ))
+                      )
+                    )
 
                   ) : (
 
@@ -500,7 +653,8 @@ function UserManagement() {
                         colSpan="5"
                         className="empty-user"
                       >
-                        Tidak ada user yang ditemukan.
+                        Tidak ada user yang
+                        ditemukan.
                       </td>
 
                     </tr>
@@ -513,9 +667,7 @@ function UserManagement() {
 
             </div>
 
-            {/* ==
-                TABLE FOOTER
-            === */}
+            {/* ================= TABLE FOOTER ================= */}
 
             <div className="user-table-footer">
 
@@ -530,7 +682,8 @@ function UserManagement() {
                 {" "}to{" "}
 
                 {Math.min(
-                  startIndex + usersPerPage,
+                  startIndex +
+                    usersPerPage,
                   filteredUsers.length
                 )}
 
@@ -542,24 +695,31 @@ function UserManagement() {
 
               </span>
 
-              {/* PAGINATION */}
+              {/* ================= PAGINATION ================= */}
 
               <div className="pagination">
 
                 <button
                   type="button"
                   className="page-arrow"
-                  disabled={currentPage === 1}
+                  disabled={
+                    currentPage === 1
+                  }
                   onClick={() =>
-                    handlePageChange(currentPage - 1)
+                    handlePageChange(
+                      currentPage - 1
+                    )
                   }
                 >
                   ‹
                 </button>
 
                 {Array.from(
-                  { length: totalPages },
-                  (_, index) => index + 1
+                  {
+                    length: totalPages,
+                  },
+                  (_, index) =>
+                    index + 1
                 ).map((page) => (
 
                   <button
@@ -571,7 +731,9 @@ function UserManagement() {
                         : "page-number"
                     }
                     onClick={() =>
-                      handlePageChange(page)
+                      handlePageChange(
+                        page
+                      )
                     }
                   >
                     {page}
@@ -583,11 +745,14 @@ function UserManagement() {
                   type="button"
                   className="page-arrow"
                   disabled={
-                    currentPage === totalPages ||
+                    currentPage ===
+                      totalPages ||
                     totalPages === 0
                   }
                   onClick={() =>
-                    handlePageChange(currentPage + 1)
+                    handlePageChange(
+                      currentPage + 1
+                    )
                   }
                 >
                   ›
