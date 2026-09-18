@@ -149,6 +149,8 @@ export const apiFetch = async (
     options.raw === true
   );
 
+  console.log(`[API] ${options.method || "GET"} ${url}`);
+
   // ========================================
   // FORMDATA CHECK
   // ========================================
