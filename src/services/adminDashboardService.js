@@ -1,22 +1,22 @@
-import { apiFetch } from "./api";
+// src/services/adminDashboardService.js
+import { apiFetch } from './api';
 
+// 1. Mengambil metrik utama platform
 export const getAdminDashboardMetrics = async () => {
-  return apiFetch("/api/admin/dashboard/metrics");
+  return await apiFetch('/api/admin/dashboard/metrics');
 };
 
+// 2. Mengambil daftar event terbaru di platform
 export const getAdminRecentEvents = async () => {
-  return apiFetch("/api/admin/dashboard/recent-events");
+  return await apiFetch('/api/admin/dashboard/recent-events');
 };
 
-export const getAdminRecentTransactions = async () => {
-  return apiFetch("/api/admin/dashboard/recent-transactions");
-};
-
-// Alias untuk EventManagement
+// 3. Alias untuk jaga-jaga
 export const getAdminEvents = async () => {
-  return apiFetch("/api/admin/dashboard/recent-events");
+  return await getAdminRecentEvents();
 };
 
-// Backward-compatible alias
-export const getRecentTransactions =
-  getAdminRecentTransactions;
+// 4. Mengambil daftar transaksi pesanan tiket global terkini
+export const getAdminRecentTransactions = async () => {
+  return await apiFetch('/api/admin/dashboard/recent-transactions');
+};

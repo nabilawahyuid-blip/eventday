@@ -61,17 +61,12 @@ const extractErrorMessage = (result, fallback) => {
   }
 
   return (
-    result.msg ||
     result.message ||
-    result.error ||
-    (
-      result.data &&
-      typeof result.data === "object"
-        ? result.data.msg ||
-          result.data.message ||
-          result.data.error
-        : null
-    ) ||
+    result.msg ||
+    (result.data &&
+    typeof result.data === "object"
+      ? result.data.msg || result.data.message
+      : null) ||
     fallback
   );
 };
@@ -81,14 +76,18 @@ const extractErrorMessage = (result, fallback) => {
 // ==========================================
 
 export const toQueryString = (params = {}) => {
-  const query = new URLSearchParams(
-    Object.entries(params).filter(
+  const query = Object.entries(params)
+    .filter(
       ([, value]) =>
         value !== undefined &&
         value !== null &&
         value !== ""
     )
-  ).toString();
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+    )
+    .join("&");
 
   return query ? `?${query}` : "";
 };
@@ -102,33 +101,20 @@ const buildUrl = (path, raw = false) => {
     ? path
     : `/${path}`;
 
-  // ========================================
   // RAW REQUEST
-  // ========================================
   //
-  // Jika raw: true,
-  // request langsung menuju backend/ngrok.
-  //
-  // Contoh:
-  // apiFetch("/api/events", { raw: true })
-  //
-  // menjadi:
-  // https://ngrok.../api/events
-
+  // Kalau raw: true, langsung menggunakan
+  // URL backend/ngrok.
   if (raw) {
     return `${API_URL}${cleanPath}`;
   }
 
-  // ========================================
   // DEFAULT → VITE PROXY
-  // ========================================
   //
-  // Browser:
+  // Browser request:
   // localhost:5173/api/...
   //
-  // Vite akan meneruskan request
-  // ke backend melalui proxy.
-
+  // Vite proxy meneruskannya ke backend.
   return cleanPath;
 };
 
@@ -164,8 +150,8 @@ export const apiFetch = async (
   const headers = {
     ...(isFormData
       ? {
-          // Untuk FormData, jangan set
-          // Content-Type secara manual.
+          // Jangan set Content-Type secara manual
+          // untuk FormData.
           Accept: "application/json",
         }
       : getHeaders()),
@@ -174,15 +160,15 @@ export const apiFetch = async (
     ...(options.headers || {}),
   };
 
-  // Browser akan otomatis menentukan:
-  // multipart/form-data; boundary=...
+  // Untuk FormData, browser yang menentukan
+  // multipart/form-data + boundary.
   if (isFormData) {
     delete headers["Content-Type"];
     delete headers["content-type"];
   }
 
   // ========================================
-  // FETCH REQUEST
+  // FETCH
   // ========================================
 
   const response = await fetch(url, {
@@ -214,7 +200,6 @@ export const apiFetch = async (
       )
     );
 
-    // Informasi tambahan untuk component
     error.status = response.status;
     error.data = result;
 
@@ -222,7 +207,7 @@ export const apiFetch = async (
   }
 
   // ========================================
-  // RETURN DATA
+  // RETURN
   // ========================================
 
   return result;
