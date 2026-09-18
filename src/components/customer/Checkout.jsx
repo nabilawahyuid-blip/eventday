@@ -10,6 +10,7 @@ import {
   saveAttendees,
 } from "../../services/checkoutService";
 import { chargePayment, openMidtransPayment } from "../../services/paymentService";
+import { getProfile } from "../../services/profileService";
 import "./Checkout.css";
 
 function Checkout() {
@@ -38,15 +39,61 @@ function Checkout() {
     name: "",
     email: "",
     nik: "",
+    isLocked: false,
+  });
+
+  const createLockedBuyer = (name, email, nik) => ({
+    name,
+    email,
+    nik,
+    isLocked: true,
   });
 
   // Form pemesan otomatis sejumlah tiket yang dipesan (1 tiket = 1 data pemesan)
   const [buyers, setBuyers] = useState(() =>
     Array.from(
       { length: Math.max(1, initialQuantity) },
-      createEmptyBuyer
+      ( _, index) => (index === 0 ? createLockedBuyer("", "", "") : createEmptyBuyer())
     )
   );
+
+  // Ambil profil user yang login untuk isi pemesan 1
+  useEffect(() => {
+    let cancelled = false;
+    const loadProfile = async () => {
+      try {
+        const res = await getProfile();
+        const data = res?.data || {};
+        if (cancelled) return;
+        setBuyers((prev) =>
+          prev.map((b, i) =>
+            i === 0
+              ? createLockedBuyer(
+                  data.name || localStorage.getItem("name") || "",
+                  data.email || localStorage.getItem("email") || "",
+                  data.nik || ""
+                )
+              : b
+          )
+        );
+      } catch {
+        if (cancelled) return;
+        setBuyers((prev) =>
+          prev.map((b, i) =>
+            i === 0
+              ? createLockedBuyer(
+                  localStorage.getItem("name") || "",
+                  localStorage.getItem("email") || "",
+                  ""
+                )
+              : b
+          )
+        );
+      }
+    };
+    loadProfile();
+    return () => { cancelled = true; };
+  }, []);
 
   const [openForms, setOpenForms] = useState({
     1: true,
@@ -243,6 +290,9 @@ function Checkout() {
     for (let index = 0; index < buyers.length; index++) {
       const buyer = buyers[index];
       const number = index + 1;
+
+      // Skip validasi untuk pemesan 1 (locked dari profil)
+      if (buyer.isLocked) continue;
 
       if (!buyer.name.trim()) {
         Swal.fire({
@@ -491,12 +541,13 @@ function Checkout() {
                 const formNumber = index + 1;
                 const isOpen =
                   openForms[formNumber] !== false;
+                const isLocked = buyer.isLocked;
 
                 return (
                   <div
                     className={`buyer-card ${
                       isOpen ? "buyer-card-open" : ""
-                    }`}
+                    } ${isLocked ? "buyer-card-locked" : ""}`}
                     id={`buyer-card-${formNumber}`}
                     key={formNumber}
                   >
@@ -505,7 +556,7 @@ function Checkout() {
                         type="button"
                         className="buyer-card-toggle"
                         onClick={() =>
-                          toggleForm(formNumber)
+                          !isLocked && toggleForm(formNumber)
                         }
                       >
                         <div className="buyer-title">
@@ -514,19 +565,23 @@ function Checkout() {
                           </span>
 
                           <strong>
-                            Data Diri Pemesan {formNumber}
+                            {isLocked
+                              ? "Data Diri Anda (Pemesan 1)"
+                              : `Data Diri Pemesan ${formNumber}`}
                           </strong>
                         </div>
 
-                        <span
-                          className={`accordion-icon ${
-                            isOpen ? "open" : ""
-                          }`}
-                        >
-                          <svg viewBox="0 0 24 24">
-                            <path d="m7 14 5-5 5 5" />
-                          </svg>
-                        </span>
+                        {!isLocked && (
+                          <span
+                            className={`accordion-icon ${
+                              isOpen ? "open" : ""
+                            }`}
+                          >
+                            <svg viewBox="0 0 24 24">
+                              <path d="m7 14 5-5 5 5" />
+                            </svg>
+                          </span>
+                        )}
                       </button>
                     </div>
 
@@ -542,6 +597,7 @@ function Checkout() {
                             type="text"
                             placeholder="Masukan Nama Lengkap"
                             value={buyer.name}
+                            disabled={isLocked}
                             onChange={(e) =>
                               handleBuyerChange(
                                 index,
@@ -554,7 +610,7 @@ function Checkout() {
 
                         <div className="input-group">
                           <label>
-                            Email {formNumber}
+                            Email {isLocked ? "" : formNumber}
                             <span>*</span>
                           </label>
 
@@ -562,6 +618,7 @@ function Checkout() {
                             type="email"
                             placeholder="Masukan Email"
                             value={buyer.email}
+                            disabled={isLocked}
                             onChange={(e) =>
                               handleBuyerChange(
                                 index,
@@ -574,7 +631,7 @@ function Checkout() {
 
                         <div className="input-group">
                           <label>
-                            NIK {formNumber}
+                            NIK {isLocked ? "" : formNumber}
                             <span>*</span>
                           </label>
 
@@ -584,6 +641,7 @@ function Checkout() {
                             maxLength={16}
                             placeholder="Masukan NIK"
                             value={buyer.nik}
+                            disabled={isLocked}
                             onChange={(e) =>
                               handleBuyerChange(
                                 index,
@@ -596,6 +654,12 @@ function Checkout() {
                             }
                           />
                         </div>
+
+                        {isLocked && (
+                          <p className="buyer-locked-note">
+                            Data ini diambil dari profil Anda dan tidak dapat diubah.
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
