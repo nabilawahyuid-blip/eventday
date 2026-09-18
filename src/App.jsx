@@ -38,6 +38,7 @@ import ProfileCustomer from "./components/customer/ProfileCustomer";
 import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
 import SyaratKetentuan from "./components/customer/SyaratKetentuan";
 import EditProfileCustomer from "./components/customer/EditProfileCustomer";
+import ChangePasswordCustomer from "./components/customer/ChangePasswordCustomer";
 import DetailRefundEO from "./components/eo/DetailRefundEO";
 import PayoutEO from "./components/eo/PayoutEo";
 import PengajuanPayoutEO from "./components/eo/PengajuanPayoutEO";
@@ -153,6 +154,10 @@ function App() {
           <Route
             path="/customer/profile/edit"
             element={<EditProfileCustomer />}
+          />
+          <Route
+            path="/customer/change-password"
+            element={<ChangePasswordCustomer />}
           />
           <Route path="/eo/refund/detail" element={<DetailRefundEO />} />
 

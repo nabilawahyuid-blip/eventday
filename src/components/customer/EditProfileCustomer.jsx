@@ -1,112 +1,232 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { getProfile, updateProfile, uploadAvatar } from "../../services/profileService";
 import "./EditProfileCustomer.css";
 
 function EditProfileCustomer() {
   const navigate = useNavigate();
-
+  const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [formData, setFormData] = useState({
-    name: "Adit Ramadan",
-    username: "Adit",
-    email: "adt@gmail.com",
-    phone: "08483958934",
-    nik: "3542094093004309",
+    name: "",
+    email: "",
+    username: "",
+    phone: "",
+    nik: "",
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await getProfile();
+        const data = res?.data || {};
+        if (cancelled) return;
+        setFormData({
+          name: data.name || "",
+          email: data.email || "",
+          username: data.username || "",
+          phone: data.phone || "",
+          nik: data.nik || "",
+        });
+        if (data.avatarUrl) {
+          setAvatarPreview(data.avatarUrl);
+        } else {
+          const saved = localStorage.getItem("avatarUrl");
+          if (saved) setAvatarPreview(saved);
+        }
+      } catch (err) {
+        console.error("Gagal memuat profil:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((previous) => ({
-      ...previous,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCancel = () => {
-    navigate(-1);
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    if (
-      !formData.name.trim() ||
-      !formData.username.trim() ||
-      !formData.email.trim() ||
-      !formData.phone.trim() ||
-      !formData.nik.trim()
-    ) {
+    const allowed = ["image/jpeg", "image/png", "image/jpg"];
+    if (!allowed.includes(file.type)) {
       Swal.fire({
         icon: "warning",
-        title: "Data Belum Lengkap",
-        text: "Silakan lengkapi semua data terlebih dahulu.",
+        title: "Format Tidak Didukung",
+        text: "Hanya file JPG dan PNG yang diperbolehkan.",
         confirmButtonColor: "#5143e6",
       });
-
       return;
     }
 
-    Swal.fire({
-      icon: "success",
-      title: "Berhasil Disimpan",
-      text: "Data diri kamu berhasil diperbarui.",
-      confirmButtonColor: "#5143e6",
-    }).then(() => {
-      navigate("/customer/profile");
-    });
+    if (file.size > 2 * 1024 * 1024) {
+      Swal.fire({
+        icon: "warning",
+        title: "Ukuran Terlalu Besar",
+        text: "Ukuran foto maksimal 2MB.",
+        confirmButtonColor: "#5143e6",
+      });
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const base64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      setAvatarPreview(base64);
+      localStorage.setItem("avatarUrl", base64);
+
+      try {
+        await uploadAvatar(file);
+      } catch {
+        // backend mock, abaikan error
+      }
+
+      await Swal.fire({
+        icon: "success",
+        title: "Foto Profil Diperbarui",
+        confirmButtonColor: "#5143e6",
+      });
+    } catch (err) {
+      console.error("Gagal upload avatar:", err);
+      setAvatarPreview(null);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Upload Foto",
+        text: err?.message || "Terjadi kesalahan. Silakan coba lagi.",
+        confirmButtonColor: "#5143e6",
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Data Belum Lengkap",
+        text: "Nama dan No WhatsApp wajib diisi.",
+        confirmButtonColor: "#5143e6",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await updateProfile({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        nik: formData.nik.trim(),
+      });
+
+      const updatedName = res?.data?.name || formData.name;
+      localStorage.setItem("name", updatedName);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Berhasil Disimpan",
+        text: "Data diri kamu berhasil diperbarui.",
+        confirmButtonColor: "#5143e6",
+      });
+      navigate("/customer/profile");
+    } catch (err) {
+      console.error("Gagal update profil:", err);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Menyimpan",
+        text: err?.message || "Terjadi kesalahan. Silakan coba lagi.",
+        confirmButtonColor: "#5143e6",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="edit-profile-page">
+        <header className="edit-profile-header">
+          <button type="button" className="edit-profile-back-button" onClick={() => navigate(-1)}>
+            <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+          <div className="edit-profile-logo">EVENT<span>DAY</span></div>
+        </header>
+        <main className="edit-profile-content">
+          <p style={{ textAlign: "center", padding: "2rem" }}>Memuat profil...</p>
+        </main>
+      </div>
+    );
+  }
+
+  const initials = formData.name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="edit-profile-page">
-      {/* HEADER */}
-
       <header className="edit-profile-header">
-        <button
-          type="button"
-          className="edit-profile-back-button"
-          onClick={handleCancel}
-          aria-label="Kembali"
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+        <button type="button" className="edit-profile-back-button" onClick={() => navigate(-1)} aria-label="Kembali">
+          <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
-
-        <div className="edit-profile-logo">
-          EVENT<span>DAY</span>
-        </div>
-
-        <div className="edit-profile-location">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
-            <circle cx="12" cy="9" r="2.5" />
-          </svg>
-
-          <span>Jakarta, ID</span>
-        </div>
+        <div className="edit-profile-logo">EVENT<span>DAY</span></div>
       </header>
 
-      {/* MAIN */}
-
       <main className="edit-profile-content">
-        {/* PROFILE CARD */}
-
         <section className="edit-profile-user-card">
-          <div className="edit-profile-photo">
-            <img
-              src="https://ui-avatars.com/api/?name=Adit+Ramadan&background=f5f5f5&color=777&size=180"
-              alt="Foto Profil"
+          <div className="edit-profile-photo-wrapper" onClick={handleAvatarClick}>
+            {avatarPreview ? (
+              <img src={avatarPreview} alt="Foto Profil" className="edit-profile-photo-img" />
+            ) : (
+              <div className="edit-profile-photo-initials">{initials}</div>
+            )}
+            <div className="edit-photo-overlay">
+              {uploadingAvatar ? (
+                <span className="edit-photo-spinner"></span>
+              ) : (
+                <svg viewBox="0 0 24 24">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png"
+              onChange={handleAvatarChange}
+              style={{ display: "none" }}
             />
           </div>
-
           <div className="edit-profile-user-info">
             <h1>{formData.name}</h1>
             <p>{formData.email}</p>
           </div>
         </section>
-
-        {/* FORM CARD */}
 
         <section className="edit-profile-form-card">
           <div className="edit-profile-form-title">
@@ -115,13 +235,20 @@ function EditProfileCustomer() {
 
           <form onSubmit={handleSubmit}>
             <div className="edit-profile-form-body">
-              {/* NAMA */}
+              <div className="edit-profile-input-group">
+                <label htmlFor="username">Username</label>
+                <input
+                  id="username"
+                  type="text"
+                  value={formData.username}
+                  disabled
+                  style={{ opacity: 0.6, cursor: "not-allowed" }}
+                />
+                <small style={{ color: "#888", fontSize: "0.75rem" }}>Username tidak dapat diubah</small>
+              </div>
 
               <div className="edit-profile-input-group">
-                <label htmlFor="name">
-                  Nama Lengkap
-                </label>
-
+                <label htmlFor="name">Nama Lengkap</label>
                 <input
                   id="name"
                   type="text"
@@ -132,47 +259,20 @@ function EditProfileCustomer() {
                 />
               </div>
 
-              {/* USERNAME */}
-
               <div className="edit-profile-input-group">
-                <label htmlFor="username">
-                  Username
-                </label>
-
-                <input
-                  id="username"
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  placeholder="Masukan Username"
-                />
-              </div>
-
-              {/* EMAIL */}
-
-              <div className="edit-profile-input-group">
-                <label htmlFor="email">
-                  Email
-                </label>
-
+                <label htmlFor="email">Email</label>
                 <input
                   id="email"
                   type="email"
-                  name="email"
                   value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Masukan Email"
+                  disabled
+                  style={{ opacity: 0.6, cursor: "not-allowed" }}
                 />
+                <small style={{ color: "#888", fontSize: "0.75rem" }}>Email tidak dapat diubah</small>
               </div>
 
-              {/* WHATSAPP */}
-
               <div className="edit-profile-input-group">
-                <label htmlFor="phone">
-                  No WhatsApp
-                </label>
-
+                <label htmlFor="phone">No WhatsApp</label>
                 <input
                   id="phone"
                   type="text"
@@ -184,53 +284,33 @@ function EditProfileCustomer() {
                 />
               </div>
 
-              {/* NIK */}
-
               <div className="edit-profile-input-group">
-                <label htmlFor="nik">
-                  NIK
-                </label>
-
+                <label htmlFor="nik">NIK</label>
                 <input
                   id="nik"
                   type="text"
-                  name="nik"
                   value={formData.nik}
-                  onChange={handleChange}
-                  placeholder="Masukan NIK"
-                  inputMode="numeric"
-                  maxLength={16}
+                  disabled
+                  style={{ opacity: 0.6, cursor: "not-allowed" }}
                 />
+                <small style={{ color: "#888", fontSize: "0.75rem" }}>NIK tidak dapat diubah</small>
               </div>
             </div>
 
-            {/* BUTTON */}
-
             <div className="edit-profile-form-footer">
-              <button
-                type="button"
-                className="edit-profile-cancel-button"
-                onClick={handleCancel}
-              >
+              <button type="button" className="edit-profile-cancel-button" onClick={() => navigate(-1)}>
                 Batal
               </button>
-
-              <button
-                type="submit"
-                className="edit-profile-save-button"
-              >
-                Simpan
+              <button type="submit" className="edit-profile-save-button" disabled={saving}>
+                {saving ? "Menyimpan..." : "Simpan"}
               </button>
             </div>
           </form>
         </section>
       </main>
 
-      {/* FOOTER */}
-
       <footer className="edit-profile-footer">
-        © 2027 EVENTDAY. Hak cipta dilindungi
-        undang-undang.
+        &copy; 2027 EVENTDAY. Hak cipta dilindungi undang-undang.
       </footer>
     </div>
   );

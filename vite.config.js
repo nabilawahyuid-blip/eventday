@@ -39,8 +39,32 @@ export default defineConfig(({ mode }) => {
           // ==================================
 
           headers: {
-            "ngrok-skip-browser-warning":
-              "true",
+            "ngrok-skip-browser-warning": "true",
+          },
+
+          // ==================================
+          // REWRITE
+          // ==================================
+          //
+          // /api/payments/... dan
+          // /api/tickets/...
+          // tetap menggunakan /api
+          //
+          // Endpoint lainnya juga tetap
+          // menggunakan prefix /api.
+
+          rewrite: (path) => {
+            if (
+              path.startsWith("/api/payments") ||
+              path.startsWith("/api/tickets")
+            ) {
+              return path;
+            }
+
+            return path.replace(
+              /^\/api/,
+              "/api/"
+            );
           },
 
           // ==================================

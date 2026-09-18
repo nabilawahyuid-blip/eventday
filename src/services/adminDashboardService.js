@@ -11,3 +11,12 @@ export const getAdminRecentEvents = async () => {
 export const getAdminRecentTransactions = async () => {
   return apiFetch("/api/admin/dashboard/recent-transactions");
 };
+
+// Alias untuk EventManagement
+export const getAdminEvents = async () => {
+  return apiFetch("/api/admin/dashboard/recent-events");
+};
+
+// Backward-compatible alias
+export const getRecentTransactions =
+  getAdminRecentTransactions;
