@@ -1,27 +1,27 @@
-// src/services/adminEoService.js
-import { apiFetch } from './api';
+import { apiFetch } from "./api";
 
-// 1. Mengambil daftar pengajuan akun EO (bisa difilter dengan status misal: UNVERIFIED)[cite: 2]
-export const getAdminEoApplications = async (status = '') => {
-  const query = status ? `?status=${status}` : '';
-  return await apiFetch(`/admin/eo-applications${query}`);
+export const getEOApplications = async () => {
+  return apiFetch("/api/admin/eo-applications");
 };
 
-// 2. Mengambil detail lengkap pengajuan EO berdasarkan ID (legalitas, NPWP, bank)[cite: 2]
-export const getAdminEoDetail = async (id) => {
-  return await apiFetch(`/admin/eo-applications/${id}`);
+export const getEOApplicationDetail = async (id) => {
+  return apiFetch(
+    `/api/admin/eo-applications/${encodeURIComponent(id)}`
+  );
 };
 
-// 3. Menyetujui atau menolak pengajuan EO (Approve/Reject) + alasan penolakan[cite: 2]
-export const updateAdminEoStatus = async (id, statusData) => {
-  // Format body: { status: "VERIFIED" / "REJECTED", rejectionReason: "..." }[cite: 2]
-  return await apiFetch(`/admin/eo-applications/${id}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify(statusData),
-  });
+export const updateEOApplicationStatus = async (id, data) => {
+  return apiFetch(
+    `/api/admin/eo-applications/${encodeURIComponent(id)}/status`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }
+  );
 };
 
-// 4. Mengakses link dokumen akta perusahaan mitra organizer[cite: 2]
-export const getAdminEoCompanyDeed = async (id) => {
-  return await apiFetch(`/admin/eo-applications/${id}/documents/company-deed`);
+export const getEOCompanyDeed = async (id) => {
+  return apiFetch(
+    `/api/admin/eo-applications/${encodeURIComponent(id)}/documents/company-deed`
+  );
 };

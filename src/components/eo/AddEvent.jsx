@@ -1,16 +1,33 @@
+// src/components/eo/AddEvent.jsx
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
+
+import {
+  createOrganizerEvent,
+  publishOrganizerEvent,
+} from "../../services/organizerEventService";
+
 import "./AddEvent.css";
 
 function AddEvent() {
   const navigate = useNavigate();
 
+  // =====================================================
+  // BASIC EVENT
+  // =====================================================
+
   const [eventName, setEventName] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
+
+  // =====================================================
+  // SCHEDULE
+  // =====================================================
 
   const [schedules, setSchedules] = useState([
     {
@@ -19,6 +36,10 @@ function AddEvent() {
       endTime: "",
     },
   ]);
+
+  // =====================================================
+  // TICKET
+  // =====================================================
 
   const [tickets, setTickets] = useState([
     {
@@ -33,14 +54,34 @@ function AddEvent() {
     },
   ]);
 
-  const [lineups, setLineups] = useState(["For Revenge"]);
+  // =====================================================
+  // LINE UP
+  // =====================================================
+
+  const [lineups, setLineups] = useState([
+    "For Revenge",
+  ]);
+
+  // =====================================================
+  // FILE
+  // =====================================================
 
   const [banner, setBanner] = useState(null);
-  const [permissionFile, setPermissionFile] = useState(null);
+  const [permissionFile, setPermissionFile] =
+    useState(null);
 
-  // ======
+  // =====================================================
+  // SUBMIT STATE
+  // =====================================================
+
+  const [submitting, setSubmitting] =
+    useState(false);
+
+  const [error, setError] = useState("");
+
+  // =====================================================
   // SCHEDULE
-  // ======
+  // =====================================================
 
   const handleAddSchedule = () => {
     setSchedules([
@@ -53,23 +94,36 @@ function AddEvent() {
     ]);
   };
 
-  const handleScheduleChange = (index, field, value) => {
+  const handleScheduleChange = (
+    index,
+    field,
+    value
+  ) => {
     const updated = [...schedules];
 
-    updated[index][field] = value;
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+    };
 
     setSchedules(updated);
   };
 
   const handleDeleteSchedule = (index) => {
-    if (schedules.length === 1) return;
+    if (schedules.length === 1) {
+      return;
+    }
 
-    setSchedules(schedules.filter((_, i) => i !== index));
+    setSchedules(
+      schedules.filter(
+        (_, i) => i !== index
+      )
+    );
   };
 
-  // ======
+  // =====================================================
   // TICKET
-  // ======
+  // =====================================================
 
   const handleAddTicket = () => {
     setTickets([
@@ -82,29 +136,48 @@ function AddEvent() {
     ]);
   };
 
-  const handleTicketChange = (index, field, value) => {
+  const handleTicketChange = (
+    index,
+    field,
+    value
+  ) => {
     const updated = [...tickets];
 
-    updated[index][field] = value;
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+    };
 
     setTickets(updated);
   };
 
   const handleDeleteTicket = (index) => {
-    if (tickets.length === 1) return;
+    if (tickets.length === 1) {
+      return;
+    }
 
-    setTickets(tickets.filter((_, i) => i !== index));
+    setTickets(
+      tickets.filter(
+        (_, i) => i !== index
+      )
+    );
   };
 
-  // ======
+  // =====================================================
   // LINE UP
-  // ======
+  // =====================================================
 
   const handleAddLineup = () => {
-    setLineups([...lineups, ""]);
+    setLineups([
+      ...lineups,
+      "",
+    ]);
   };
 
-  const handleLineupChange = (index, value) => {
+  const handleLineupChange = (
+    index,
+    value
+  ) => {
     const updated = [...lineups];
 
     updated[index] = value;
@@ -113,118 +186,477 @@ function AddEvent() {
   };
 
   const handleDeleteLineup = (index) => {
-    if (lineups.length === 1) return;
+    if (lineups.length === 1) {
+      return;
+    }
 
-    setLineups(lineups.filter((_, i) => i !== index));
+    setLineups(
+      lineups.filter(
+        (_, i) => i !== index
+      )
+    );
   };
 
-  // ======
+  // =====================================================
   // FILE
-  // ======
+  // =====================================================
 
   const handleBannerChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
 
-    if (file) {
-      setBanner(file);
+    if (!file) {
+      return;
     }
+
+    // MAX 5 MB
+    if (file.size > 5 * 1024 * 1024) {
+      alert(
+        "Ukuran banner maksimal 5MB."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    setBanner(file);
   };
 
   const handlePermissionChange = (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
 
-    if (file) {
-      setPermissionFile(file);
-    }
-  };
-
-  // ======
-  // SUBMIT
-  // ======
-
-  const handleSaveDraft = () => {
-    console.log("Simpan sebagai draft", {
-      eventName,
-      category,
-      description,
-      location,
-      schedules,
-      tickets,
-      lineups,
-      banner,
-      permissionFile,
-    });
-
-    alert("Event berhasil disimpan sebagai draft.");
-  };
-
-  const handleCreateEvent = () => {
-    if (!eventName.trim()) {
-      alert("Nama event wajib diisi.");
+    if (!file) {
       return;
+    }
+
+    // MAX 10 MB
+    if (file.size > 10 * 1024 * 1024) {
+      alert(
+        "Ukuran dokumen maksimal 10MB."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    setPermissionFile(file);
+  };
+
+  // =====================================================
+  // VALIDATION
+  // =====================================================
+
+  const validateForm = () => {
+    if (!eventName.trim()) {
+      alert(
+        "Nama event wajib diisi."
+      );
+      return false;
     }
 
     if (!category) {
-      alert("Kategori event wajib dipilih.");
-      return;
+      alert(
+        "Kategori event wajib dipilih."
+      );
+      return false;
+    }
+
+    if (!description.trim()) {
+      alert(
+        "Deskripsi event wajib diisi."
+      );
+      return false;
     }
 
     if (!location.trim()) {
-      alert("Lokasi event wajib diisi.");
-      return;
+      alert(
+        "Lokasi event wajib diisi."
+      );
+      return false;
     }
 
-    console.log("Data Event:", {
-      eventName,
-      category,
-      description,
-      location,
-      schedules,
-      tickets,
-      lineups,
-      banner,
-      permissionFile,
-    });
+    const firstSchedule =
+      schedules[0];
 
-    alert("Event berhasil dibuat.");
+    if (!firstSchedule?.date) {
+      alert(
+        "Tanggal event wajib diisi."
+      );
+      return false;
+    }
 
-    navigate("/eo/event");
+    if (!firstSchedule?.startTime) {
+      alert(
+        "Jam mulai event wajib diisi."
+      );
+      return false;
+    }
+
+    if (!firstSchedule?.endTime) {
+      alert(
+        "Jam selesai event wajib diisi."
+      );
+      return false;
+    }
+
+    if (
+      firstSchedule.endTime <=
+      firstSchedule.startTime
+    ) {
+      alert(
+        "Jam selesai harus lebih besar dari jam mulai."
+      );
+      return false;
+    }
+
+    return true;
   };
 
-  // ======
-  // TOTAL QUOTA
-  // ======
+  // =====================================================
+  // BUILD DATE TIME
+  // =====================================================
 
-  const totalQuota = tickets.reduce((total, ticket) => {
-    return total + (Number(ticket.quota) || 0);
-  }, 0);
+  const buildDateTime = (
+    date,
+    time
+  ) => {
+    if (!date || !time) {
+      return null;
+    }
+
+    return `${date}T${time}:00`;
+  };
+
+  // =====================================================
+  // BUILD PAYLOAD
+  // =====================================================
+
+  const buildEventPayload = () => {
+    const firstSchedule =
+      schedules[0];
+
+    const startDate =
+      buildDateTime(
+        firstSchedule?.date,
+        firstSchedule?.startTime
+      );
+
+    const endDate =
+      buildDateTime(
+        firstSchedule?.date,
+        firstSchedule?.endTime
+      );
+
+    const lineupData =
+      lineups
+        .map((item) =>
+          item.trim()
+        )
+        .filter(Boolean)
+        .join(", ");
+
+    /*
+      Backend createEvent menerima:
+      title
+      description
+      category
+      venue_name
+      banner_url
+      facility
+      lineup
+      start_date
+      end_date
+
+      Ticket & multiple schedules belum
+      diproses oleh createEvent backend.
+    */
+
+    return {
+      title: eventName.trim(),
+
+      description:
+        description.trim(),
+
+      category,
+
+      venue_name:
+        location.trim(),
+
+      start_date:
+        startDate,
+
+      end_date:
+        endDate,
+
+      lineup:
+        lineupData || null,
+
+      // Banner URL belum tersedia
+      // karena upload banner event belum
+      // memiliki endpoint khusus.
+      banner_url: null,
+    };
+  };
+
+  // =====================================================
+  // CREATE EVENT
+  // =====================================================
+
+  const createEvent = async () => {
+    if (!validateForm()) {
+      return null;
+    }
+
+    const payload =
+      buildEventPayload();
+
+    console.log(
+      "CREATE EVENT PAYLOAD:",
+      payload
+    );
+
+    const response =
+      await createOrganizerEvent(
+        payload
+      );
+
+    console.log(
+      "CREATE EVENT RESPONSE:",
+      response
+    );
+
+    return response;
+  };
+
+  // =====================================================
+  // SAVE DRAFT
+  // =====================================================
+
+  const handleSaveDraft =
+    async () => {
+      try {
+        setSubmitting(true);
+        setError("");
+
+        /*
+          Untuk draft, kita tetap melakukan
+          validasi dasar agar data tidak kosong.
+        */
+
+        if (!eventName.trim()) {
+          alert(
+            "Nama event wajib diisi."
+          );
+          return;
+        }
+
+        if (!category) {
+          alert(
+            "Kategori event wajib dipilih."
+          );
+          return;
+        }
+
+        if (!location.trim()) {
+          alert(
+            "Lokasi event wajib diisi."
+          );
+          return;
+        }
+
+        const response =
+          await createEvent();
+
+        if (!response) {
+          return;
+        }
+
+        const eventId =
+          response?.data?.event_id;
+
+        alert(
+          "Event berhasil disimpan sebagai draft."
+        );
+
+        console.log(
+          "DRAFT EVENT ID:",
+          eventId
+        );
+
+        navigate("/eo/event");
+
+      } catch (error) {
+        console.error(
+          "Gagal menyimpan draft:",
+          error
+        );
+
+        setError(
+          error?.message ||
+            "Gagal menyimpan draft event."
+        );
+
+        alert(
+          error?.message ||
+            "Gagal menyimpan draft event."
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+  // =====================================================
+  // CREATE + PUBLISH EVENT
+  // =====================================================
+
+  const handleCreateEvent =
+    async () => {
+      try {
+        setSubmitting(true);
+        setError("");
+
+        if (!validateForm()) {
+          return;
+        }
+
+        // ================================================
+        // STEP 1
+        // CREATE EVENT AS DRAFT
+        // ================================================
+
+        const createResponse =
+          await createEvent();
+
+        console.log(
+          "CREATE EVENT RESPONSE:",
+          createResponse
+        );
+
+        const eventId =
+          createResponse?.data?.event_id;
+
+        if (!eventId) {
+          throw new Error(
+            "Event berhasil dibuat tetapi event ID tidak ditemukan."
+          );
+        }
+
+        console.log(
+          "EVENT ID:",
+          eventId
+        );
+
+        // ================================================
+        // STEP 2
+        // PUBLISH EVENT
+        // ================================================
+
+        const publishResponse =
+          await publishOrganizerEvent({
+            eventId,
+          });
+
+        console.log(
+          "PUBLISH EVENT RESPONSE:",
+          publishResponse
+        );
+
+        alert(
+          "Event berhasil dibuat dan dipublikasikan."
+        );
+
+        // ================================================
+        // STEP 3
+        // BACK TO EVENT PAGE
+        // ================================================
+
+        navigate("/eo/event");
+
+      } catch (error) {
+        console.error(
+          "Gagal membuat event:",
+          error
+        );
+
+        setError(
+          error?.message ||
+            "Gagal membuat event."
+        );
+
+        alert(
+          error?.message ||
+            "Gagal membuat event."
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    };
+
+  // =====================================================
+  // TOTAL QUOTA
+  // =====================================================
+
+  const totalQuota =
+    tickets.reduce(
+      (total, ticket) => {
+        return (
+          total +
+          (Number(
+            ticket.quota
+          ) || 0)
+        );
+      },
+      0
+    );
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="add-event-page">
 
-      {/* =
-           SIDEBAR
-       = */}
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
 
       <SidebarEO />
 
-      {/* =
-           MAIN AREA
-       = */}
+      {/* =====================================================
+          MAIN
+      ===================================================== */}
 
       <main className="add-event-main">
 
-        {/* NAVBAR */}
+        {/* =====================================================
+            NAVBAR
+        ===================================================== */}
 
         <NavbarEO />
 
-        {/* =
+        {/* =====================================================
             CONTENT
-        = */}
+        ===================================================== */}
 
         <div className="add-event-content">
 
-          {/* PAGE HEADER */}
+          {/* =====================================================
+              ERROR
+          ===================================================== */}
+
+          {error && (
+            <div
+              className="dashboard-error"
+              style={{
+                marginBottom: "20px",
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          {/* =====================================================
+              PAGE HEADER
+          ===================================================== */}
 
           <div className="add-event-header">
 
@@ -239,41 +671,63 @@ function AddEvent() {
               </h1>
 
               <p>
-                Isi detail di bawah untuk mempublikasikan event Anda.
+                Isi detail di bawah untuk
+                mempublikasikan event Anda.
               </p>
 
             </div>
 
             <div className="add-event-header-actions">
 
+              {/* =============================================
+                  SAVE DRAFT
+              ============================================= */}
+
               <button
                 type="button"
                 className="draft-button"
-                onClick={handleSaveDraft}
+                onClick={
+                  handleSaveDraft
+                }
+                disabled={submitting}
               >
-                Simpan Draft
+                {submitting
+                  ? "Menyimpan..."
+                  : "Simpan Draft"}
               </button>
+
+              {/* =============================================
+                  CREATE EVENT
+              ============================================= */}
 
               <button
                 type="button"
                 className="create-event-button"
-                onClick={handleCreateEvent}
+                onClick={
+                  handleCreateEvent
+                }
+                disabled={submitting}
               >
                 <span>+</span>
-                Buat Event
+
+                {submitting
+                  ? "Memproses..."
+                  : "Buat Event"}
               </button>
 
             </div>
 
           </div>
 
-          {/* =
+          {/* =====================================================
               INFORMASI DASAR
-          = */}
+          ===================================================== */}
 
           <section className="form-card">
 
-            <h2>Informasi Dasar</h2>
+            <h2>
+              Informasi Dasar
+            </h2>
 
             <div className="form-grid">
 
@@ -288,7 +742,11 @@ function AddEvent() {
                 <input
                   type="text"
                   value={eventName}
-                  onChange={(e) => setEventName(e.target.value)}
+                  onChange={(e) =>
+                    setEventName(
+                      e.target.value
+                    )
+                  }
                   placeholder="Contoh: Sedih Fest 2024"
                 />
 
@@ -304,8 +762,13 @@ function AddEvent() {
 
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) =>
+                    setCategory(
+                      e.target.value
+                    )
+                  }
                 >
+
                   <option value="">
                     Pilih Kategori...
                   </option>
@@ -342,13 +805,18 @@ function AddEvent() {
 
                 {category && (
                   <span className="category-tag">
+
                     {category}
+
                     <button
                       type="button"
-                      onClick={() => setCategory("")}
+                      onClick={() =>
+                        setCategory("")
+                      }
                     >
                       ×
                     </button>
+
                   </span>
                 )}
 
@@ -366,7 +834,11 @@ function AddEvent() {
 
               <textarea
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) =>
+                  setDescription(
+                    e.target.value
+                  )
+                }
                 placeholder="Ceritakan detail menarik tentang event Anda..."
               />
 
@@ -374,9 +846,9 @@ function AddEvent() {
 
           </section>
 
-          {/* =
+          {/* =====================================================
               LOKASI EVENT
-          = */}
+          ===================================================== */}
 
           <section className="form-card">
 
@@ -399,7 +871,11 @@ function AddEvent() {
                 <input
                   type="text"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) =>
+                    setLocation(
+                      e.target.value
+                    )
+                  }
                   placeholder="Cari gedung, stadion, atau alamat lengkap..."
                 />
 
@@ -409,9 +885,9 @@ function AddEvent() {
 
           </section>
 
-          {/* =
+          {/* =====================================================
               BANNER EVENT
-          = */}
+          ===================================================== */}
 
           <section className="form-card">
 
@@ -421,14 +897,18 @@ function AddEvent() {
 
             <label
               className={`upload-box ${
-                banner ? "has-file" : ""
+                banner
+                  ? "has-file"
+                  : ""
               }`}
             >
 
               <input
                 type="file"
                 accept="image/*"
-                onChange={handleBannerChange}
+                onChange={
+                  handleBannerChange
+                }
               />
 
               <div className="upload-icon">
@@ -452,7 +932,9 @@ function AddEvent() {
                   </strong>
 
                   <span>
-                    Drag & drop atau klik untuk memilih file (Max 5MB)
+                    Drag & drop atau klik
+                    untuk memilih file
+                    (Max 5MB)
                   </span>
                 </>
               )}
@@ -461,9 +943,9 @@ function AddEvent() {
 
           </section>
 
-          {/* =
+          {/* =====================================================
               JADWAL EVENT
-          = */}
+          ===================================================== */}
 
           <section className="form-card">
 
@@ -476,7 +958,9 @@ function AddEvent() {
               <button
                 type="button"
                 className="add-small-button"
-                onClick={handleAddSchedule}
+                onClick={
+                  handleAddSchedule
+                }
               >
                 + Tambah Jadwal
               </button>
@@ -485,94 +969,115 @@ function AddEvent() {
 
             <div className="schedule-list">
 
-              {schedules.map((schedule, index) => (
+              {schedules.map(
+                (
+                  schedule,
+                  index
+                ) => (
 
-                <div
-                  className="schedule-row"
-                  key={index}
-                >
-
-                  <div className="schedule-field">
-
-                    <label>
-                      TANGGAL
-                    </label>
-
-                    <input
-                      type="date"
-                      value={schedule.date}
-                      onChange={(e) =>
-                        handleScheduleChange(
-                          index,
-                          "date",
-                          e.target.value
-                        )
-                      }
-                    />
-
-                  </div>
-
-                  <div className="schedule-field">
-
-                    <label>
-                      JAM MULAI
-                    </label>
-
-                    <input
-                      type="time"
-                      value={schedule.startTime}
-                      onChange={(e) =>
-                        handleScheduleChange(
-                          index,
-                          "startTime",
-                          e.target.value
-                        )
-                      }
-                    />
-
-                  </div>
-
-                  <div className="schedule-field">
-
-                    <label>
-                      JAM SELESAI
-                    </label>
-
-                    <input
-                      type="time"
-                      value={schedule.endTime}
-                      onChange={(e) =>
-                        handleScheduleChange(
-                          index,
-                          "endTime",
-                          e.target.value
-                        )
-                      }
-                    />
-
-                  </div>
-
-                  <button
-                    type="button"
-                    className="delete-row-button"
-                    onClick={() =>
-                      handleDeleteSchedule(index)
-                    }
+                  <div
+                    className="schedule-row"
+                    key={index}
                   >
-                    🗑
-                  </button>
 
-                </div>
+                    {/* TANGGAL */}
 
-              ))}
+                    <div className="schedule-field">
+
+                      <label>
+                        TANGGAL
+                      </label>
+
+                      <input
+                        type="date"
+                        value={
+                          schedule.date
+                        }
+                        onChange={(e) =>
+                          handleScheduleChange(
+                            index,
+                            "date",
+                            e.target.value
+                          )
+                        }
+                      />
+
+                    </div>
+
+                    {/* JAM MULAI */}
+
+                    <div className="schedule-field">
+
+                      <label>
+                        JAM MULAI
+                      </label>
+
+                      <input
+                        type="time"
+                        value={
+                          schedule.startTime
+                        }
+                        onChange={(e) =>
+                          handleScheduleChange(
+                            index,
+                            "startTime",
+                            e.target.value
+                          )
+                        }
+                      />
+
+                    </div>
+
+                    {/* JAM SELESAI */}
+
+                    <div className="schedule-field">
+
+                      <label>
+                        JAM SELESAI
+                      </label>
+
+                      <input
+                        type="time"
+                        value={
+                          schedule.endTime
+                        }
+                        onChange={(e) =>
+                          handleScheduleChange(
+                            index,
+                            "endTime",
+                            e.target.value
+                          )
+                        }
+                      />
+
+                    </div>
+
+                    {/* DELETE */}
+
+                    <button
+                      type="button"
+                      className="delete-row-button"
+                      onClick={() =>
+                        handleDeleteSchedule(
+                          index
+                        )
+                      }
+                    >
+                      🗑
+                    </button>
+
+                  </div>
+
+                )
+              )}
 
             </div>
 
           </section>
 
-          {/* =
+          {/* =====================================================
               KATEGORI TIKET
-          = */}
+          ===================================================== */}
 
           <section className="form-card">
 
@@ -585,7 +1090,9 @@ function AddEvent() {
               <button
                 type="button"
                 className="add-small-button"
-                onClick={handleAddTicket}
+                onClick={
+                  handleAddTicket
+                }
               >
                 + Tambah Kategori
               </button>
@@ -612,65 +1119,80 @@ function AddEvent() {
 
               </div>
 
-              {tickets.map((ticket, index) => (
+              {tickets.map(
+                (
+                  ticket,
+                  index
+                ) => (
 
-                <div
-                  className="ticket-row"
-                  key={index}
-                >
-
-                  <input
-                    type="text"
-                    value={ticket.name}
-                    placeholder="Nama kategori"
-                    onChange={(e) =>
-                      handleTicketChange(
-                        index,
-                        "name",
-                        e.target.value
-                      )
-                    }
-                  />
-
-                  <input
-                    type="number"
-                    value={ticket.price}
-                    placeholder="Harga"
-                    onChange={(e) =>
-                      handleTicketChange(
-                        index,
-                        "price",
-                        e.target.value
-                      )
-                    }
-                  />
-
-                  <input
-                    type="number"
-                    value={ticket.quota}
-                    placeholder="Kuota"
-                    onChange={(e) =>
-                      handleTicketChange(
-                        index,
-                        "quota",
-                        e.target.value
-                      )
-                    }
-                  />
-
-                  <button
-                    type="button"
-                    className="delete-ticket-button"
-                    onClick={() =>
-                      handleDeleteTicket(index)
-                    }
+                  <div
+                    className="ticket-row"
+                    key={index}
                   >
-                    ×
-                  </button>
 
-                </div>
+                    <input
+                      type="text"
+                      value={
+                        ticket.name
+                      }
+                      placeholder="Nama kategori"
+                      onChange={(e) =>
+                        handleTicketChange(
+                          index,
+                          "name",
+                          e.target.value
+                        )
+                      }
+                    />
 
-              ))}
+                    <input
+                      type="number"
+                      value={
+                        ticket.price
+                      }
+                      placeholder="Harga"
+                      min="0"
+                      onChange={(e) =>
+                        handleTicketChange(
+                          index,
+                          "price",
+                          e.target.value
+                        )
+                      }
+                    />
+
+                    <input
+                      type="number"
+                      value={
+                        ticket.quota
+                      }
+                      placeholder="Kuota"
+                      min="0"
+                      onChange={(e) =>
+                        handleTicketChange(
+                          index,
+                          "quota",
+                          e.target.value
+                        )
+                      }
+                    />
+
+                    <button
+                      type="button"
+                      className="delete-ticket-button"
+                      onClick={() =>
+                        handleDeleteTicket(
+                          index
+                        )
+                      }
+                    >
+                      ×
+                    </button>
+
+                  </div>
+
+                )
+              )}
 
             </div>
 
@@ -688,9 +1210,9 @@ function AddEvent() {
 
           </section>
 
-          {/* =
+          {/* =====================================================
               LINE UP
-          = */}
+          ===================================================== */}
 
           <section className="form-card">
 
@@ -703,7 +1225,9 @@ function AddEvent() {
               <button
                 type="button"
                 className="add-small-button"
-                onClick={handleAddLineup}
+                onClick={
+                  handleAddLineup
+                }
               >
                 + Tambah LineUp
               </button>
@@ -712,45 +1236,52 @@ function AddEvent() {
 
             <div className="lineup-list">
 
-              {lineups.map((lineup, index) => (
+              {lineups.map(
+                (
+                  lineup,
+                  index
+                ) => (
 
-                <div
-                  className="lineup-row"
-                  key={index}
-                >
-
-                  <input
-                    type="text"
-                    value={lineup}
-                    placeholder="Nama artis / pengisi acara"
-                    onChange={(e) =>
-                      handleLineupChange(
-                        index,
-                        e.target.value
-                      )
-                    }
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDeleteLineup(index)
-                    }
+                  <div
+                    className="lineup-row"
+                    key={index}
                   >
-                    ×
-                  </button>
 
-                </div>
+                    <input
+                      type="text"
+                      value={lineup}
+                      placeholder="Nama artis / pengisi acara"
+                      onChange={(e) =>
+                        handleLineupChange(
+                          index,
+                          e.target.value
+                        )
+                      }
+                    />
 
-              ))}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDeleteLineup(
+                          index
+                        )
+                      }
+                    >
+                      ×
+                    </button>
+
+                  </div>
+
+                )
+              )}
 
             </div>
 
           </section>
 
-          {/* =
+          {/* =====================================================
               PERIZINAN EVENT
-          = */}
+          ===================================================== */}
 
           <section className="form-card">
 
@@ -760,14 +1291,18 @@ function AddEvent() {
 
             <label
               className={`upload-box permission-upload ${
-                permissionFile ? "has-file" : ""
+                permissionFile
+                  ? "has-file"
+                  : ""
               }`}
             >
 
               <input
                 type="file"
                 accept=".pdf,.zip"
-                onChange={handlePermissionChange}
+                onChange={
+                  handlePermissionChange
+                }
               />
 
               <div className="upload-icon">
@@ -791,7 +1326,8 @@ function AddEvent() {
                   </strong>
 
                   <span>
-                    Format .PDF atau .ZIP (Max 10MB)
+                    Format .PDF atau .ZIP
+                    (Max 10MB)
                   </span>
                 </>
               )}

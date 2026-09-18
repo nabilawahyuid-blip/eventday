@@ -1,110 +1,423 @@
-import React, { useState } from "react";
+// src/components/eo/EventEO.jsx
+
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
+
+import {
+  getOrganizerEvents,
+  getOrganizerDraftEvents,
+  getOrganizerEventSalesSummary,
+} from "../../services/organizerEventService";
+
 import "./EventEO.css";
 
 function EventEO() {
   const navigate = useNavigate();
 
+  // =====================================================
+  // TAB
+  // =====================================================
+
   const [activeTab, setActiveTab] = useState("Semua");
 
-  const events = [
-    {
-      id: "EVT-001",
-      title: "Music Festival 2024",
-      date: "15 Nov 2024",
-      time: "18:00 WIB",
-      location: "Stadion Utama",
-      sold: 200,
-      total: 400,
-      status: "Event Aktif",
-      statusClass: "active",
-    },
-    {
-      id: "EVT-002",
-      title: "Seminar Bisnis & Teknologi",
-      date: "20 September 2024",
-      time: "09:00 WIB",
-      location: "Jakarta Convention Center",
-      sold: 350,
-      total: 400,
-      status: "Event Aktif",
-      statusClass: "active",
-    },
-    {
-      id: "EVT-003",
-      title: "Workshop Fotografi",
-      date: "01 Okt 2024",
-      time: "10:00 WIB",
-      location: "Creative Space",
-      sold: 300,
-      total: 400,
-      status: "Event Berakhir",
-      statusClass: "finished",
-    },
-  ];
+  // =====================================================
+  // DATA
+  // =====================================================
 
-  const draftEvents = [
-    {
-      id: "DRAFT-001",
-      title: "Judul Event Draft - Standup Comedy Night",
-      date: "Belum Ditentukan",
-      location: "Belum Ditentukan",
-      sold: 0,
-      total: 400,
-      status: "Draft",
-      statusClass: "draft",
-    },
-  ];
+  const [events, setEvents] = useState([]);
+  const [draftEvents, setDraftEvents] = useState([]);
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
+  const [loading, setLoading] = useState(true);
+  const [draftLoading, setDraftLoading] = useState(true);
+
+  // =====================================================
+  // ERROR
+  // =====================================================
+
+  const [error, setError] = useState("");
+  const [draftError, setDraftError] = useState("");
+
+  // =====================================================
+  // SALES SUMMARY
+  // =====================================================
+
+  const [salesSummary, setSalesSummary] = useState({});
+
+  // =====================================================
+  // LOAD DATA
+  // =====================================================
+
+  useEffect(() => {
+    loadEvents();
+    loadDraftEvents();
+  }, []);
+
+  // =====================================================
+  // LOAD EVENT
+  // =====================================================
+
+  const loadEvents = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await getOrganizerEvents();
+
+      console.log(
+        "ORGANIZER EVENTS RESPONSE:",
+        response
+      );
+
+      const eventData = Array.isArray(
+        response?.data
+      )
+        ? response.data
+        : [];
+
+      setEvents(eventData);
+
+      // Ambil sales summary masing-masing event
+      loadSalesSummary(eventData);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil event organizer:",
+        error
+      );
+
+      setError(
+        error?.message ||
+          "Gagal mengambil data event"
+      );
+
+      setEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =====================================================
+  // LOAD DRAFT EVENT
+  // =====================================================
+
+  const loadDraftEvents = async () => {
+    try {
+      setDraftLoading(true);
+      setDraftError("");
+
+      const response =
+        await getOrganizerDraftEvents();
+
+      console.log(
+        "DRAFT EVENTS RESPONSE:",
+        response
+      );
+
+      const draftData = Array.isArray(
+        response?.data
+      )
+        ? response.data
+        : [];
+
+      setDraftEvents(draftData);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil draft event:",
+        error
+      );
+
+      setDraftError(
+        error?.message ||
+          "Gagal mengambil draft event"
+      );
+
+      setDraftEvents([]);
+    } finally {
+      setDraftLoading(false);
+    }
+  };
+
+  // =====================================================
+  // LOAD SALES SUMMARY
+  // =====================================================
+
+  const loadSalesSummary = async (eventList) => {
+    if (!Array.isArray(eventList)) {
+      return;
+    }
+
+    const summaryResults = {};
+
+    await Promise.all(
+      eventList.map(async (event) => {
+        if (!event?.event_id) {
+          return;
+        }
+
+        try {
+          const response =
+            await getOrganizerEventSalesSummary(
+              event.event_id
+            );
+
+          console.log(
+            `SALES SUMMARY ${event.event_id}:`,
+            response
+          );
+
+          if (response?.data) {
+            summaryResults[event.event_id] =
+              response.data;
+          }
+        } catch (error) {
+          console.warn(
+            `Gagal mengambil sales summary event ${event.event_id}:`,
+            error
+          );
+        }
+      })
+    );
+
+    setSalesSummary(summaryResults);
+  };
+
+  // =====================================================
+  // REFRESH
+  // =====================================================
+
+  const handleRefresh = () => {
+    loadEvents();
+    loadDraftEvents();
+  };
+
+  // =====================================================
+  // FILTER EVENT
+  // =====================================================
 
   const filteredEvents =
     activeTab === "Semua"
       ? events
       : activeTab === "Aktif"
-      ? events.filter((event) => event.statusClass === "active")
+      ? events.filter(
+          (event) =>
+            String(event?.status).toUpperCase() ===
+            "PUBLISHED"
+        )
       : activeTab === "Berakhir"
-      ? events.filter((event) => event.statusClass === "finished")
+      ? events.filter(
+          (event) =>
+            ["ENDED", "FINISHED"].includes(
+              String(event?.status).toUpperCase()
+            )
+        )
       : [];
 
-  const handleDetail = (event) => {
-    navigate(`/eo/event/${event.id}`);
+  // =====================================================
+  // FORMAT DATE
+  // =====================================================
+
+  const formatDate = (dateString) => {
+    if (!dateString) {
+      return "Belum ditentukan";
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return dateString;
+    }
+
+    return date.toLocaleDateString(
+      "id-ID",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }
+    );
   };
 
-  const handleEdit = (event) => {
-    navigate(`/eo/event/edit/${event.id}`);
+  // =====================================================
+  // FORMAT TIME
+  // =====================================================
+
+  const formatTime = (dateString) => {
+    if (!dateString) {
+      return "Belum ditentukan";
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return "-";
+    }
+
+    return `${date.toLocaleTimeString(
+      "id-ID",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }
+    )} WIB`;
   };
+
+  // =====================================================
+  // FORMAT STATUS
+  // =====================================================
+
+  const getStatusText = (status) => {
+    const normalized =
+      String(status || "").toUpperCase();
+
+    if (normalized === "PUBLISHED") {
+      return "Event Aktif";
+    }
+
+    if (normalized === "DRAFT") {
+      return "Draft";
+    }
+
+    if (
+      normalized === "ENDED" ||
+      normalized === "FINISHED"
+    ) {
+      return "Event Berakhir";
+    }
+
+    return status || "-";
+  };
+
+  // =====================================================
+  // STATUS CLASS
+  // =====================================================
+
+  const getStatusClass = (status) => {
+    const normalized =
+      String(status || "").toUpperCase();
+
+    if (normalized === "PUBLISHED") {
+      return "active";
+    }
+
+    if (normalized === "DRAFT") {
+      return "draft";
+    }
+
+    if (
+      normalized === "ENDED" ||
+      normalized === "FINISHED"
+    ) {
+      return "finished";
+    }
+
+    return "draft";
+  };
+
+  // =====================================================
+  // GET SOLD TICKETS
+  // =====================================================
+
+  const getSoldTickets = (event) => {
+    const summary =
+      salesSummary?.[event?.event_id];
+
+    return Number(
+      summary?.tickets_sold ?? 0
+    );
+  };
+
+  // =====================================================
+  // DETAIL
+  // =====================================================
+
+  const handleDetail = (event) => {
+    if (!event?.event_id) {
+      return;
+    }
+
+    navigate(
+      `/eo/event/${event.event_id}`
+    );
+  };
+
+  // =====================================================
+  // EDIT
+  // =====================================================
+
+  const handleEdit = (event) => {
+    if (!event?.event_id) {
+      return;
+    }
+
+    navigate(
+      `/eo/event/edit/${event.event_id}`
+    );
+  };
+
+  // =====================================================
+  // CREATE
+  // =====================================================
+
+  const handleCreateEvent = () => {
+    navigate("/eo/event/create");
+  };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="event-eo-page">
 
-      {/* SIDEBAR */}
+      {/* =====================================================
+          SIDEBAR
+      ===================================================== */}
+
       <SidebarEO />
 
-      {/* MAIN */}
+      {/* =====================================================
+          MAIN
+      ===================================================== */}
+
       <main className="event-eo-main">
 
-        {/* NAVBAR */}
+        {/* =====================================================
+            NAVBAR
+        ===================================================== */}
+
         <NavbarEO />
 
-        {/* CONTENT */}
+        {/* =====================================================
+            CONTENT
+        ===================================================== */}
+
         <div className="event-eo-content">
 
-          {/* =========================
+          {/* =====================================================
               PAGE TOP
-          ========================= */}
+          ===================================================== */}
+
           <div className="event-eo-page-top">
 
             <div className="event-eo-page-title">
+
               <h1>Event Saya</h1>
 
               <h2>Kelola Event</h2>
+
             </div>
 
             <button
               type="button"
               className="event-eo-create-button"
-              onClick={() => navigate("/eo/event/create")}
+              onClick={handleCreateEvent}
             >
               <span>+</span>
               Buat Event
@@ -112,18 +425,22 @@ function EventEO() {
 
           </div>
 
-
-          {/* =========================
+          {/* =====================================================
               TABS
-          ========================= */}
+          ===================================================== */}
+
           <div className="event-eo-tabs">
 
             <button
               type="button"
               className={`event-eo-tab ${
-                activeTab === "Semua" ? "active" : ""
+                activeTab === "Semua"
+                  ? "active"
+                  : ""
               }`}
-              onClick={() => setActiveTab("Semua")}
+              onClick={() =>
+                setActiveTab("Semua")
+              }
             >
               Semua
             </button>
@@ -131,9 +448,13 @@ function EventEO() {
             <button
               type="button"
               className={`event-eo-tab ${
-                activeTab === "Aktif" ? "active" : ""
+                activeTab === "Aktif"
+                  ? "active"
+                  : ""
               }`}
-              onClick={() => setActiveTab("Aktif")}
+              onClick={() =>
+                setActiveTab("Aktif")
+              }
             >
               Aktif
             </button>
@@ -141,9 +462,13 @@ function EventEO() {
             <button
               type="button"
               className={`event-eo-tab ${
-                activeTab === "Berakhir" ? "active" : ""
+                activeTab === "Berakhir"
+                  ? "active"
+                  : ""
               }`}
-              onClick={() => setActiveTab("Berakhir")}
+              onClick={() =>
+                setActiveTab("Berakhir")
+              }
             >
               Berakhir
             </button>
@@ -151,20 +476,35 @@ function EventEO() {
             <button
               type="button"
               className={`event-eo-tab ${
-                activeTab === "Draft" ? "active" : ""
+                activeTab === "Draft"
+                  ? "active"
+                  : ""
               }`}
-              onClick={() => setActiveTab("Draft")}
+              onClick={() =>
+                setActiveTab("Draft")
+              }
             >
               Draft
             </button>
 
           </div>
 
+          {/* =====================================================
+              ERROR EVENT
+          ===================================================== */}
 
-          {/* =========================
+          {error && (
+            <div className="dashboard-error">
+              {error}
+            </div>
+          )}
+
+          {/* =====================================================
               DAFTAR EVENT
-          ========================= */}
+          ===================================================== */}
+
           {activeTab !== "Draft" && (
+
             <section className="event-eo-section">
 
               <div className="event-eo-section-header">
@@ -174,150 +514,224 @@ function EventEO() {
                 <button
                   type="button"
                   className="event-eo-see-all"
-                  onClick={() => setActiveTab("Semua")}
+                  onClick={() =>
+                    setActiveTab("Semua")
+                  }
                 >
                   Lihat Semua
                 </button>
 
               </div>
 
+              {/* =================================================
+                  LOADING
+              ================================================= */}
 
-              <div className="event-eo-list">
+              {loading ? (
 
-                {filteredEvents.length > 0 ? (
-                  filteredEvents.map((event) => {
+                <div className="event-eo-empty">
 
-                    const percentage =
-                      event.total > 0
-                        ? Math.round(
-                            (event.sold / event.total) * 100
-                          )
-                        : 0;
+                  <h3>
+                    Memuat event...
+                  </h3>
 
-                    return (
-                      <div
-                        className="event-eo-card"
-                        key={event.id}
-                      >
+                  <p>
+                    Sedang mengambil data
+                    event Anda.
+                  </p>
 
-                        {/* STATUS */}
-                        <span
-                          className={`event-eo-status ${event.statusClass}`}
-                        >
-                          {event.status}
-                        </span>
+                </div>
 
+              ) : (
 
-                        {/* EVENT TITLE */}
-                        <div className="event-eo-card-header">
+                <div className="event-eo-list">
 
-                          <h3>
-                            {event.title}
-                          </h3>
+                  {filteredEvents.length > 0 ? (
 
-                        </div>
+                    filteredEvents.map(
+                      (event) => {
 
+                        const sold =
+                          getSoldTickets(
+                            event
+                          );
 
-                        {/* EVENT META */}
-                        <div className="event-eo-meta">
+                        const statusClass =
+                          getStatusClass(
+                            event?.status
+                          );
 
-                          <span>
-                            <span className="meta-icon">
-                              ◷
+                        return (
+
+                          <div
+                            className="event-eo-card"
+                            key={
+                              event.event_id
+                            }
+                          >
+
+                            {/* =====================================
+                                STATUS
+                            ===================================== */}
+
+                            <span
+                              className={`event-eo-status ${statusClass}`}
+                            >
+                              {getStatusText(
+                                event?.status
+                              )}
                             </span>
 
-                            {event.date}
-                          </span>
+                            {/* =====================================
+                                EVENT TITLE
+                            ===================================== */}
 
-                          <span>
-                            <span className="meta-icon">
-                              •
-                            </span>
+                            <div className="event-eo-card-header">
 
-                            {event.time}
-                          </span>
+                              <h3>
+                                {event?.title ||
+                                  "Tanpa Judul Event"}
+                              </h3>
 
-                          <span>
-                            <span className="meta-icon">
-                              ◉
-                            </span>
+                            </div>
 
-                            {event.location}
-                          </span>
+                            {/* =====================================
+                                EVENT META
+                            ===================================== */}
 
-                        </div>
+                            <div className="event-eo-meta">
 
+                              <span>
 
-                        {/* TICKET */}
-                        <div className="event-eo-ticket">
+                                <span className="meta-icon">
+                                  ◷
+                                </span>
 
-                          <div className="event-eo-ticket-info">
+                                {formatDate(
+                                  event?.start_date
+                                )}
 
-                            <span>
-                              {event.sold}/{event.total} Tiket Terjual
-                            </span>
+                              </span>
 
-                            <span>
-                              {percentage}%
-                            </span>
+                              <span>
+
+                                <span className="meta-icon">
+                                  •
+                                </span>
+
+                                {formatTime(
+                                  event?.start_date
+                                )}
+
+                              </span>
+
+                              <span>
+
+                                <span className="meta-icon">
+                                  ◉
+                                </span>
+
+                                {event?.venue_name ||
+                                  "Lokasi belum ditentukan"}
+
+                              </span>
+
+                            </div>
+
+                            {/* =====================================
+                                TICKET
+                            ===================================== */}
+
+                            <div className="event-eo-ticket">
+
+                              <div className="event-eo-ticket-info">
+
+                                <span>
+                                  {sold} Tiket Terjual
+                                </span>
+
+                                <span>
+                                  {event?.category ||
+                                    "Event"}
+                                </span>
+
+                              </div>
+
+                              <div className="event-eo-progress">
+
+                                <div
+                                  className={`event-eo-progress-bar ${
+                                    statusClass ===
+                                    "finished"
+                                      ? "finished"
+                                      : ""
+                                  }`}
+                                  style={{
+                                    width:
+                                      sold > 0
+                                        ? "100%"
+                                        : "0%",
+                                  }}
+                                />
+
+                              </div>
+
+                            </div>
+
+                            {/* =====================================
+                                DETAIL
+                            ===================================== */}
+
+                            <button
+                              type="button"
+                              className="event-eo-detail-button"
+                              onClick={() =>
+                                handleDetail(
+                                  event
+                                )
+                              }
+                            >
+                              Detail Event
+                            </button>
 
                           </div>
 
+                        );
+                      }
+                    )
 
-                          <div className="event-eo-progress">
+                  ) : (
 
-                            <div
-                              className={`event-eo-progress-bar ${
-                                event.statusClass === "finished"
-                                  ? "finished"
-                                  : ""
-                              }`}
-                              style={{
-                                width: `${percentage}%`,
-                              }}
-                            />
+                    <div className="event-eo-empty">
 
-                          </div>
+                      <h3>
+                        Tidak ada event
+                      </h3>
 
-                        </div>
+                      <p>
+                        Belum ada event pada
+                        kategori ini.
+                      </p>
 
+                    </div>
 
-                        {/* DETAIL */}
-                        <button
-                          type="button"
-                          className="event-eo-detail-button"
-                          onClick={() => handleDetail(event)}
-                        >
-                          Detail Event
-                        </button>
+                  )}
 
-                      </div>
-                    );
-                  })
-                ) : (
-                  <div className="event-eo-empty">
+                </div>
 
-                    <h3>
-                      Tidak ada event
-                    </h3>
-
-                    <p>
-                      Belum ada event pada kategori ini.
-                    </p>
-
-                  </div>
-                )}
-
-              </div>
+              )}
 
             </section>
+
           )}
 
-
-          {/* =========================
+          {/* =====================================================
               DRAFT
-          ========================= */}
-          {(activeTab === "Semua" || activeTab === "Draft") && (
+          ===================================================== */}
+
+          {(activeTab === "Semua" ||
+            activeTab === "Draft") && (
+
             <section className="event-eo-section event-eo-draft-section">
 
               <div className="event-eo-section-header">
@@ -327,118 +741,213 @@ function EventEO() {
                 <button
                   type="button"
                   className="event-eo-see-all"
-                  onClick={() => setActiveTab("Draft")}
+                  onClick={() =>
+                    setActiveTab("Draft")
+                  }
                 >
                   Lihat Semua Draft
                 </button>
 
               </div>
 
+              {/* =================================================
+                  ERROR DRAFT
+              ================================================= */}
 
-              <div className="event-eo-list">
+              {draftError && (
+                <div className="dashboard-error">
+                  {draftError}
+                </div>
+              )}
 
-                {draftEvents.map((event) => {
+              {/* =================================================
+                  LOADING DRAFT
+              ================================================= */}
 
-                  const percentage =
-                    event.total > 0
-                      ? Math.round(
-                          (event.sold / event.total) * 100
-                        )
-                      : 0;
+              {draftLoading ? (
 
-                  return (
-                    <div
-                      className="event-eo-card event-eo-draft-card"
-                      key={event.id}
-                    >
+                <div className="event-eo-empty">
 
-                      {/* STATUS */}
-                      <span
-                        className={`event-eo-status ${event.statusClass}`}
-                      >
-                        {event.status}
-                      </span>
+                  <h3>
+                    Memuat draft...
+                  </h3>
 
+                  <p>
+                    Sedang mengambil draft
+                    event Anda.
+                  </p>
 
-                      {/* TITLE */}
-                      <div className="event-eo-card-header">
+                </div>
 
-                        <h3>
-                          {event.title}
-                        </h3>
+              ) : (
 
-                      </div>
+                <div className="event-eo-list">
 
+                  {draftEvents.length > 0 ? (
 
-                      {/* META */}
-                      <div className="event-eo-meta">
+                    draftEvents.map(
+                      (event) => {
 
-                        <span>
-                          <span className="meta-icon">
-                            ◷
-                          </span>
-
-                          {event.date}
-                        </span>
-
-                        <span>
-                          <span className="meta-icon">
-                            •
-                          </span>
-
-                          {event.location}
-                        </span>
-
-                      </div>
-
-
-                      {/* TICKET */}
-                      <div className="event-eo-ticket">
-
-                        <div className="event-eo-ticket-info">
-
-                          <span>
-                            -/400 Tiket Tersedia
-                          </span>
-
-                          <span>
-                            {percentage}%
-                          </span>
-
-                        </div>
-
-
-                        <div className="event-eo-progress">
+                        return (
 
                           <div
-                            className="event-eo-progress-bar draft"
-                            style={{
-                              width: `${percentage}%`,
-                            }}
-                          />
+                            className="event-eo-card event-eo-draft-card"
+                            key={
+                              event.event_id
+                            }
+                          >
 
-                        </div>
+                            {/* =================================
+                                STATUS
+                            ================================= */}
 
-                      </div>
+                            <span className="event-eo-status draft">
+                              Draft
+                            </span>
 
+                            {/* =================================
+                                TITLE
+                            ================================= */}
 
-                      {/* EDIT */}
-                      <button
-                        type="button"
-                        className="event-eo-detail-button event-eo-edit-button"
-                        onClick={() => handleEdit(event)}
-                      >
-                        Lanjutkan Edit
-                      </button>
+                            <div className="event-eo-card-header">
+
+                              <h3>
+                                {event?.title ||
+                                  "Tanpa Judul Event"}
+                              </h3>
+
+                            </div>
+
+                            {/* =================================
+                                META
+                            ================================= */}
+
+                            <div className="event-eo-meta">
+
+                              <span>
+
+                                <span className="meta-icon">
+                                  ◷
+                                </span>
+
+                                {formatDate(
+                                  event?.start_date
+                                )}
+
+                              </span>
+
+                              <span>
+
+                                <span className="meta-icon">
+                                  •
+                                </span>
+
+                                {event?.venue_name ||
+                                  "Belum ditentukan"}
+
+                              </span>
+
+                            </div>
+
+                            {/* =================================
+                                TICKET
+                            ================================= */}
+
+                            <div className="event-eo-ticket">
+
+                              <div className="event-eo-ticket-info">
+
+                                <span>
+                                  Draft Event
+                                </span>
+
+                                <span>
+                                  Belum dipublikasikan
+                                </span>
+
+                              </div>
+
+                              <div className="event-eo-progress">
+
+                                <div
+                                  className="event-eo-progress-bar draft"
+                                  style={{
+                                    width: "0%",
+                                  }}
+                                />
+
+                              </div>
+
+                            </div>
+
+                            {/* =================================
+                                EDIT
+                            ================================= */}
+
+                            <button
+                              type="button"
+                              className="event-eo-detail-button event-eo-edit-button"
+                              onClick={() =>
+                                handleEdit(
+                                  event
+                                )
+                              }
+                            >
+                              Lanjutkan Edit
+                            </button>
+
+                          </div>
+
+                        );
+
+                      }
+                    )
+
+                  ) : (
+
+                    <div className="event-eo-empty">
+
+                      <h3>
+                        Belum ada draft event
+                      </h3>
+
+                      <p>
+                        Draft event yang kamu
+                        simpan akan muncul di
+                        sini.
+                      </p>
 
                     </div>
-                  );
-                })}
 
-              </div>
+                  )}
+
+                </div>
+
+              )}
 
             </section>
+
           )}
+
+          {/* =====================================================
+              REFRESH
+          ===================================================== */}
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "20px",
+            }}
+          >
+            <button
+              type="button"
+              className="event-eo-see-all"
+              onClick={handleRefresh}
+            >
+              Refresh Data
+            </button>
+          </div>
 
         </div>
 
