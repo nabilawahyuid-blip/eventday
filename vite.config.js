@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => {
 
             return path.replace(
               /^\/api/,
-              ""
+              "/api/"
             );
           },
 

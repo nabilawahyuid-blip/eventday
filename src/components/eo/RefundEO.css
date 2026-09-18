@@ -1032,3 +1032,403 @@
     flex: none;
   }
 }
+/* =========================================
+   EMPTY REFUND
+========================================= */
+
+.refund-empty {
+  width: 100%;
+  padding: 40px 20px;
+
+  text-align: center;
+
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+
+  color: #777485;
+
+  background: #ffffff;
+
+  border: 1px solid #e2deeb;
+  border-radius: 12px;
+}
+
+
+/* =========================================
+   DISABLED BUTTON
+========================================= */
+
+.reject-btn:disabled,
+.approve-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* =========================================
+   REFUND DETAIL MODAL
+========================================= */
+
+.refund-modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  padding: 20px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(20, 18, 30, 0.45);
+
+  z-index: 9999;
+}
+
+
+/* =========================================
+   MODAL
+========================================= */
+
+.refund-modal {
+  width: 100%;
+  max-width: 600px;
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  background: #ffffff;
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 15px 45px rgba(0, 0, 0, 0.20);
+
+  animation: refundModalShow 0.2s ease;
+}
+
+
+@keyframes refundModalShow {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================
+   MODAL HEADER
+========================================= */
+
+.refund-modal-header {
+  width: 100%;
+
+  padding: 20px 24px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid #e8e5ef;
+}
+
+
+.refund-modal-header h2 {
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 20px;
+  font-weight: 700;
+
+  color: #25232f;
+}
+
+
+.refund-modal-close {
+  width: 32px;
+  height: 32px;
+
+  padding: 0;
+
+  border: none;
+
+  background: transparent;
+
+  color: #777485;
+
+  font-size: 18px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  border-radius: 6px;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+
+.refund-modal-close:hover {
+  background: #f5f3ff;
+
+  color: #3d35d5;
+}
+
+
+/* =========================================
+   MODAL LOADING
+========================================= */
+
+.refund-modal-loading {
+  padding: 45px 24px;
+
+  text-align: center;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 14px;
+
+  color: #777485;
+}
+
+
+/* =========================================
+   DETAIL CONTENT
+========================================= */
+
+.refund-detail-content {
+  width: 100%;
+
+  padding: 8px 24px 12px;
+}
+
+
+/* =========================================
+   DETAIL ROW
+========================================= */
+
+.detail-row {
+  width: 100%;
+
+  min-height: 55px;
+
+  padding: 14px 0;
+
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 25px;
+
+  border-bottom: 1px solid #eeeaf3;
+}
+
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+
+.detail-row span {
+  flex-shrink: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 13px;
+  font-weight: 400;
+
+  line-height: 1.4;
+
+  color: #777485;
+}
+
+
+.detail-row strong {
+  max-width: 65%;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  line-height: 1.4;
+
+  color: #302e3b;
+
+  text-align: right;
+
+  word-break: break-word;
+}
+
+
+/* =========================================
+   MODAL FOOTER
+========================================= */
+
+.refund-modal-footer {
+  width: 100%;
+
+  padding: 16px 24px 20px;
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  border-top: 1px solid #e8e5ef;
+}
+
+
+.btn-close-modal {
+  min-width: 90px;
+
+  height: 36px;
+
+  padding: 0 20px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background: #5542dc;
+
+  color: #ffffff;
+
+  font-family: Arial, sans-serif;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    opacity 0.2s ease,
+    transform 0.15s ease;
+}
+
+
+.btn-close-modal:hover {
+  opacity: 0.9;
+}
+
+
+.btn-close-modal:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================================
+   MODAL MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+  .refund-modal-overlay {
+    padding: 12px;
+  }
+
+
+  .refund-modal {
+    width: 100%;
+
+    max-height: 92vh;
+
+    border-radius: 12px;
+  }
+
+
+  .refund-modal-header {
+    padding: 16px 18px;
+  }
+
+
+  .refund-modal-header h2 {
+    font-size: 18px;
+  }
+
+
+  .refund-detail-content {
+    padding: 8px 18px 10px;
+  }
+
+
+  .detail-row {
+    flex-direction: column;
+
+    gap: 6px;
+
+    padding: 13px 0;
+  }
+
+
+  .detail-row span {
+    font-size: 12px;
+  }
+
+
+  .detail-row strong {
+    max-width: 100%;
+
+    font-size: 13px;
+
+    text-align: left;
+  }
+
+
+  .refund-modal-footer {
+    padding: 14px 18px 18px;
+  }
+
+
+  .btn-close-modal {
+    width: 100%;
+  }
+
+}
+
+
+/* =========================================
+   EXTRA SMALL MOBILE
+========================================= */
+
+@media (max-width: 400px) {
+
+  .refund-modal-overlay {
+    padding: 8px;
+  }
+
+
+  .refund-modal-header {
+    padding: 15px;
+  }
+
+
+  .refund-detail-content {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+
+  .refund-modal-footer {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+}

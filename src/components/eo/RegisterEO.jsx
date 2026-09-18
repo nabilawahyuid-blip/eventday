@@ -1,6 +1,11 @@
 import React, { useRef, useState } from "react";
 import "./RegisterEO.css";
 
+import {
+  registerOrganizer,
+  uploadOrganizerDocument,
+} from "../../services/organizerRegisterService";
+
 function RegisterEO() {
   // =====================================================
   // STATE FILE
@@ -12,9 +17,10 @@ function RegisterEO() {
   const [draggingCv, setDraggingCv] = useState(false);
   const [draggingAkta, setDraggingAkta] = useState(false);
 
+  const [loading, setLoading] = useState(false);
+
   const cvInputRef = useRef(null);
   const aktaInputRef = useRef(null);
-
 
   // =====================================================
   // HANDLE FILE
@@ -24,6 +30,11 @@ function RegisterEO() {
     const file = event.target.files[0];
 
     if (file) {
+      if (file.type !== "application/pdf") {
+        alert("File CV/Portofolio harus berupa PDF.");
+        return;
+      }
+
       setCvFile(file);
     }
   };
@@ -32,10 +43,14 @@ function RegisterEO() {
     const file = event.target.files[0];
 
     if (file) {
+      if (file.type !== "application/pdf") {
+        alert("File Akta harus berupa PDF.");
+        return;
+      }
+
       setAktaFile(file);
     }
   };
-
 
   // =====================================================
   // DRAG & DROP CV
@@ -64,7 +79,6 @@ function RegisterEO() {
     }
   };
 
-
   // =====================================================
   // DRAG & DROP AKTA
   // =====================================================
@@ -92,55 +106,115 @@ function RegisterEO() {
     }
   };
 
-
   // =====================================================
   // SUBMIT
   // =====================================================
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const formData = new FormData(event.target);
+    if (loading) return;
 
-    console.log("================================");
-    console.log("DATA REGISTER EO");
-    console.log("================================");
+    try {
+      setLoading(true);
 
-    console.log(
-      "Nama EO:",
-      formData.get("namaEO")
-    );
+      // =================================================
+      // AMBIL DATA FORM
+      // =================================================
 
-    console.log(
-      "NPWP:",
-      formData.get("npwp")
-    );
+      const formData = new FormData(event.target);
 
-    console.log(
-      "Nama Bank:",
-      formData.get("namaBank")
-    );
+      const namaEO = formData.get("namaEO");
+      const npwp = formData.get("npwp");
+      const namaBank = formData.get("namaBank");
+      const nomorRekening = formData.get("nomorRekening");
 
-    console.log(
-      "Nomor Rekening:",
-      formData.get("nomorRekening")
-    );
+      // =================================================
+      // VALIDASI FILE
+      // =================================================
 
-    console.log(
-      "CV / Portofolio:",
-      cvFile
-    );
+      if (!cvFile) {
+        alert("Silakan upload CV/Portofolio terlebih dahulu.");
+        setLoading(false);
+        return;
+      }
 
-    console.log(
-      "Akta Perusahaan:",
-      aktaFile
-    );
+      if (!aktaFile) {
+        alert("Silakan upload Akta Perusahaan terlebih dahulu.");
+        setLoading(false);
+        return;
+      }
 
-    alert("Pengajuan berhasil dikirim.");
+      console.log("================================");
+      console.log("DATA REGISTER EO");
+      console.log("================================");
 
-    // Nanti bagian ini bisa dihubungkan ke API backend.
+      console.log("Nama EO:", namaEO);
+      console.log("NPWP:", npwp);
+      console.log("Nama Bank:", namaBank);
+      console.log("Nomor Rekening:", nomorRekening);
+      console.log("CV / Portofolio:", cvFile);
+      console.log("Akta Perusahaan:", aktaFile);
+
+      // =================================================
+      // 1. REGISTER EO
+      // =================================================
+
+      const registerResponse = await registerOrganizer({
+        organizer_name: namaEO,
+        npwp_number: npwp,
+        bank_name: namaBank,
+        bank_account_number: nomorRekening,
+      });
+
+      console.log("REGISTER EO RESPONSE:");
+      console.log(registerResponse);
+
+      // =================================================
+      // 2. UPLOAD CV / PORTOFOLIO
+      // =================================================
+
+      const portfolioResponse = await uploadOrganizerDocument(
+        cvFile,
+        "PORTFOLIO"
+      );
+
+      console.log("UPLOAD PORTFOLIO RESPONSE:");
+      console.log(portfolioResponse);
+
+      // =================================================
+      // 3. UPLOAD AKTA PERUSAHAAN
+      // =================================================
+
+      const deedResponse = await uploadOrganizerDocument(
+        aktaFile,
+        "AKTA_PERUSAHAAN"
+      );
+
+      console.log("UPLOAD AKTA RESPONSE:");
+      console.log(deedResponse);
+
+      // =================================================
+      // BERHASIL
+      // =================================================
+
+      alert("Pengajuan Event Organizer berhasil dikirim.");
+
+      window.history.back();
+    } catch (error) {
+      console.error("================================");
+      console.error("REGISTER EO GAGAL");
+      console.error("================================");
+      console.error(error);
+
+      alert(
+        error?.message ||
+          "Terjadi kesalahan saat mendaftarkan Event Organizer."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
-
 
   // =====================================================
   // CANCEL
@@ -149,7 +223,6 @@ function RegisterEO() {
   const handleCancel = () => {
     window.history.back();
   };
-
 
   // =====================================================
   // FORMAT FILE NAME
@@ -163,21 +236,17 @@ function RegisterEO() {
     return file.name;
   };
 
-
   // =====================================================
   // RENDER
   // =====================================================
 
   return (
     <div className="eo-page">
-
-
       {/* =================================================
           HEADER
       ================================================= */}
 
       <header className="eo-header">
-
         <button
           type="button"
           className="eo-back-button"
@@ -188,87 +257,55 @@ function RegisterEO() {
         </button>
 
         <h1>Daftar EO</h1>
-
       </header>
-
-
 
       {/* =================================================
           MAIN
       ================================================= */}
 
       <main className="eo-main">
-
         <div className="eo-card">
-
-
           {/* =================================================
               LOGO
           ================================================= */}
 
           <div className="eo-logo">
-
             <div className="eo-logo-main">
-              <span className="eo-event">
-                EVENT
-              </span>
+              <span className="eo-event">EVENT</span>
 
-              <span className="eo-day">
-                DAY
-              </span>
+              <span className="eo-day">DAY</span>
             </div>
 
             <div className="eo-logo-subtitle">
+              <span className="eo-event">EVENT</span>
 
-              <span className="eo-event">
-                EVENT
-              </span>
-
-              <span className="eo-organizer">
-                ORGANIZER
-              </span>
-
+              <span className="eo-organizer">ORGANIZER</span>
             </div>
-
           </div>
-
-
 
           {/* =================================================
               TITLE
           ================================================= */}
 
           <div className="eo-title">
-
-            <h2>
-              Informasi Event Organizer
-            </h2>
+            <h2>Informasi Event Organizer</h2>
 
             <p>
-              Lengkapi informasi berikut untuk
-              mendaftarkan EO kamu.
+              Lengkapi informasi berikut untuk mendaftarkan EO kamu.
             </p>
-
           </div>
-
-
 
           {/* =================================================
               FORM
           ================================================= */}
 
           <form onSubmit={handleSubmit}>
-
-
             {/* =================================================
                 NAMA EO
             ================================================= */}
 
             <div className="eo-form-group">
-
-              <label htmlFor="namaEO">
-                Nama Event Organizer
-              </label>
+              <label htmlFor="namaEO">Nama Event Organizer</label>
 
               <input
                 id="namaEO"
@@ -277,22 +314,16 @@ function RegisterEO() {
                 placeholder="Masukan Nama EO"
                 required
               />
-
             </div>
-
-
 
             {/* =================================================
                 NPWP
             ================================================= */}
 
             <div className="eo-form-group">
-
               <label htmlFor="npwp">
                 NPWP
-                <span>
-                  {" "} (Opsional)
-                </span>
+                <span> (Opsional)</span>
               </label>
 
               <input
@@ -301,20 +332,14 @@ function RegisterEO() {
                 type="text"
                 placeholder="Masukan NPWP"
               />
-
             </div>
-
-
 
             {/* =================================================
                 NAMA BANK
             ================================================= */}
 
             <div className="eo-form-group">
-
-              <label htmlFor="namaBank">
-                Nama Bank
-              </label>
+              <label htmlFor="namaBank">Nama Bank</label>
 
               <input
                 id="namaBank"
@@ -323,20 +348,14 @@ function RegisterEO() {
                 placeholder="Masukan Nama Bank"
                 required
               />
-
             </div>
-
-
 
             {/* =================================================
                 NOMOR REKENING
             ================================================= */}
 
             <div className="eo-form-group">
-
-              <label htmlFor="nomorRekening">
-                Nomor Rekening
-              </label>
+              <label htmlFor="nomorRekening">Nomor Rekening</label>
 
               <input
                 id="nomorRekening"
@@ -345,43 +364,27 @@ function RegisterEO() {
                 placeholder="Masukan Nomor Rekening"
                 required
               />
-
             </div>
-
-
 
             {/* =================================================
                 CV / PORTOFOLIO
             ================================================= */}
 
             <div className="eo-upload-section">
-
               <label>
                 CV/PORTOFOLIO
-                <span>
-                  {" "} (PDF)
-                </span>
+                <span> (PDF)</span>
               </label>
-
 
               <div
                 className={`eo-upload-box ${
-                  draggingCv
-                    ? "eo-dragging"
-                    : ""
-                } ${
-                  cvFile
-                    ? "eo-has-file"
-                    : ""
-                }`}
-                onClick={() =>
-                  cvInputRef.current?.click()
-                }
+                  draggingCv ? "eo-dragging" : ""
+                } ${cvFile ? "eo-has-file" : ""}`}
+                onClick={() => cvInputRef.current?.click()}
                 onDragOver={handleCvDragOver}
                 onDragLeave={handleCvDragLeave}
                 onDrop={handleCvDrop}
               >
-
                 <input
                   ref={cvInputRef}
                   type="file"
@@ -390,30 +393,17 @@ function RegisterEO() {
                   onChange={handleCvChange}
                 />
 
-
-                <div className="eo-upload-icon">
-                  ↑
-                </div>
-
+                <div className="eo-upload-icon">↑</div>
 
                 {cvFile ? (
-
                   <>
-                    <strong>
-                      {getFileName(cvFile)}
-                    </strong>
+                    <strong>{getFileName(cvFile)}</strong>
 
-                    <p>
-                      Klik untuk mengganti file
-                    </p>
+                    <p>Klik untuk mengganti file</p>
                   </>
-
                 ) : (
-
                   <>
-                    <strong>
-                      Upload Dokumen Porto/CV
-                    </strong>
+                    <strong>Upload Dokumen Porto/CV</strong>
 
                     <p>
                       Drag and drop file here
@@ -421,47 +411,29 @@ function RegisterEO() {
                       or click to browse
                     </p>
                   </>
-
                 )}
-
               </div>
-
             </div>
-
-
 
             {/* =================================================
                 AKTA PERUSAHAAN
             ================================================= */}
 
             <div className="eo-upload-section">
-
               <label>
                 AKTA PERUSAHAAN
-                <span>
-                  {" "} (PDF)
-                </span>
+                <span> (PDF)</span>
               </label>
-
 
               <div
                 className={`eo-upload-box ${
-                  draggingAkta
-                    ? "eo-dragging"
-                    : ""
-                } ${
-                  aktaFile
-                    ? "eo-has-file"
-                    : ""
-                }`}
-                onClick={() =>
-                  aktaInputRef.current?.click()
-                }
+                  draggingAkta ? "eo-dragging" : ""
+                } ${aktaFile ? "eo-has-file" : ""}`}
+                onClick={() => aktaInputRef.current?.click()}
                 onDragOver={handleAktaDragOver}
                 onDragLeave={handleAktaDragLeave}
                 onDrop={handleAktaDrop}
               >
-
                 <input
                   ref={aktaInputRef}
                   type="file"
@@ -470,30 +442,17 @@ function RegisterEO() {
                   onChange={handleAktaChange}
                 />
 
-
-                <div className="eo-upload-icon">
-                  ↑
-                </div>
-
+                <div className="eo-upload-icon">↑</div>
 
                 {aktaFile ? (
-
                   <>
-                    <strong>
-                      {getFileName(aktaFile)}
-                    </strong>
+                    <strong>{getFileName(aktaFile)}</strong>
 
-                    <p>
-                      Klik untuk mengganti file
-                    </p>
+                    <p>Klik untuk mengganti file</p>
                   </>
-
                 ) : (
-
                   <>
-                    <strong>
-                      Upload Dokumen Akta Perusahaan
-                    </strong>
+                    <strong>Upload Dokumen Akta Perusahaan</strong>
 
                     <p>
                       Drag and drop file here
@@ -501,46 +460,35 @@ function RegisterEO() {
                       or click to browse
                     </p>
                   </>
-
                 )}
-
               </div>
-
             </div>
-
-
 
             {/* =================================================
                 BUTTON
             ================================================= */}
 
             <div className="eo-buttons">
-
               <button
                 type="submit"
                 className="eo-submit"
+                disabled={loading}
               >
-                Ajukan Permohonan
+                {loading ? "Mengirim..." : "Ajukan Permohonan"}
               </button>
-
 
               <button
                 type="button"
                 className="eo-cancel"
                 onClick={handleCancel}
+                disabled={loading}
               >
                 Batalkan
               </button>
-
             </div>
-
-
           </form>
-
         </div>
-
       </main>
-
     </div>
   );
 }
