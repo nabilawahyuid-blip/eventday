@@ -1,28 +1,27 @@
-// src/components/eo/DashboardEO.jsx
-
 import React, { useEffect, useState } from "react";
-
 import {
   CalendarDays,
   Ticket,
   CircleDollarSign,
+  MapPin,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
 
 import {
-  getOrganizerDashboard,
+  getOrganizerDashboardMetrics,
   getOrganizerRecentEvents,
   getOrganizerRecentTransactions,
 } from "../../services/organizerDashboardService";
 
+import { getPublicEventDetail } from "../../services/organizerEventService";
+
 import "./DashboardEO.css";
 
 function DashboardEO() {
-  // =====================================================
-  // STATE DASHBOARD
-  // =====================================================
+  const navigate = useNavigate();
 
   const [dashboard, setDashboard] = useState({
     active_events: 0,
@@ -31,38 +30,18 @@ function DashboardEO() {
     tickets_sold: 0,
   });
 
-  // =====================================================
-  // STATE EVENT
-  // =====================================================
-
   const [events, setEvents] = useState([]);
-
-  // =====================================================
-  // STATE TRANSAKSI
-  // =====================================================
-
   const [transactions, setTransactions] = useState([]);
-
-  // =====================================================
-  // STATE LOADING
-  // =====================================================
 
   const [loading, setLoading] = useState(true);
   const [eventLoading, setEventLoading] = useState(true);
-  const [transactionLoading] = useState(false);
-
-  // =====================================================
-  // STATE ERROR
-  // =====================================================
+  const [transactionLoading, setTransactionLoading] =
+    useState(true);
 
   const [error, setError] = useState("");
   const [eventError, setEventError] = useState("");
   const [transactionError, setTransactionError] =
     useState("");
-
-  // =====================================================
-  // LOAD SEMUA DATA
-  // =====================================================
 
   useEffect(() => {
     loadDashboard();
@@ -70,19 +49,16 @@ function DashboardEO() {
     loadRecentTransactions();
   }, []);
 
-  // =====================================================
-  // LOAD DASHBOARD
-  // =====================================================
-
   const loadDashboard = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await getOrganizerDashboard();
+      const response =
+        await getOrganizerDashboardMetrics();
 
       console.log(
-        "DASHBOARD RESPONSE:",
+        "DASHBOARD METRICS:",
         response
       );
 
@@ -96,22 +72,18 @@ function DashboardEO() {
       );
     } catch (error) {
       console.error(
-        "Gagal mengambil dashboard:",
+        "Gagal mengambil metrics dashboard:",
         error
       );
 
       setError(
         error?.message ||
-          "Gagal mengambil data dashboard"
+          "Gagal mengambil data dashboard."
       );
     } finally {
       setLoading(false);
     }
   };
-
-  // =====================================================
-  // LOAD EVENT TERBARU
-  // =====================================================
 
   const loadRecentEvents = async () => {
     try {
@@ -122,17 +94,57 @@ function DashboardEO() {
         await getOrganizerRecentEvents();
 
       console.log(
-        "RECENT EVENTS RESPONSE:",
+        "RECENT EVENTS:",
         response
       );
 
-      const eventData = Array.isArray(
+      const recentEvents = Array.isArray(
         response?.data
       )
         ? response.data
         : [];
 
-      setEvents(eventData);
+      if (recentEvents.length === 0) {
+        setEvents([]);
+        return;
+      }
+
+      const eventResults =
+        await Promise.all(
+          recentEvents.map(async (event) => {
+            const eventId =
+              event?.event_id ||
+              event?.id;
+
+            let detail = {};
+
+            if (eventId) {
+              try {
+                const detailResponse =
+                  await getPublicEventDetail(
+                    eventId
+                  );
+
+                detail =
+                  detailResponse?.data || {};
+              } catch (detailError) {
+                console.error(
+                  "Gagal mengambil detail event:",
+                  eventId,
+                  detailError
+                );
+              }
+            }
+
+            return normalizeEvent({
+              ...event,
+              ...detail,
+              event_id: eventId,
+            });
+          })
+        );
+
+      setEvents(eventResults);
     } catch (error) {
       console.error(
         "Gagal mengambil event terbaru:",
@@ -141,7 +153,7 @@ function DashboardEO() {
 
       setEventError(
         error?.message ||
-          "Gagal mengambil event terbaru"
+          "Gagal mengambil event terbaru."
       );
 
       setEvents([]);
@@ -150,67 +162,164 @@ function DashboardEO() {
     }
   };
 
-  // =====================================================
-  // LOAD TRANSAKSI TERBARU
-  // =====================================================
-
   const loadRecentTransactions = async () => {
     try {
+      setTransactionLoading(true);
       setTransactionError("");
 
       const response =
         await getOrganizerRecentTransactions();
 
       console.log(
-        "RECENT TRANSACTIONS RESPONSE:",
+        "RECENT TRANSACTIONS:",
         response
       );
 
-      const transactionData = Array.isArray(
-        response?.data
-      )
-        ? response.data
-        : [];
+      const transactionData =
+        Array.isArray(response?.data)
+          ? response.data
+          : [];
 
       setTransactions(transactionData);
     } catch (error) {
       console.error(
-        "Gagal mengambil transaksi terbaru:",
+        "Gagal mengambil transaksi:",
         error
       );
 
       setTransactionError(
         error?.message ||
-          "Gagal mengambil transaksi terbaru"
+          "Gagal mengambil transaksi terbaru."
       );
 
       setTransactions([]);
+    } finally {
+      setTransactionLoading(false);
     }
   };
 
-  // =====================================================
-  // FORMAT RUPIAH
-  // =====================================================
+  const normalizeEvent = (event) => {
+    const tickets = Array.isArray(
+      event?.tickets
+    )
+      ? event.tickets
+      : [];
 
-  const formatRupiah = (number) => {
-    return new Intl.NumberFormat(
-      "id-ID"
-    ).format(Number(number) || 0);
+    let totalQuota = 0;
+    let totalRemaining = 0;
+
+    tickets.forEach((ticket) => {
+      totalQuota +=
+        Number(ticket?.quota) || 0;
+
+      totalRemaining +=
+        Number(ticket?.remaining) || 0;
+    });
+
+    const ticketsSold = Math.max(
+      totalQuota - totalRemaining,
+      0
+    );
+
+    const progress =
+      totalQuota > 0
+        ? Math.min(
+            Math.round(
+              (ticketsSold / totalQuota) * 100
+            ),
+            100
+          )
+        : 0;
+
+    const prices = tickets
+      .map((ticket) =>
+        Number(ticket?.price)
+      )
+      .filter(
+        (price) =>
+          Number.isFinite(price) &&
+          price > 0
+      );
+
+    const minPrice =
+      prices.length > 0
+        ? Math.min(...prices)
+        : 0;
+
+    return {
+      ...event,
+
+      event_id:
+        event?.event_id ||
+        event?.id ||
+        "",
+
+      title:
+        event?.title ||
+        "Tanpa Judul",
+
+      start_date:
+        event?.start_date ||
+        event?.startDate ||
+        null,
+
+      end_date:
+        event?.end_date ||
+        event?.endDate ||
+        null,
+
+      venue_name:
+        event?.venue_name ||
+        event?.venueName ||
+        "-",
+
+      status:
+        event?.status ||
+        "DRAFT",
+
+      image:
+        event?.image ||
+        event?.banner_url ||
+        event?.bannerUrl ||
+        "",
+
+      tickets,
+
+      total_quota: totalQuota,
+
+      total_remaining:
+        totalRemaining,
+
+      tickets_sold:
+        ticketsSold,
+
+      progress,
+
+      min_price:
+        minPrice,
+    };
   };
 
-  // =====================================================
-  // FORMAT TANGGAL
-  // =====================================================
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat(
+      "id-ID",
+      {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+      }
+    ).format(Number(value) || 0);
+  };
 
-  const formatDate = (dateString) => {
-    if (!dateString) {
+  const formatDate = (value) => {
+    if (!value) {
       return "-";
     }
 
-    const date = new Date(dateString);
+    const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) {
-      return dateString;
+      return value;
     }
 
     return date.toLocaleDateString(
@@ -223,153 +332,155 @@ function DashboardEO() {
     );
   };
 
-  // =====================================================
-  // FORMAT STATUS EVENT
-  // =====================================================
-
-  const getEventStatus = (status) => {
+  const getStatusClass = (status) => {
     const normalized =
-      String(status || "").toUpperCase();
+      String(status || "")
+        .toUpperCase();
 
     if (normalized === "PUBLISHED") {
-      return "Event Aktif";
-    }
-
-    if (normalized === "DRAFT") {
-      return "Draft";
+      return "event-active";
     }
 
     if (
       normalized === "ENDED" ||
       normalized === "FINISHED"
     ) {
-      return "Event Berakhir";
+      return "event-ended";
     }
 
-    if (status) {
-      return status;
-    }
-
-    return "-";
+    return "";
   };
 
-  // =====================================================
-  // CLASS STATUS EVENT
-  // =====================================================
-
-  const getEventStatusClass = (status) => {
+  const getStatusLabel = (status) => {
     const normalized =
-      String(status || "").toUpperCase();
+      String(status || "")
+        .toUpperCase();
 
-    if (normalized === "PUBLISHED") {
-      return "event-active";
+    switch (normalized) {
+      case "PUBLISHED":
+        return "Event Aktif";
+
+      case "DRAFT":
+        return "Draft";
+
+      case "ENDED":
+      case "FINISHED":
+        return "Event Berakhir";
+
+      case "CANCELLED":
+        return "Dibatalkan";
+
+      default:
+        return status || "-";
     }
-
-    return "event-ended";
   };
 
-  // =====================================================
-  // FORMAT STATUS TRANSAKSI
-  // =====================================================
-
-  const getTransactionStatus = (status) => {
+  const getTransactionStatusClass = (
+    status
+  ) => {
     const normalized =
-      String(status || "").toUpperCase();
+      String(status || "")
+        .toUpperCase();
 
     if (
-      normalized === "PAID" ||
       normalized === "SUCCESS" ||
-      normalized === "SETTLEMENT"
-    ) {
-      return "Lunas";
-    }
-
-    if (
-      normalized === "PENDING" ||
-      normalized === "WAITING_PAYMENT"
-    ) {
-      return "Menunggu";
-    }
-
-    if (
-      normalized === "CANCELLED" ||
-      normalized === "CANCELED" ||
-      normalized === "FAILED"
-    ) {
-      return "Dibatalkan";
-    }
-
-    return status || "-";
-  };
-
-  // =====================================================
-  // CLASS STATUS TRANSAKSI
-  // =====================================================
-
-  const getTransactionStatusClass = (status) => {
-    const normalized =
-      String(status || "").toUpperCase();
-
-    if (
       normalized === "PAID" ||
-      normalized === "SUCCESS" ||
-      normalized === "SETTLEMENT"
+      normalized === "COMPLETED"
     ) {
       return "status-paid";
     }
 
     if (
-      normalized === "PENDING" ||
-      normalized === "WAITING_PAYMENT"
+      normalized === "PENDING"
     ) {
       return "status-waiting";
     }
 
-    return "status-cancelled";
+    if (
+      normalized === "FAILED" ||
+      normalized === "CANCELLED"
+    ) {
+      return "status-cancelled";
+    }
+
+    return "status-waiting";
   };
 
-  // =====================================================
-  // RENDER
-  // =====================================================
+  const getTransactionStatusLabel = (
+    status
+  ) => {
+    const normalized =
+      String(status || "")
+        .toUpperCase();
+
+    switch (normalized) {
+      case "SUCCESS":
+      case "PAID":
+      case "COMPLETED":
+        return "Lunas";
+
+      case "PENDING":
+        return "Menunggu";
+
+      case "FAILED":
+      case "CANCELLED":
+        return "Dibatalkan";
+
+      default:
+        return status || "-";
+    }
+  };
+
+  const getImageUrl = (image) => {
+    if (!image) {
+      return "";
+    }
+
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://") ||
+      image.startsWith("data:")
+    ) {
+      return image;
+    }
+
+    const apiUrl = (
+      import.meta.env.VITE_NGROK_URL || ""
+    ).replace(/\/$/, "");
+
+    if (image.startsWith("/")) {
+      return `${apiUrl}${image}`;
+    }
+
+    return `${apiUrl}/${image}`;
+  };
+
+  const handleDetailEvent = (eventId) => {
+    if (!eventId) {
+      return;
+    }
+
+    navigate(`/eo/event/${eventId}`);
+  };
+
+  const handleViewAllEvents = () => {
+    navigate("/eo/event");
+  };
+
+  const handleViewAllTransactions = () => {
+    navigate("/eo/transaksi");
+  };
 
   return (
     <div className="dashboard-eo-page">
 
-      {/* =====================================================
-          SIDEBAR
-      ===================================================== */}
-
       <SidebarEO />
-
-      {/* =====================================================
-          MAIN
-      ===================================================== */}
 
       <main className="dashboard-eo-main">
 
-        {/* =====================================================
-            NAVBAR
-        ===================================================== */}
-
         <NavbarEO />
 
-        {/* =====================================================
-            CONTENT
-        ===================================================== */}
-
         <div className="dashboard-eo-content">
-
-          {/* =====================================================
-              PAGE TITLE
-          ===================================================== */}
-
-          <div className="dashboard-page-header">
-            <h1>Dashboard</h1>
-          </div>
-
-          {/* =====================================================
-              ERROR DASHBOARD
-          ===================================================== */}
 
           {error && (
             <div className="dashboard-error">
@@ -377,23 +488,15 @@ function DashboardEO() {
             </div>
           )}
 
-          {/* =====================================================
-              RINGKASAN AKTIVITAS
-          ===================================================== */}
+          <div className="dashboard-page-header">
+            <h1>Dashboard</h1>
+          </div>
 
           <section className="dashboard-section">
 
-            <div className="dashboard-section-header">
-              <h2>Ringkasan Aktivitas</h2>
-            </div>
-
             <div className="summary-cards">
 
-              {/* =================================================
-                  EVENT AKTIF
-              ================================================= */}
-
-              <div className="summary-card summary-event">
+              <div className="summary-card">
 
                 <div className="summary-card-content">
 
@@ -404,29 +507,21 @@ function DashboardEO() {
                   <strong className="summary-card-value">
                     {loading
                       ? "..."
-                      : dashboard?.active_events ?? 0}
+                      : dashboard.active_events ??
+                        0}
                   </strong>
 
                 </div>
 
                 <div className="summary-icon summary-icon-purple">
-
-                  <CalendarDays
-                    size={17}
-                    strokeWidth={2}
-                  />
-
+                  <CalendarDays size={19} />
                 </div>
 
-                <div className="summary-decoration purple-decoration"></div>
+                <div className="summary-decoration purple-decoration" />
 
               </div>
 
-              {/* =================================================
-                  TIKET TERJUAL
-              ================================================= */}
-
-              <div className="summary-card summary-ticket">
+              <div className="summary-card">
 
                 <div className="summary-card-content">
 
@@ -437,29 +532,21 @@ function DashboardEO() {
                   <strong className="summary-card-value">
                     {loading
                       ? "..."
-                      : dashboard?.tickets_sold ?? 0}
+                      : dashboard.tickets_sold ??
+                        0}
                   </strong>
 
                 </div>
 
                 <div className="summary-icon summary-icon-green">
-
-                  <Ticket
-                    size={17}
-                    strokeWidth={2}
-                  />
-
+                  <Ticket size={19} />
                 </div>
 
-                <div className="summary-decoration green-decoration"></div>
+                <div className="summary-decoration green-decoration" />
 
               </div>
 
-              {/* =================================================
-                  PENDAPATAN BERSIH
-              ================================================= */}
-
-              <div className="summary-card summary-income">
+              <div className="summary-card">
 
                 <div className="summary-card-content">
 
@@ -468,37 +555,26 @@ function DashboardEO() {
                   </span>
 
                   <strong className="summary-card-value income-value">
-
                     {loading
                       ? "..."
-                      : `Rp. ${formatRupiah(
-                          dashboard?.total_revenue
-                        )}`}
-
+                      : formatCurrency(
+                          dashboard.total_revenue
+                        )}
                   </strong>
 
                 </div>
 
                 <div className="summary-icon summary-icon-orange">
-
-                  <CircleDollarSign
-                    size={17}
-                    strokeWidth={2}
-                  />
-
+                  <CircleDollarSign size={19} />
                 </div>
 
-                <div className="summary-decoration orange-decoration"></div>
+                <div className="summary-decoration orange-decoration" />
 
               </div>
 
             </div>
 
           </section>
-
-          {/* =====================================================
-              EVENT TERBARU
-          ===================================================== */}
 
           <section className="dashboard-section recent-event-section">
 
@@ -509,15 +585,14 @@ function DashboardEO() {
               <button
                 type="button"
                 className="see-all-button"
+                onClick={
+                  handleViewAllEvents
+                }
               >
                 Lihat Semua
               </button>
 
             </div>
-
-            {/* =================================================
-                ERROR EVENT
-            ================================================= */}
 
             {eventError && (
               <div className="dashboard-error">
@@ -525,73 +600,51 @@ function DashboardEO() {
               </div>
             )}
 
-            <div className="event-list">
+            {eventLoading ? (
+              <div className="dashboard-empty">
+                Memuat event...
+              </div>
+            ) : events.length === 0 ? (
+              <div className="dashboard-empty">
+                Belum ada event.
+              </div>
+            ) : (
+              <div className="event-list">
 
-              {/* =================================================
-                  LOADING EVENT
-              ================================================= */}
+                {events.map((event) => {
 
-              {eventLoading ? (
-
-                <div className="dashboard-empty-state">
-                  Memuat event...
-                </div>
-
-              ) : events.length === 0 ? (
-
-                /* =================================================
-                    EMPTY EVENT
-                ================================================= */
-
-                <div className="dashboard-empty-state">
-                  Belum ada event terbaru.
-                </div>
-
-              ) : (
-
-                /* =================================================
-                    EVENT DATA
-                ================================================= */
-
-                events.map((event) => {
-
-                  const eventStatus =
-                    getEventStatus(
-                      event?.status
+                  const imageUrl =
+                    getImageUrl(
+                      event.image
                     );
 
                   return (
                     <div
                       className="event-dashboard-card"
-                      key={event?.event_id}
+                      key={
+                        event.event_id ||
+                        event.id
+                      }
                     >
-
-                      {/* =============================================
-                          EVENT HEADER
-                      ============================================= */}
 
                       <div className="event-card-top">
 
                         <div className="event-card-info">
 
                           <h3>
-                            {event?.title ||
-                              "Tanpa Judul Event"}
+                            {event.title}
                           </h3>
 
                           <div className="event-meta">
 
                             <span>
-
                               <CalendarDays
                                 size={12}
-                                strokeWidth={1.8}
                               />
 
                               {formatDate(
-                                event?.start_date
+                                event.start_date
                               )}
-
                             </span>
 
                             <span className="meta-dot">
@@ -599,42 +652,75 @@ function DashboardEO() {
                             </span>
 
                             <span>
-                              {event?.venue_name ||
-                                "Lokasi belum tersedia"}
+                              <MapPin
+                                size={12}
+                              />
+
+                              {event.venue_name ||
+                                "-"}
                             </span>
 
                           </div>
 
                         </div>
 
-                        {/* =========================================
-                            EVENT STATUS
-                        ========================================= */}
-
                         <span
-                          className={`event-status ${getEventStatusClass(
-                            event?.status
+                          className={`event-status ${getStatusClass(
+                            event.status
                           )}`}
                         >
-                          {eventStatus}
+                          {getStatusLabel(
+                            event.status
+                          )}
                         </span>
 
                       </div>
 
-                      {/* =============================================
-                          PROGRESS
-                      ============================================= */}
+                      {imageUrl && (
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "150px",
+                            marginTop: "16px",
+                            borderRadius: "9px",
+                            overflow: "hidden",
+                            background:
+                              "#f2f0f7",
+                          }}
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={
+                              event.title
+                            }
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit:
+                                "cover",
+                              display:
+                                "block",
+                            }}
+                            onError={(e) => {
+                              e.currentTarget.style.display =
+                                "none";
+                            }}
+                          />
+                        </div>
+                      )}
 
                       <div className="event-progress-section">
 
                         <div className="event-progress-info">
 
                           <span>
-                            Data penjualan
+                            Penjualan Tiket
                           </span>
 
                           <span>
-                            -
+                            {event.tickets_sold}{" "}
+                            /{" "}
+                            {event.total_quota}
                           </span>
 
                         </div>
@@ -642,30 +728,51 @@ function DashboardEO() {
                         <div className="event-progress-bar">
 
                           <div
-                            className={`event-progress-fill ${getEventStatusClass(
-                              event?.status
-                            ) === "event-active"
-                              ? "progress-active"
-                              : "progress-ended"
+                            className={`event-progress-fill ${
+                              event.status ===
+                              "PUBLISHED"
+                                ? "progress-active"
+                                : "progress-ended"
                             }`}
                             style={{
-                              width: "0%",
+                              width: `${event.progress}%`,
                             }}
-                          ></div>
+                          />
 
                         </div>
 
-                      </div>
+                        {event.min_price >
+                          0 && (
+                          <div
+                            style={{
+                              marginTop:
+                                "7px",
+                              color:
+                                "#625d6d",
+                              fontSize:
+                                "10px",
+                            }}
+                          >
+                            Mulai{" "}
+                            {formatCurrency(
+                              event.min_price
+                            )}
+                          </div>
+                        )}
 
-                      {/* =============================================
-                          BUTTON
-                      ============================================= */}
+                      </div>
 
                       <div className="event-card-bottom">
 
                         <button
                           type="button"
                           className="detail-event-button"
+                          onClick={() =>
+                            handleDetailEvent(
+                              event.event_id ||
+                                event.id
+                            )
+                          }
                         >
                           Detail Event
                         </button>
@@ -674,16 +781,12 @@ function DashboardEO() {
 
                     </div>
                   );
-                })
-              )}
+                })}
 
-            </div>
+              </div>
+            )}
 
           </section>
-
-          {/* =====================================================
-              TRANSAKSI TERBARU
-          ===================================================== */}
 
           <section className="dashboard-section transaction-section">
 
@@ -694,15 +797,14 @@ function DashboardEO() {
               <button
                 type="button"
                 className="see-all-button"
+                onClick={
+                  handleViewAllTransactions
+                }
               >
                 Lihat Semua
               </button>
 
             </div>
-
-            {/* =================================================
-                ERROR TRANSAKSI
-            ================================================= */}
 
             {transactionError && (
               <div className="dashboard-error">
@@ -710,107 +812,70 @@ function DashboardEO() {
               </div>
             )}
 
-            <div className="transaction-list">
+            {transactionLoading ? (
+              <div className="dashboard-empty">
+                Memuat transaksi...
+              </div>
+            ) : transactions.length ===
+              0 ? (
+              <div className="dashboard-empty">
+                Belum ada transaksi.
+              </div>
+            ) : (
+              <div className="transaction-list">
 
-              {/* =================================================
-                  LOADING TRANSAKSI
-              ================================================= */}
-
-              {transactionLoading ? (
-
-                <div className="dashboard-empty-state">
-                  Memuat transaksi...
-                </div>
-
-              ) : transactions.length === 0 ? (
-
-                /* =================================================
-                    EMPTY TRANSAKSI
-                ================================================= */
-
-                <div className="dashboard-empty-state">
-                  Belum ada transaksi terbaru.
-                </div>
-
-              ) : (
-
-                /* =================================================
-                    TRANSACTION DATA
-                ================================================= */
-
-                transactions.map((transaction) => {
-
-                  const transactionStatus =
-                    getTransactionStatus(
-                      transaction?.status
-                    );
-
-                  return (
+                {transactions.map(
+                  (transaction) => (
                     <div
                       className="transaction-card"
-                      key={transaction?.order_id}
+                      key={
+                        transaction.order_id
+                      }
                     >
-
-                      {/* =============================================
-                          INFORMASI TRANSAKSI
-                      ============================================= */}
 
                       <div className="transaction-info">
 
                         <h3>
-                          {transaction?.event_title ||
+                          {transaction.event_title ||
                             "Event"}
                         </h3>
 
                         <p>
-                          {transaction?.amount != null
-                            ? `Rp. ${formatRupiah(
-                                transaction.amount
-                              )}`
-                            : "Nominal tidak tersedia"}
+                          {formatCurrency(
+                            transaction.amount
+                          )}
                         </p>
 
                         <strong>
-                          ID TRANSAKSI:{" "}
-                          {transaction?.order_id ||
+                          Order ID:{" "}
+                          {transaction.order_id ||
                             "-"}
                         </strong>
 
                       </div>
 
-                      {/* =============================================
-                          STATUS & ACTION
-                      ============================================= */}
-
                       <div className="transaction-actions">
 
                         <span
                           className={`transaction-status ${getTransactionStatusClass(
-                            transaction?.status
+                            transaction.status
                           )}`}
                         >
+                          <span className="transaction-dot" />
 
-                          <span className="transaction-dot"></span>
-
-                          {transactionStatus}
-
+                          {getTransactionStatusLabel(
+                            transaction.status
+                          )}
                         </span>
-
-                        <button
-                          type="button"
-                          className="detail-transaction-button"
-                        >
-                          Detail Transaksi
-                        </button>
 
                       </div>
 
                     </div>
-                  );
-                })
-              )}
+                  )
+                )}
 
-            </div>
+              </div>
+            )}
 
           </section>
 
