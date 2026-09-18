@@ -1067,3 +1067,222 @@ button:focus-visible {
   }
 
 }
+
+/* =========================================================
+   PERBAIKAN TAMPILAN AKTIVITAS TERBARU (TRANSAKSI)
+========================================================= */
+
+/* Perbesar sedikit tinggi item transaksi agar ada ruang lega (padding) */
+.dashboard-grid {
+  align-items: stretch !important;
+}
+
+.dashboard-card.events-card,
+.dashboard-card.transactions-card {
+  height: 100% !important;
+  min-height: 450px !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Menyamakan tinggi area list dan scroll */
+.events-card .event-list,
+.transactions-card .transaction-list {
+  max-height: 360px !important;
+  overflow-y: auto !important;
+  padding-right: 4px !important;
+  flex-grow: 1 !important;
+}
+
+/* Menyamakan ukuran fisik baris item transaksi dengan event */
+.dashboard-card.transactions-card .transaction-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  height: 61px !important;
+  min-height: 61px !important;
+  padding: 9px 11px !important;
+  box-sizing: border-box !important;
+  margin-bottom: 10px !important;
+  border-radius: 9px !important;
+  background: #ffffff !important;
+  border: 1px solid #e6e0f1 !important;
+}
+
+/* Kelompok Kiri: Avatar & Teks Info */
+.dashboard-card.transactions-card .transaction-left-group {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 11px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+  text-align: left !important;
+}
+
+/* Ukuran Kotak Avatar N1, N2, dst */
+.dashboard-card.transactions-card .event-image {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  min-height: 42px !important;
+  border-radius: 7px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+/* Area Informasi Teks di Tengah */
+.dashboard-card.transactions-card .event-info {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  flex: 1 !important;
+  text-align: left !important;
+}
+
+.dashboard-card.transactions-card .event-info h4 {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #393445 !important;
+  margin: 0 0 3px 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  text-align: left !important;
+}
+
+.dashboard-card.transactions-card .transaction-text-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+}
+
+.dashboard-card.transactions-card .trx-desc {
+  font-size: 10px !important;
+  color: #706c79 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.dashboard-card.transactions-card .trx-code {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #6253dc !important;
+  background: #f2f0ff;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin: 0 !important;
+  flex-shrink: 0;
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+}
+
+/* Kelompok Kanan: Status & Titik Tiga */
+.dashboard-card.transactions-card .transaction-right-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+/* =========================================================
+   WARNA BADGE STATUS
+========================================================= */
+
+/* Warna Merah untuk EXPIRED / Kadaluarsa */
+.dashboard-card.transactions-card .event-status.expired {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+/* Warna Oranye untuk PENDING / Draft */
+.dashboard-card.transactions-card .event-status.draft {
+  background: #fef3c7 !important;
+  color: #d97706 !important;
+}
+
+/* Warna Hijau untuk PUBLISHED / Lunas / PAID */
+.dashboard-card.transactions-card .event-status.published {
+  background: #dcf7eb !important;
+  color: #2eaa76 !important;
+}
+
+/* =========================================================
+   PENYEMPURNAAN FINAL: SCROLL, UKURAN, & JARAK TEKS
+========================================================= */
+
+/* 1. MEMBUAT KOTAK KARTU AKTIVITAS SAMA PERSIS DENGAN EVENT TERBARU */
+.dashboard-card.transactions-card {
+  padding: 10px !important; /* Samakan padding persis dengan .dashboard-card umum */
+}
+
+/* 2. MEMBUAT SCROLLBAR MEPET KE TEPI GARIS KANAN KARTU */
+.events-card .event-list,
+.transactions-card .transaction-list {
+  max-height: 360px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-right: 2px !important; 
+  margin-right: -10px !important; /* Menarik scrollbar agar pas mepet ke garis pinggir kanan */
+  padding-left: 2px !important;
+}
+
+/* 3. MEMBERI JARAK (PADDING) AGAR TEKS TIDAK TERLALU MEPET ATAS & BAWAH */
+.dashboard-card.transactions-card .transaction-item {
+  height: 64px !important;          /* Sedikit dinaikkan agar ruang lebih lega */
+  min-height: 64px !important;
+  padding: 10px 12px !important;    /* Padding atas-bawah diperluas */
+  margin-bottom: 10px !important;
+  box-sizing: border-box !important;
+}
+
+/* 4. MENYERAGAMKAN UKURAN & BENTUK BADGE STATUS */
+.dashboard-card.transactions-card .event-status {
+  width: 78px !important;           /* Menyamakan lebar tetap badge */
+  height: 24px !important;          /* Menyamakan tinggi tetap badge */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  border-radius: 20px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Penyelarasan posisi teks tengah agar vertikal di tengah */
+.dashboard-card.transactions-card .event-info {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 3px !important;               /* Jarak antar baris teks di dalam info */
+  height: 100% !important;
+}
+
+/* =========================================================
+   PENYESUAIAN JARAK JUDUL DAN ANTAR DATA AKTIVITAS
+========================================================= */
+
+/* 1. Merapatkan jarak antara judul card dengan list data pertama */
+.dashboard-grid .transactions-card .card-header {
+  margin-bottom: 15px !important; /* Sebelumnya lebih besar, dikurangi agar lebih rapat */
+}
+
+/* 2. Merapatkan jarak antar item data transaksi (mengurangi gap) */
+.dashboard-grid .transactions-card .transaction-list {
+  gap: 6px !important; /* Mengurangi jarak antar baris item dari 10px menjadi 6px */
+}
+
+/* 3. Mengatur margin bawah item transaksi agar tidak terlalu renggang */
+.dashboard-grid .transactions-card .transaction-item {
+  margin-bottom: 6px !important;
+}
