@@ -6,7 +6,7 @@ import { apiFetch } from "./api";
 // Charge pembayaran → Midtrans Snap → return { snapToken, redirectUrl }
 // body: { orderId, grossAmount, customerName, customerEmail }
 export const chargePayment = (orderId, grossAmount, customerName, customerEmail) =>
-  apiFetch("/payments/charge", {
+  apiFetch("/api/payments/charge", {
     method: "POST",
     body: JSON.stringify({ orderId, grossAmount, customerName, customerEmail }),
   });
