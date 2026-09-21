@@ -1,5 +1,12 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+import {
+  getAdminEventDetail,
+  getAdminEventSales,
+  deleteAdminEvent,
+  updateAdminEventStatus,
+} from "../../services/adminEventService";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -9,108 +16,159 @@ function DetailEvent() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  // ==
-  // DATA EVENT SEMENTARA
-  // ==
+  const [event, setEvent] = useState(null);
+  const [sales, setSales] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
 
-  const events = {
-    1: {
-      title: "Synchronize Fest 2024",
-      code: "EVT-9921",
-      category: "Music Festival",
-      date: "12 - 14 Oktober 2024",
-      time: "15:00 - 23:30 WIB",
-      location: "Gambir Expo Kemayoran, Jakarta",
-      status: "EVENT AKTIF",
-      organizer: "Synchronize Festival",
-      description:
-        "Synchronize Festival adalah festival musik multi-genre tahunan berskala nasional yang mengundang puluhan ribu audiens untuk merayakan keberagaman jenis musik hidup di depan panggung selama tiga hari.",
-      ticketsSold: 200,
-      totalTickets: 400,
-    },
+  const fetchDetail = useCallback(async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const [detailRes, salesRes] = await Promise.allSettled([
+        getAdminEventDetail(id),
+        getAdminEventSales(id),
+      ]);
+      if (detailRes.status === "fulfilled") {
+        setEvent(detailRes.value?.data ?? null);
+      } else {
+        throw detailRes.reason;
+      }
+      if (salesRes.status === "fulfilled") {
+        setSales(salesRes.value?.data ?? null);
+      }
+    } catch (err) {
+      console.error("Gagal memuat detail event:", err);
+      setError(err?.data?.msg || err?.message || "Gagal memuat detail event.");
+      setEvent(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
 
-    2: {
-      title: "Jakarta Tech Week 2024",
-      code: "EVT-9920",
-      category: "Technology",
-      date: "20 - 22 Oktober 2024",
-      time: "09:00 - 18:00 WIB",
-      location: "Jakarta Convention Center",
-      status: "EVENT AKTIF",
-      organizer: "Tech Indonesia",
-      description:
-        "Jakarta Tech Week merupakan event teknologi yang mempertemukan berbagai pelaku industri, developer, startup, dan komunitas teknologi untuk berbagi pengetahuan dan membangun kolaborasi.",
-      ticketsSold: 350,
-      totalTickets: 500,
-    },
+  useEffect(() => {
+    fetchDetail();
+  }, [fetchDetail]);
 
-    3: {
-      title: "Annual Gala Dinner",
-      code: "EVT-9919",
-      category: "Entertainment",
-      date: "05 November 2024",
-      time: "18:00 - 22:00 WIB",
-      location: "Grand Ballroom Jakarta",
-      status: "DRAFT",
-      organizer: "EventDay Organizer",
-      description:
-        "Annual Gala Dinner merupakan acara makan malam tahunan yang menghadirkan berbagai hiburan dan networking untuk para tamu undangan.",
-      ticketsSold: 0,
-      totalTickets: 300,
-    },
-
-    4: {
-      title: "Creative Youth Festival",
-      code: "EVT-9918",
-      category: "Community",
-      date: "18 November 2024",
-      time: "10:00 - 21:00 WIB",
-      location: "Senayan Park, Jakarta",
-      status: "EVENT AKTIF",
-      organizer: "Creative Youth",
-      description:
-        "Creative Youth Festival merupakan event komunitas yang menghadirkan berbagai kegiatan kreatif, pertunjukan, workshop, dan kolaborasi anak muda.",
-      ticketsSold: 120,
-      totalTickets: 250,
-    },
-
-    5: {
-      title: "Indonesia Digital Expo",
-      code: "EVT-9917",
-      category: "Technology",
-      date: "25 - 27 November 2024",
-      time: "09:00 - 17:00 WIB",
-      location: "ICE BSD City",
-      status: "EVENT AKTIF",
-      organizer: "Digital Indonesia",
-      description:
-        "Indonesia Digital Expo menghadirkan berbagai inovasi digital, teknologi terbaru, startup, dan perusahaan teknologi dari berbagai daerah.",
-      ticketsSold: 480,
-      totalTickets: 700,
-    },
-
-    6: {
-      title: "Art & Culture Weekend",
-      code: "EVT-9916",
-      category: "Art & Culture",
-      date: "01 Desember 2024",
-      time: "10:00 - 20:00 WIB",
-      location: "Taman Ismail Marzuki",
-      status: "SELESAI",
-      organizer: "Jakarta Art Community",
-      description:
-        "Art & Culture Weekend menghadirkan berbagai karya seni, pertunjukan budaya, pameran, serta kegiatan komunitas kreatif.",
-      ticketsSold: 300,
-      totalTickets: 300,
-    },
+  // Setujui pengajuan event (DRAFT → PUBLISHED/Aktif)
+  const handleApprove = async () => {
+    if (!window.confirm("Setujui event ini? Status menjadi AKTIF dan tampil ke customer.")) return;
+    try {
+      setApproving(true);
+      await updateAdminEventStatus(id, "PUBLISHED");
+      alert("Event disetujui dan aktif.");
+      await fetchDetail();
+    } catch (err) {
+      console.error("Gagal menyetujui event:", err);
+      alert(err?.data?.msg || err?.message || "Gagal menyetujui event.");
+    } finally {
+      setApproving(false);
+    }
   };
 
-  const event = events[id] || events[1];
+  // Tolak pengajuan event (DRAFT → CANCELLED) + alasan penolakan
+  const handleReject = async () => {
+    const reason = window.prompt("Alasan penolakan (opsional):", "");
+    if (reason === null) return; // user batal
+    try {
+      setRejecting(true);
+      await updateAdminEventStatus(id, "CANCELLED", reason || null);
+      alert("Event ditolak.");
+      await fetchDetail();
+    } catch (err) {
+      console.error("Gagal menolak event:", err);
+      alert(err?.data?.msg || err?.message || "Gagal menolak event.");
+    } finally {
+      setRejecting(false);
+    }
+  };
 
-  const percentage =
-    (event.ticketsSold / event.totalTickets) * 100;
+  const handleDelete = async () => {
+    if (!window.confirm("Hapus event ini? (soft delete → status DELETED)")) return;
+    try {
+      setDeleting(true);
+      await deleteAdminEvent(id);
+      alert("Event berhasil dihapus.");
+      navigate("/admin/event-management");
+    } catch (err) {
+      console.error("Gagal menghapus event:", err);
+      alert(err?.data?.msg || err?.message || "Gagal menghapus event.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
-  const isDraft = event.status === "DRAFT";
+  // == STATE LOADING / ERROR ==
+  if (loading) {
+    return (
+      <div className="detail-event-page">
+        <Sidebar />
+        <main className="detail-main">
+          <Navbar />
+          <section className="detail-content">
+            <p style={{ padding: 30, color: "#8d889a" }}>Memuat detail event...</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !event) {
+    return (
+      <div className="detail-event-page">
+        <Sidebar />
+        <main className="detail-main">
+          <Navbar />
+          <section className="detail-content">
+            <div className="detail-page-header">
+              <div><h2>Detail Event</h2></div>
+              <button type="button" className="back-button" onClick={() => navigate("/admin/event-management")}>
+                ← KEMBALI
+              </button>
+            </div>
+            <p style={{ padding: 30, color: "#dc6868" }}>{error || "Event tidak ditemukan."}</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  // == NORMALISASI FIELD BE → UI ==
+  const rawStatus = String(event.status || "PUBLISHED").toUpperCase();
+  // DRAFT = pengajuan EO yang menunggu persetujuan admin
+  const statusLabel =
+    rawStatus === "PUBLISHED" ? "EVENT AKTIF"
+    : rawStatus === "DRAFT" ? "DRAFT — Menunggu Persetujuan"
+    : rawStatus === "CANCELLED" ? "DITOLAK"
+    : rawStatus === "COMPLETED" ? "SELESAI"
+    : rawStatus;
+  // Warna: draft = kuning, aktif = hijau, selesai/ditolak = merah
+  const statusClass =
+    rawStatus === "DRAFT" ? "draft"
+    : rawStatus === "CANCELLED" || rawStatus === "COMPLETED" ? "finished"
+    : "";
+  const isDraft = rawStatus === "DRAFT";
+
+  const category = String(event.category || "").replace(/_/g, " ");
+  let dateLabel = event.startDate || "-";
+  let timeLabel = "-";
+  try {
+    if (event.startDate) {
+      const d = new Date(event.startDate);
+      dateLabel = d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+      timeLabel = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    }
+  } catch { /* pakai mentah */ }
+
+  const ticketsSold =
+    sales?.totalTicketsSold ?? event?.salesSummary?.ticketsSold ?? 0;
+  const totalTickets =
+    (event.ticketTiers || []).reduce((a, t) => a + (Number(t.totalQuota) || 0), 0) || 0;
+  const percentage = totalTickets > 0 ? (ticketsSold / totalTickets) * 100 : 0;
 
   // ==
   // RENDER
@@ -161,7 +219,7 @@ function DetailEvent() {
               type="button"
               className="back-button"
               onClick={() =>
-                navigate("/event-management")
+                navigate("/admin/event-management")
               }
             >
               ← KEMBALI
@@ -180,23 +238,32 @@ function DetailEvent() {
                 HERO EVENT
             ===== */}
 
-            <div className="detail-hero">
+            <div
+              className="detail-hero"
+              style={
+                event.bannerUrl
+                  ? {
+                      backgroundImage: `url(${event.bannerUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }
+                  : undefined
+              }
+            >
 
               {/* STATUS */}
 
               <span
-                className={`event-status ${
-                  isDraft ? "draft" : ""
-                }`}
+                className={`event-status ${statusClass}`}
               >
-                ● {event.status}
+                ● {statusLabel}
               </span>
 
 
               {/* CATEGORY */}
 
               <span className="hero-category">
-                {event.category}
+                {category}
               </span>
 
 
@@ -253,7 +320,7 @@ function DetailEvent() {
                   </span>
 
                   <span>
-                    {event.date}
+                    {dateLabel}
                   </span>
 
                 </div>
@@ -266,7 +333,7 @@ function DetailEvent() {
                   </span>
 
                   <span>
-                    {event.time}
+                    {timeLabel}
                   </span>
 
                 </div>
@@ -279,7 +346,7 @@ function DetailEvent() {
                   </span>
 
                   <span>
-                    {event.location}
+                    {event.venueName || "-"}
                   </span>
 
                 </div>
@@ -303,7 +370,7 @@ function DetailEvent() {
                 </h3>
 
                 <p>
-                  {event.description}
+                  {event.description || "-"}
                 </p>
 
               </section>
@@ -333,11 +400,11 @@ function DetailEvent() {
                   <div className="ticket-count">
 
                     <strong>
-                      {event.ticketsSold}
+                      {ticketsSold}
                     </strong>
 
                     <span>
-                      / {event.totalTickets}
+                      / {totalTickets}
                     </span>
 
                   </div>
@@ -387,7 +454,7 @@ function DetailEvent() {
                   </span>
 
                   <strong>
-                    {event.organizer}
+                    {event.organizerName || "-"}
                   </strong>
 
                 </div>
@@ -400,7 +467,7 @@ function DetailEvent() {
                   </span>
 
                   <strong>
-                    {event.status}
+                    {statusLabel}
                   </strong>
 
                 </div>
@@ -413,7 +480,7 @@ function DetailEvent() {
                   </span>
 
                   <strong>
-                    {event.code}
+                    {event.eventId || id}
                   </strong>
 
                 </div>
@@ -427,11 +494,33 @@ function DetailEvent() {
 
               <div className="detail-actions">
 
+                {isDraft && (
+                  <>
+                    <button
+                      type="button"
+                      className="edit-button"
+                      onClick={handleApprove}
+                      disabled={approving || rejecting}
+                    >
+                      {approving ? "Menyetujui..." : "Setujui"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="delete-button"
+                      onClick={handleReject}
+                      disabled={approving || rejecting}
+                    >
+                      {rejecting ? "Menolak..." : "Tolak"}
+                    </button>
+                  </>
+                )}
+
                 <button
                   type="button"
                   className="edit-button"
                   onClick={() =>
-                    navigate(`/admin/event/edit/${id}`)
+                    navigate(`/admin/event/edit/${event.eventId || id}`)
                   }
                 >
                   Edit Event
@@ -441,11 +530,10 @@ function DetailEvent() {
                 <button
                   type="button"
                   className="delete-button"
-                  onClick={() =>
-                    console.log("Hapus event")
-                  }
+                  onClick={handleDelete}
+                  disabled={deleting}
                 >
-                  Hapus Event
+                  {deleting ? "Menghapus..." : "Hapus Event"}
                 </button>
 
               </div>
