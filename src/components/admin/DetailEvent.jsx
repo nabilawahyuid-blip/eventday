@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -10,202 +10,594 @@ import {
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
+
+import {
+  getPublicEventDetail,
+  getOrganizerEventSalesSummary,
+} from "../../services/organizerEventService";
+
 import "./DetailEvent.css";
 
 function DetailEvent() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [event, setEvent] = useState(null);
-  const [sales, setSales] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-  const [approving, setApproving] = useState(false);
-  const [rejecting, setRejecting] = useState(false);
+  // =====================================================
+  // STATE
+  // =====================================================
 
-  const fetchDetail = useCallback(async () => {
-    if (!id) return;
-    try {
-      setLoading(true);
-      setError(null);
-      const [detailRes, salesRes] = await Promise.allSettled([
-        getAdminEventDetail(id),
-        getAdminEventSales(id),
-      ]);
-      if (detailRes.status === "fulfilled") {
-        setEvent(detailRes.value?.data ?? null);
-      } else {
-        throw detailRes.reason;
-      }
-      if (salesRes.status === "fulfilled") {
-        setSales(salesRes.value?.data ?? null);
-      }
-    } catch (err) {
-      console.error("Gagal memuat detail event:", err);
-      setError(err?.data?.msg || err?.message || "Gagal memuat detail event.");
-      setEvent(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const [event, setEvent] = useState(null);
+  const [salesSummary, setSalesSummary] = useState(null);
+
+  const [loading, setLoading] = useState(true);
+  const [salesLoading, setSalesLoading] = useState(false);
+
+  const [error, setError] = useState("");
+
+  // =====================================================
+  // LOAD EVENT DETAIL
+  // =====================================================
 
   useEffect(() => {
-    fetchDetail();
-  }, [fetchDetail]);
+    const loadEvent = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  // Setujui pengajuan event (DRAFT → PUBLISHED/Aktif)
-  const handleApprove = async () => {
-    if (!window.confirm("Setujui event ini? Status menjadi AKTIF dan tampil ke customer.")) return;
+        if (!id) {
+          throw new Error(
+            "ID event tidak ditemukan."
+          );
+        }
+
+        console.log(
+          "GET EVENT DETAIL:",
+          id
+        );
+
+        const response =
+          await getPublicEventDetail(id);
+
+        console.log(
+          "EVENT DETAIL RESPONSE:",
+          response
+        );
+
+        /*
+         * Kemungkinan struktur response:
+         *
+         * {
+         *   success: true,
+         *   data: {
+         *      event_id: "...",
+         *      title: "...",
+         *      ...
+         *   }
+         * }
+         *
+         * atau:
+         *
+         * {
+         *   data: {...}
+         * }
+         */
+
+        const eventData =
+          response?.data?.data ||
+          response?.data ||
+          response;
+
+        if (!eventData) {
+          throw new Error(
+            "Data event tidak ditemukan."
+          );
+        }
+
+        setEvent(eventData);
+      } catch (err) {
+        console.error(
+          "Gagal mengambil detail event:",
+          err
+        );
+
+        setError(
+          err?.message ||
+            "Gagal mengambil detail event."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEvent();
+  }, [id]);
+
+  // =====================================================
+  // LOAD SALES SUMMARY
+  // =====================================================
+
+  useEffect(() => {
+    const loadSalesSummary = async () => {
+      if (!event) {
+        return;
+      }
+
+      const eventId =
+        event.event_id ||
+        event.eventId ||
+        event.id;
+
+      if (!eventId) {
+        return;
+      }
+
+      try {
+        setSalesLoading(true);
+
+        const response =
+          await getOrganizerEventSalesSummary(
+            eventId
+          );
+
+        console.log(
+          "SALES SUMMARY RESPONSE:",
+          response
+        );
+
+        const summary =
+          response?.data?.data ||
+          response?.data ||
+          response;
+
+        setSalesSummary(summary);
+      } catch (err) {
+        /*
+         * Sales summary bukan alasan
+         * untuk menggagalkan halaman detail.
+         *
+         * Jadi kalau endpoint sales summary
+         * gagal, halaman event tetap ditampilkan.
+         */
+
+        console.warn(
+          "Sales summary tidak tersedia:",
+          err
+        );
+
+        setSalesSummary(null);
+      } finally {
+        setSalesLoading(false);
+      }
+    };
+
+    loadSalesSummary();
+  }, [event]);
+
+  // =====================================================
+  // FORMAT DATE
+  // =====================================================
+
+  const formatDate = (value) => {
+    if (!value) {
+      return "-";
+    }
+
     try {
-      setApproving(true);
-      await updateAdminEventStatus(id, "PUBLISHED");
-      alert("Event disetujui dan aktif.");
-      await fetchDetail();
-    } catch (err) {
-      console.error("Gagal menyetujui event:", err);
-      alert(err?.data?.msg || err?.message || "Gagal menyetujui event.");
-    } finally {
-      setApproving(false);
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      return new Intl.DateTimeFormat(
+        "id-ID",
+        {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        }
+      ).format(date);
+    } catch {
+      return value;
     }
   };
 
-  // Tolak pengajuan event (DRAFT → CANCELLED) + alasan penolakan
-  const handleReject = async () => {
-    const reason = window.prompt("Alasan penolakan (opsional):", "");
-    if (reason === null) return; // user batal
+  // =====================================================
+  // FORMAT DATE RANGE
+  // =====================================================
+
+  const formatDateRange = (
+    startDate,
+    endDate
+  ) => {
+    if (!startDate) {
+      return "-";
+    }
+
+    const start = new Date(startDate);
+
+    if (Number.isNaN(start.getTime())) {
+      return startDate;
+    }
+
+    if (!endDate) {
+      return formatDate(startDate);
+    }
+
+    const end = new Date(endDate);
+
+    if (Number.isNaN(end.getTime())) {
+      return formatDate(startDate);
+    }
+
+    const sameDay =
+      start.toDateString() ===
+      end.toDateString();
+
+    if (sameDay) {
+      return formatDate(startDate);
+    }
+
+    return `${formatDate(
+      startDate
+    )} - ${formatDate(endDate)}`;
+  };
+
+  // =====================================================
+  // FORMAT TIME
+  // =====================================================
+
+  const formatTime = (value) => {
+    if (!value) {
+      return "-";
+    }
+
     try {
-      setRejecting(true);
-      await updateAdminEventStatus(id, "CANCELLED", reason || null);
-      alert("Event ditolak.");
-      await fetchDetail();
-    } catch (err) {
-      console.error("Gagal menolak event:", err);
-      alert(err?.data?.msg || err?.message || "Gagal menolak event.");
-    } finally {
-      setRejecting(false);
+      const date = new Date(value);
+
+      if (Number.isNaN(date.getTime())) {
+        return "-";
+      }
+
+      return new Intl.DateTimeFormat(
+        "id-ID",
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        }
+      ).format(date) + " WIB";
+    } catch {
+      return "-";
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm("Hapus event ini? (soft delete → status DELETED)")) return;
-    try {
-      setDeleting(true);
-      await deleteAdminEvent(id);
-      alert("Event berhasil dihapus.");
-      navigate("/admin/event-management");
-    } catch (err) {
-      console.error("Gagal menghapus event:", err);
-      alert(err?.data?.msg || err?.message || "Gagal menghapus event.");
-    } finally {
-      setDeleting(false);
+  // =====================================================
+  // FORMAT TIME RANGE
+  // =====================================================
+
+  const formatTimeRange = (
+    startDate,
+    endDate
+  ) => {
+    if (!startDate) {
+      return "-";
     }
+
+    if (!endDate) {
+      return formatTime(startDate);
+    }
+
+    return `${formatTime(
+      startDate
+    )} - ${formatTime(endDate)}`;
   };
 
-  // == STATE LOADING / ERROR ==
+  // =====================================================
+  // FORMAT CURRENCY
+  // =====================================================
+
+  const formatCurrency = (value) => {
+    const number = Number(value);
+
+    if (Number.isNaN(number)) {
+      return "Rp 0";
+    }
+
+    return new Intl.NumberFormat(
+      "id-ID",
+      {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+      }
+    ).format(number);
+  };
+
+  // =====================================================
+  // BANNER URL
+  // =====================================================
+
+  const getBannerUrl = (bannerUrl) => {
+    if (!bannerUrl) {
+      return null;
+    }
+
+    /*
+     * Kalau backend mengembalikan URL lengkap:
+     *
+     * https://domain.com/uploads/banner.jpg
+     *
+     * langsung digunakan.
+     */
+
+    if (
+      bannerUrl.startsWith("http://") ||
+      bannerUrl.startsWith("https://")
+    ) {
+      return bannerUrl;
+    }
+
+    /*
+     * Kalau backend mengembalikan:
+     *
+     * /uploads/banner.jpg
+     *
+     * atau:
+     *
+     * uploads/banner.jpg
+     *
+     * kita gunakan origin dari API.
+     */
+
+    const apiUrl = (
+      import.meta.env.VITE_NGROK_URL ||
+      ""
+    ).replace(/\/$/, "");
+
+    if (bannerUrl.startsWith("/")) {
+      return `${apiUrl}${bannerUrl}`;
+    }
+
+    return `${apiUrl}/${bannerUrl}`;
+  };
+
+  // =====================================================
+  // GET EVENT VALUES
+  // =====================================================
+
+  const eventId =
+    event?.event_id ||
+    event?.eventId ||
+    event?.id ||
+    id;
+
+  const title =
+    event?.title ||
+    "Untitled Event";
+
+  const category =
+    event?.category ||
+    "Event";
+
+  const description =
+    event?.description ||
+    "Belum ada deskripsi event.";
+
+  const location =
+    event?.venue_name ||
+    event?.venueName ||
+    event?.location ||
+    "Lokasi belum tersedia";
+
+  const startDate =
+    event?.start_date ||
+    event?.startDate;
+
+  const endDate =
+    event?.end_date ||
+    event?.endDate;
+
+  const status =
+    event?.status ||
+    "UNKNOWN";
+
+  const organizer =
+    event?.organizer_name ||
+    event?.organizerName ||
+    event?.organizer?.name ||
+    event?.organizer ||
+    "-";
+
+  const bannerUrl = getBannerUrl(
+    event?.banner_url ||
+      event?.bannerUrl
+  );
+
+  // =====================================================
+  // TICKET DATA
+  // =====================================================
+
+  const ticketTiers =
+    event?.tickets ||
+    event?.ticket_tiers ||
+    event?.ticketTiers ||
+    [];
+
+  // =====================================================
+  // SALES DATA
+  // =====================================================
+
+  const ticketsSold = Number(
+    salesSummary?.total_tickets_sold ??
+      salesSummary?.tickets_sold ??
+      salesSummary?.ticketsSold ??
+      0
+  );
+
+  const totalTicketsFromSummary =
+    Number(
+      salesSummary?.total_quota ??
+        salesSummary?.totalTickets ??
+        0
+    );
+
+  const totalTicketsFromTiers =
+    ticketTiers.reduce(
+      (total, ticket) =>
+        total +
+        Number(
+          ticket?.total_quota ??
+            ticket?.totalQuota ??
+            ticket?.quota ??
+            0
+        ),
+      0
+    );
+
+  const totalTickets =
+    totalTicketsFromSummary ||
+    totalTicketsFromTiers ||
+    Number(
+      event?.total_quota ||
+        event?.totalQuota ||
+        0
+    );
+
+  // =====================================================
+  // PERCENTAGE
+  // =====================================================
+
+  const percentage = useMemo(() => {
+    if (!totalTickets) {
+      return 0;
+    }
+
+    const result =
+      (ticketsSold / totalTickets) * 100;
+
+    return Math.min(
+      Math.max(result, 0),
+      100
+    );
+  }, [
+    ticketsSold,
+    totalTickets,
+  ]);
+
+  // =====================================================
+  // STATUS
+  // =====================================================
+
+  const normalizedStatus =
+    String(status).toUpperCase();
+
+  const isDraft =
+    normalizedStatus === "DRAFT";
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
   if (loading) {
     return (
       <div className="detail-event-page">
         <Sidebar />
+
         <main className="detail-main">
           <Navbar />
+
           <section className="detail-content">
-            <p style={{ padding: 30, color: "#8d889a" }}>Memuat detail event...</p>
+            <div className="detail-loading">
+              <div className="loading-spinner">
+                ⟳
+              </div>
+
+              <p>
+                Memuat detail event...
+              </p>
+            </div>
           </section>
         </main>
       </div>
     );
   }
+
+  // =====================================================
+  // ERROR
+  // =====================================================
 
   if (error || !event) {
     return (
       <div className="detail-event-page">
         <Sidebar />
+
         <main className="detail-main">
           <Navbar />
+
           <section className="detail-content">
-            <div className="detail-page-header">
-              <div><h2>Detail Event</h2></div>
-              <button type="button" className="back-button" onClick={() => navigate("/admin/event-management")}>
+            <div className="detail-error">
+              <h2>
+                Gagal Memuat Event
+              </h2>
+
+              <p>
+                {error ||
+                  "Data event tidak ditemukan."}
+              </p>
+
+              <button
+                type="button"
+                className="back-button"
+                onClick={() =>
+                  navigate(
+                    "/event-management"
+                  )
+                }
+              >
                 ← KEMBALI
               </button>
             </div>
-            <p style={{ padding: 30, color: "#dc6868" }}>{error || "Event tidak ditemukan."}</p>
           </section>
         </main>
       </div>
     );
   }
 
-  // == NORMALISASI FIELD BE → UI ==
-  const rawStatus = String(event.status || "PUBLISHED").toUpperCase();
-  // DRAFT = pengajuan EO yang menunggu persetujuan admin
-  const statusLabel =
-    rawStatus === "PUBLISHED" ? "EVENT AKTIF"
-    : rawStatus === "DRAFT" ? "DRAFT — Menunggu Persetujuan"
-    : rawStatus === "CANCELLED" ? "DITOLAK"
-    : rawStatus === "COMPLETED" ? "SELESAI"
-    : rawStatus;
-  // Warna: draft = kuning, aktif = hijau, selesai/ditolak = merah
-  const statusClass =
-    rawStatus === "DRAFT" ? "draft"
-    : rawStatus === "CANCELLED" || rawStatus === "COMPLETED" ? "finished"
-    : "";
-  const isDraft = rawStatus === "DRAFT";
-
-  const category = String(event.category || "").replace(/_/g, " ");
-  let dateLabel = event.startDate || "-";
-  let timeLabel = "-";
-  try {
-    if (event.startDate) {
-      const d = new Date(event.startDate);
-      dateLabel = d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
-      timeLabel = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-    }
-  } catch { /* pakai mentah */ }
-
-  const ticketsSold =
-    sales?.totalTicketsSold ?? event?.salesSummary?.ticketsSold ?? 0;
-  const totalTickets =
-    (event.ticketTiers || []).reduce((a, t) => a + (Number(t.totalQuota) || 0), 0) || 0;
-  const percentage = totalTickets > 0 ? (ticketsSold / totalTickets) * 100 : 0;
-
-  // ==
+  // =====================================================
   // RENDER
-  // ==
+  // =====================================================
 
   return (
     <div className="detail-event-page">
 
-      {/* ======
+      {/* =================================================
           SIDEBAR
-      ======= */}
+      ================================================= */}
 
       <Sidebar />
 
-
-      {/* ======
-          MAIN AREA
-      ======= */}
+      {/* =================================================
+          MAIN
+      ================================================= */}
 
       <main className="detail-main">
 
-        {/* ======
+        {/* =================================================
             NAVBAR
-        ======= */}
+        ================================================= */}
 
         <Navbar />
 
-
-        {/* ======
+        {/* =================================================
             CONTENT
-        ======= */}
+        ================================================= */}
 
         <section className="detail-content">
 
-          {/* ======
+          {/* =================================================
               PAGE HEADER
-          ======= */}
+          ================================================= */}
 
           <div className="detail-page-header">
 
@@ -219,7 +611,9 @@ function DetailEvent() {
               type="button"
               className="back-button"
               onClick={() =>
-                navigate("/admin/event-management")
+                navigate(
+                  "/event-management"
+                )
               }
             >
               ← KEMBALI
@@ -227,38 +621,43 @@ function DetailEvent() {
 
           </div>
 
-
-          {/* ======
+          {/* =================================================
               EVENT CARD
-          ======= */}
+          ================================================= */}
 
           <article className="detail-card">
 
-            {/* ====
+            {/* =================================================
                 HERO EVENT
-            ===== */}
+            ================================================= */}
 
             <div
-              className="detail-hero"
+              className={`detail-hero ${
+                bannerUrl
+                  ? "has-banner"
+                  : ""
+              }`}
               style={
-                event.bannerUrl
+                bannerUrl
                   ? {
-                      backgroundImage: `url(${event.bannerUrl})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
+                      backgroundImage: `url("${bannerUrl}")`,
                     }
                   : undefined
               }
             >
+
+              {/* DARK OVERLAY */}
+              {bannerUrl && (
+                <div className="hero-overlay"></div>
+              )}
 
               {/* STATUS */}
 
               <span
                 className={`event-status ${statusClass}`}
               >
-                ● {statusLabel}
+                ● {normalizedStatus}
               </span>
-
 
               {/* CATEGORY */}
 
@@ -266,52 +665,57 @@ function DetailEvent() {
                 {category}
               </span>
 
+              {/* FALLBACK VISUAL */}
 
-              {/* EVENT VISUAL */}
+              {!bannerUrl && (
+                <div className="hero-visual">
 
-              <div className="hero-visual">
+                  <div className="hero-circle circle-one"></div>
 
-                <div className="hero-circle circle-one"></div>
+                  <div className="hero-circle circle-two"></div>
 
-                <div className="hero-circle circle-two"></div>
+                  <div className="hero-stage">
 
-                <div className="hero-stage">
+                    <div className="stage-light"></div>
 
-                  <div className="stage-light"></div>
+                    <div className="stage-light"></div>
 
-                  <div className="stage-light"></div>
+                    <div className="stage-screen">
+                      EVENTDAY
+                    </div>
 
-                  <div className="stage-screen">
-                    EVENTDAY
                   </div>
 
                 </div>
-
-              </div>
+              )}
 
             </div>
 
-
-            {/* ====
+            {/* =================================================
                 EVENT BODY
-            ===== */}
+            ================================================= */}
 
             <div className="detail-body">
 
-              {/* TITLE */}
+              {/* =================================================
+                  TITLE
+              ================================================= */}
 
               <div className="event-title-section">
 
                 <h1>
-                  {event.title}
+                  {title}
                 </h1>
 
               </div>
 
-
-              {/* META */}
+              {/* =================================================
+                  META
+              ================================================= */}
 
               <div className="event-meta">
+
+                {/* DATE */}
 
                 <div className="meta-item">
 
@@ -320,11 +724,15 @@ function DetailEvent() {
                   </span>
 
                   <span>
-                    {dateLabel}
+                    {formatDateRange(
+                      startDate,
+                      endDate
+                    )}
                   </span>
 
                 </div>
 
+                {/* TIME */}
 
                 <div className="meta-item">
 
@@ -333,11 +741,15 @@ function DetailEvent() {
                   </span>
 
                   <span>
-                    {timeLabel}
+                    {formatTimeRange(
+                      startDate,
+                      endDate
+                    )}
                   </span>
 
                 </div>
 
+                {/* LOCATION */}
 
                 <div className="meta-item">
 
@@ -346,22 +758,22 @@ function DetailEvent() {
                   </span>
 
                   <span>
-                    {event.venueName || "-"}
+                    {location}
                   </span>
 
                 </div>
 
               </div>
 
-
-              {/* DIVIDER */}
+              {/* =================================================
+                  DIVIDER
+              ================================================= */}
 
               <div className="detail-divider"></div>
 
-
-              {/* ====
+              {/* =================================================
                   DESCRIPTION
-              ===== */}
+              ================================================= */}
 
               <section className="description-section">
 
@@ -370,15 +782,14 @@ function DetailEvent() {
                 </h3>
 
                 <p>
-                  {event.description || "-"}
+                  {description}
                 </p>
 
               </section>
 
-
-              {/* ====
+              {/* =================================================
                   TICKET SALES
-              ===== */}
+              ================================================= */}
 
               <section className="ticket-section">
 
@@ -391,26 +802,33 @@ function DetailEvent() {
                     </h3>
 
                     <p>
-                      Total tiket terjual dari kuota tersedia
+                      Total tiket terjual
+                      dari kuota tersedia
                     </p>
 
                   </div>
 
-
                   <div className="ticket-count">
 
-                    <strong>
-                      {ticketsSold}
-                    </strong>
+                    {salesLoading ? (
+                      <span>
+                        ...
+                      </span>
+                    ) : (
+                      <>
+                        <strong>
+                          {ticketsSold}
+                        </strong>
 
-                    <span>
-                      / {totalTickets}
-                    </span>
+                        <span>
+                          / {totalTickets}
+                        </span>
+                      </>
+                    )}
 
                   </div>
 
                 </div>
-
 
                 {/* PROGRESS */}
 
@@ -429,21 +847,115 @@ function DetailEvent() {
 
                 </div>
 
-
                 <div className="progress-info">
 
                   <span>
-                    {Math.round(percentage)}% Terjual
+                    {Math.round(
+                      percentage
+                    )}
+                    % Terjual
                   </span>
 
                 </div>
 
               </section>
 
+              {/* =================================================
+                  TICKET TIERS
+              ================================================= */}
 
-              {/* ====
+              {ticketTiers.length > 0 && (
+                <section className="ticket-tier-section">
+
+                  <div className="ticket-header">
+
+                    <div>
+                      <h3>
+                        Kategori Tiket
+                      </h3>
+
+                      <p>
+                        Daftar tiket yang tersedia
+                        untuk event ini
+                      </p>
+                    </div>
+
+                  </div>
+
+                  <div className="ticket-tier-list">
+
+                    {ticketTiers.map(
+                      (
+                        ticket,
+                        index
+                      ) => {
+
+                        const tierName =
+                          ticket?.tier_name ||
+                          ticket?.tierName ||
+                          ticket?.name ||
+                          `Kategori ${index + 1}`;
+
+                        const price =
+                          ticket?.price || 0;
+
+                        const quota =
+                          ticket?.total_quota ||
+                          ticket?.totalQuota ||
+                          ticket?.quota ||
+                          0;
+
+                        const available =
+                          ticket?.available_quota ??
+                          ticket?.availableQuota ??
+                          quota;
+
+                        return (
+                          <div
+                            className="ticket-tier-item"
+                            key={
+                              ticket?.tier_id ||
+                              ticket?.tierId ||
+                              index
+                            }
+                          >
+
+                            <div>
+                              <strong>
+                                {tierName}
+                              </strong>
+
+                              <span>
+                                Kuota: {quota}
+                              </span>
+                            </div>
+
+                            <div>
+                              <strong>
+                                {formatCurrency(
+                                  price
+                                )}
+                              </strong>
+
+                              <span>
+                                Tersedia:{" "}
+                                {available}
+                              </span>
+                            </div>
+
+                          </div>
+                        );
+                      }
+                    )}
+
+                  </div>
+
+                </section>
+              )}
+
+              {/* =================================================
                   EVENT INFORMATION
-              ===== */}
+              ================================================= */}
 
               <div className="event-extra-info">
 
@@ -454,11 +966,10 @@ function DetailEvent() {
                   </span>
 
                   <strong>
-                    {event.organizerName || "-"}
+                    {organizer}
                   </strong>
 
                 </div>
-
 
                 <div className="extra-item">
 
@@ -467,11 +978,10 @@ function DetailEvent() {
                   </span>
 
                   <strong>
-                    {statusLabel}
+                    {normalizedStatus}
                   </strong>
 
                 </div>
-
 
                 <div className="extra-item">
 
@@ -480,17 +990,16 @@ function DetailEvent() {
                   </span>
 
                   <strong>
-                    {event.eventId || id}
+                    {eventId}
                   </strong>
 
                 </div>
 
               </div>
 
-
-              {/* ====
+              {/* =================================================
                   ACTION
-              ===== */}
+              ================================================= */}
 
               <div className="detail-actions">
 
@@ -520,18 +1029,23 @@ function DetailEvent() {
                   type="button"
                   className="edit-button"
                   onClick={() =>
-                    navigate(`/admin/event/edit/${event.eventId || id}`)
+                    navigate(
+                      `/admin/event/edit/${eventId}`
+                    )
                   }
                 >
                   Edit Event
                 </button>
 
-
                 <button
                   type="button"
                   className="delete-button"
-                  onClick={handleDelete}
-                  disabled={deleting}
+                  onClick={() =>
+                    console.log(
+                      "Hapus event:",
+                      eventId
+                    )
+                  }
                 >
                   {deleting ? "Menghapus..." : "Hapus Event"}
                 </button>
