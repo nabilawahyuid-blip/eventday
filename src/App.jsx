@@ -14,7 +14,7 @@ import DashboardAdmin from "./components/admin/DashboardAdmin";
 import EventManagement from "./components/admin/EventManagement";
 import TambahEvent from "./components/admin/TambahEvent";
 import DetailEvent from "./components/admin/DetailEvent";
-import EditEvent from './components/admin/EditEvent';
+import EditEvent from "./components/admin/EditEvent";
 import UserManagement from "./components/admin/UserManagement";
 import DetailUser from "./components/admin/DetailUser";
 import PengajuanAkunEO from "./components/admin/PengajuanAkunEO";
@@ -25,6 +25,7 @@ import PengaturanPlatform from "./components/admin/PengaturanPlatform";
 import AuditLog from "./components/admin/AuditLog";
 import PengajuanPayout from "./components/admin/PengajuanPayout";
 import DetailPengajuanPayout from "./components/admin/DetailPengajuanPayout";
+
 // ==================== CUSTOMER ====================
 import CustomerDashboard from "./components/customer/CustomerDashboard";
 import DetailEventCustomer from "./components/customer/DetailEventCustomer";
@@ -39,20 +40,22 @@ import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
 import SyaratKetentuan from "./components/customer/SyaratKetentuan";
 import EditProfileCustomer from "./components/customer/EditProfileCustomer";
 import ChangePasswordCustomer from "./components/customer/ChangePasswordCustomer";
-import DetailRefundEO from "./components/eo/DetailRefundEO";
-import PayoutEO from "./components/eo/PayoutEo";
-import PengajuanPayoutEO from "./components/eo/PengajuanPayoutEO";
+
 // ==================== EO ====================
 import DashboardEO from "./components/eo/DashboardEO";
 import EventEO from "./components/eo/EventEO";
 import DetailEventEO from "./components/eo/DetailEventEO";
 import AddEvent from "./components/eo/AddEvent";
+import EditEventEO from "./components/eo/EditEventEO";
 import TransaksiEO from "./components/eo/TransaksiEO";
 import DetailTransaksiEO from "./components/eo/DetailTransaksiEO";
 import RefundEO from "./components/eo/RefundEO";
+import DetailRefundEO from "./components/eo/DetailRefundEO";
 import ProfileEO from "./components/eo/ProfileEO";
 import RegisterEO from "./components/eo/RegisterEO";
 import StatusRegisterEO from "./components/eo/StatusRegisterEO";
+import PayoutEO from "./components/eo/PayoutEo";
+import PengajuanPayoutEO from "./components/eo/PengajuanPayoutEO";
 
 function App() {
   const GOOGLE_CLIENT_ID =
@@ -61,38 +64,66 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <BrowserRouter>
-
         <Routes>
+
           {/* ==================== AUTH ==================== */}
-
           <Route path="/" element={<Login />} />
-
           <Route path="/register" element={<Register />} />
-
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-
-          <Route path="/forgot-password/reset" element={<ResetPassword />} />
-
+          <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
+          <Route
+            path="/forgot-password/reset"
+            element={<ResetPassword />}
+          />
           <Route path="/otp" element={<OTP />} />
 
           {/* ==================== ADMIN ==================== */}
+          <Route
+            path="/admin/dashboard"
+            element={<DashboardAdmin />}
+          />
 
-          <Route path="/admin/dashboard" element={<DashboardAdmin />} />
+          <Route
+            path="/event-management"
+            element={<EventManagement />}
+          />
 
-          <Route path="/event-management" element={<EventManagement />} />
+          <Route
+            path="/admin/event-management"
+            element={<EventManagement />}
+          />
 
-          <Route path="/admin/event-management" element={<EventManagement />} />
+          <Route
+            path="/admin/event/:id"
+            element={<DetailEvent />}
+          />
 
-          <Route path="/admin/event/:id" element={<DetailEvent />} />
-          <Route path="/admin/event/edit/:id" element={<EditEvent />} />
+          <Route
+            path="/admin/event/edit/:id"
+            element={<EditEvent />}
+          />
 
-          <Route path="/admin/users" element={<UserManagement />} />
+          <Route
+            path="/admin/users"
+            element={<UserManagement />}
+          />
 
-          <Route path="/admin/tambah-event" element={<TambahEvent />} />
+          <Route
+            path="/admin/tambah-event"
+            element={<TambahEvent />}
+          />
 
-          <Route path="/admin/users/:id" element={<DetailUser />} />
+          <Route
+            path="/admin/users/:id"
+            element={<DetailUser />}
+          />
 
-          <Route path="/admin/pengajuan-eo" element={<PengajuanAkunEO />} />
+          <Route
+            path="/admin/pengajuan-eo"
+            element={<PengajuanAkunEO />}
+          />
 
           <Route
             path="/admin/pengajuan-eo/:id"
@@ -104,81 +135,168 @@ function App() {
             element={<Transaksi />}
           />
 
-          <Route path="/admin/tiket" element={<Tiket />} />
-          <Route path="/admin/pengaturan" element={<PengaturanPlatform />} />
+          <Route
+            path="/admin/tiket"
+            element={<Tiket />}
+          />
+
+          <Route
+            path="/admin/pengaturan"
+            element={<PengaturanPlatform />}
+          />
+
+          <Route
+            path="/admin/audit-log"
+            element={<AuditLog />}
+          />
+
+          <Route
+            path="/admin/pengajuan-payout"
+            element={<PengajuanPayout />}
+          />
+
+          <Route
+            path="/admin/pengajuan-payout/:id"
+            element={<DetailPengajuanPayout />}
+          />
 
           {/* ==================== EO ==================== */}
+          <Route
+            path="/register-eo"
+            element={<RegisterEO />}
+          />
 
-          <Route path="/register-eo" element={<RegisterEO />} />
+          <Route
+            path="/register-eo/status"
+            element={<StatusRegisterEO />}
+          />
 
-          <Route path="/eo/dashboard" element={<DashboardEO />} />
+          <Route
+            path="/eo/dashboard"
+            element={<DashboardEO />}
+          />
 
-          <Route path="/eo/event" element={<EventEO />} />
+          <Route
+            path="/eo/event"
+            element={<EventEO />}
+          />
 
-          <Route path="/eo/event/create" element={<AddEvent />} />
+          <Route
+            path="/eo/event/create"
+            element={<AddEvent />}
+          />
 
-          <Route path="/eo/event/:id" element={<DetailEventEO />} />
+          <Route
+            path="/eo/event/:id"
+            element={<DetailEventEO />}
+          />
 
-          <Route path="/eo/transaksi" element={<TransaksiEO />} />
+          <Route
+            path="/eo/event/:id/edit"
+            element={<EditEventEO />}
+          />
 
-          <Route path="/eo/transaksi/:id" element={<DetailTransaksiEO />} />
+          <Route
+            path="/eo/transaksi"
+            element={<TransaksiEO />}
+          />
 
-          <Route path="/eo/refund" element={<RefundEO />} />
+          <Route
+            path="/eo/transaksi/:id"
+            element={<DetailTransaksiEO />}
+          />
 
-          <Route path="/eo/profil" element={<ProfileEO />} />
-          <Route path="/register-eo/status" element={<StatusRegisterEO />} />
+          <Route
+            path="/eo/refund"
+            element={<RefundEO />}
+          />
+
+          <Route
+            path="/eo/refund/detail"
+            element={<DetailRefundEO />}
+          />
+
+          <Route
+            path="/eo/profil"
+            element={<ProfileEO />}
+          />
+
+          <Route
+            path="/eo/payout"
+            element={<PayoutEO />}
+          />
+
+          <Route
+            path="/eo/payout/pengajuan"
+            element={<PengajuanPayoutEO />}
+          />
 
           {/* ==================== CUSTOMER ==================== */}
+          <Route
+            path="/customer/dashboard"
+            element={<CustomerDashboard />}
+          />
 
-          <Route path="/customer/dashboard" element={<CustomerDashboard />} />
+          <Route
+            path="/customer/event/:id"
+            element={<DetailEventCustomer />}
+          />
 
-          <Route path="/customer/event/:id" element={<DetailEventCustomer />} />
+          <Route
+            path="/checkout/:id"
+            element={<Checkout />}
+          />
 
-          <Route path="/checkout/:id" element={<Checkout />} />
+          <Route
+            path="/customer/ticket-success"
+            element={<TicketSuccess />}
+          />
 
-          <Route path="/customer/ticket-success" element={<TicketSuccess />} />
+          <Route
+            path="/customer/tickets"
+            element={<MyTicket />}
+          />
 
-          <Route path="/customer/tickets" element={<MyTicket />} />
+          <Route
+            path="/customer/refund"
+            element={<RefundRequest />}
+          />
 
-          <Route path="/customer/refund" element={<RefundRequest />} />
+          <Route
+            path="/customer/refund-list"
+            element={<RefundList />}
+          />
 
-          <Route path="/customer/refund-list" element={<RefundList />} />
+          <Route
+            path="/customer/history"
+            element={<TransaksiCustomer />}
+          />
 
-          <Route path="/customer/history" element={<TransaksiCustomer />} />
+          <Route
+            path="/customer/profile"
+            element={<ProfileCustomer />}
+          />
 
-          <Route path="/customer/profile" element={<ProfileCustomer />} />
+          <Route
+            path="/customer/privacy"
+            element={<KebijakanPrivasi />}
+          />
 
-          <Route path="/customer/privacy" element={<KebijakanPrivasi />} />
+          <Route
+            path="/customer/terms"
+            element={<SyaratKetentuan />}
+          />
 
-          <Route path="/customer/terms" element={<SyaratKetentuan />} />
           <Route
             path="/customer/profile/edit"
             element={<EditProfileCustomer />}
           />
+
           <Route
             path="/customer/change-password"
             element={<ChangePasswordCustomer />}
           />
-          <Route path="/eo/refund/detail" element={<DetailRefundEO />} />
 
-        <Route
-          path="/eo/payout"
-          element={<PayoutEO />}
-        />
-        <Route
-  path="/eo/payout/pengajuan"
-  element={<PengajuanPayoutEO />}
-/>
-
-<Route path="/admin/audit-log" element={<AuditLog />} />
-<Route
-  path="/admin/pengajuan-payout"
-  element={<PengajuanPayout />}
-/>
-<Route
-  path="/admin/pengajuan-payout/:id"
-  element={<DetailPengajuanPayout />}
-/>
         </Routes>
       </BrowserRouter>
     </GoogleOAuthProvider>

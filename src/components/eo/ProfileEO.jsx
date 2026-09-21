@@ -51,15 +51,13 @@ function ProfileEO() {
   // STATE PASSWORD
   // ==========================================
 
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const [passwordForm, setPasswordForm] =
-    useState({
-      oldPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    });
+  const [passwordForm, setPasswordForm] = useState({
+    oldPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
   // ==========================================
   // STATE UI
@@ -69,8 +67,7 @@ function ProfileEO() {
 
   const [saving, setSaving] = useState(false);
 
-  const [passwordSaving, setPasswordSaving] =
-    useState(false);
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   const [message, setMessage] = useState("");
 
@@ -80,12 +77,11 @@ function ProfileEO() {
   // STATE DOCUMENT
   // ==========================================
 
-  const [documents, setDocuments] =
-    useState({
-      portfolio_name: "",
-      deed_name: "",
-      ktp_name: "",
-    });
+  const [documents, setDocuments] = useState({
+    portfolio_name: "",
+    deed_name: "",
+    ktp_name: "",
+  });
 
   // ==========================================
   // FILE INPUT REFS
@@ -106,13 +102,9 @@ function ProfileEO() {
       setLoading(true);
       setError("");
 
-      const response =
-        await getOrganizerProfile();
+      const response = await getOrganizerProfile();
 
-      console.log(
-        "PROFILE RESPONSE:",
-        response
-      );
+      console.log("PROFILE RESPONSE:", response);
 
       const data = response?.data || {};
 
@@ -127,8 +119,7 @@ function ProfileEO() {
           data.bank_account_number || "",
         verification_status:
           data.verification_status || "",
-        avatar_url:
-          data.avatar_url || "",
+        avatar_url: data.avatar_url || "",
       });
 
       setEditForm({
@@ -140,7 +131,6 @@ function ProfileEO() {
         bank_account_number:
           data.bank_account_number || "",
       });
-
     } catch (err) {
       console.error(
         "Gagal mengambil profile:",
@@ -170,9 +160,7 @@ function ProfileEO() {
         response
       );
 
-      setDocuments(
-        response?.data || {}
-      );
+      setDocuments(response?.data || {});
     } catch (err) {
       console.error(
         "Gagal mengambil dokumen profile:",
@@ -240,6 +228,19 @@ function ProfileEO() {
       bank_account_number:
         profile.bank_account_number,
     });
+
+    // Reset input file
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = "";
+    }
+
+    if (portfolioInputRef.current) {
+      portfolioInputRef.current.value = "";
+    }
+
+    if (deedInputRef.current) {
+      deedInputRef.current.value = "";
+    }
   };
 
   // ==========================================
@@ -253,9 +254,15 @@ function ProfileEO() {
       setError("");
 
       const response =
-        await updateOrganizerProfile(
-          editForm
-        );
+        await updateOrganizerProfile({
+          name: editForm.name,
+          pic_name: editForm.pic_name,
+          phone: editForm.phone,
+          npwp: editForm.npwp,
+          bank_name: editForm.bank_name,
+          bank_account_number:
+            editForm.bank_account_number,
+        });
 
       console.log(
         "UPDATE PROFILE RESPONSE:",
@@ -268,9 +275,8 @@ function ProfileEO() {
 
       setIsEditing(false);
 
-      // Ambil ulang data terbaru
       await fetchProfile();
-
+      await fetchDocuments();
     } catch (err) {
       console.error(
         "Gagal update profile:",
@@ -291,23 +297,32 @@ function ProfileEO() {
   // ==========================================
 
   const handleAvatarClick = () => {
+    if (!isEditing) return;
+
     avatarInputRef.current?.click();
   };
 
   const handleAvatarChange = async (e) => {
-    const file =
-      e.target.files?.[0];
+    const file = e.target.files?.[0];
 
     if (!file) return;
+
+    // Validasi gambar
+    if (!file.type.startsWith("image/")) {
+      setError(
+        "File foto profil harus berupa gambar."
+      );
+
+      e.target.value = "";
+      return;
+    }
 
     try {
       setMessage("");
       setError("");
 
       const response =
-        await uploadOrganizerAvatar(
-          file
-        );
+        await uploadOrganizerAvatar(file);
 
       console.log(
         "UPLOAD AVATAR RESPONSE:",
@@ -327,7 +342,6 @@ function ProfileEO() {
       setMessage(
         "Foto profil berhasil diperbarui."
       );
-
     } catch (err) {
       console.error(
         "Gagal upload avatar:",
@@ -348,78 +362,106 @@ function ProfileEO() {
   // ==========================================
 
   const handlePortfolioClick = () => {
+    if (!isEditing) return;
+
     portfolioInputRef.current?.click();
   };
 
-  const handlePortfolioChange =
-    async (e) => {
-      const file =
-        e.target.files?.[0];
-
-      if (!file) return;
-
-      try {
-        setMessage("");
-        setError("");
-
-        const response =
-          await uploadOrganizerPortfolio(
-            file
-          );
-
-        console.log(
-          "UPLOAD PORTFOLIO RESPONSE:",
-          response
-        );
-
-        setDocuments((prev) => ({
-          ...prev,
-          portfolio_name:
-            response?.data?.file_name ||
-            file.name,
-        }));
-
-        setMessage(
-          "Portfolio berhasil diunggah."
-        );
-
-      } catch (err) {
-        console.error(
-          "Gagal upload portfolio:",
-          err
-        );
-
-        setError(
-          err?.message ||
-            "Gagal mengunggah portfolio."
-        );
-      } finally {
-        e.target.value = "";
-      }
-    };
-
-  // ==========================================
-  // DEED / AKTA
-  // ==========================================
-
-  const handleDeedClick = () => {
-    deedInputRef.current?.click();
-  };
-
-  const handleDeedChange = async (e) => {
-    const file =
-      e.target.files?.[0];
+  const handlePortfolioChange = async (e) => {
+    const file = e.target.files?.[0];
 
     if (!file) return;
+
+    // Validasi file
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError(
+        "File portfolio harus berupa PDF, DOC, atau DOCX."
+      );
+
+      e.target.value = "";
+      return;
+    }
 
     try {
       setMessage("");
       setError("");
 
       const response =
-        await uploadOrganizerDeed(
-          file
-        );
+        await uploadOrganizerPortfolio(file);
+
+      console.log(
+        "UPLOAD PORTFOLIO RESPONSE:",
+        response
+      );
+
+      setDocuments((prev) => ({
+        ...prev,
+        portfolio_name:
+          response?.data?.file_name ||
+          file.name,
+      }));
+
+      setMessage(
+        "Portfolio berhasil diunggah."
+      );
+    } catch (err) {
+      console.error(
+        "Gagal upload portfolio:",
+        err
+      );
+
+      setError(
+        err?.message ||
+          "Gagal mengunggah portfolio."
+      );
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  // ==========================================
+  // DEED / AKTA
+  // ==========================================
+
+  const handleDeedClick = () => {
+    if (!isEditing) return;
+
+    deedInputRef.current?.click();
+  };
+
+  const handleDeedChange = async (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    // Validasi file
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setError(
+        "File akta harus berupa PDF, DOC, atau DOCX."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    try {
+      setMessage("");
+      setError("");
+
+      const response =
+        await uploadOrganizerDeed(file);
 
       console.log(
         "UPLOAD DEED RESPONSE:",
@@ -436,7 +478,6 @@ function ProfileEO() {
       setMessage(
         "Akta perusahaan berhasil diunggah."
       );
-
     } catch (err) {
       console.error(
         "Gagal upload akta:",
@@ -457,8 +498,7 @@ function ProfileEO() {
   // ==========================================
 
   const handlePasswordChange = (e) => {
-    const { name, value } =
-      e.target;
+    const { name, value } = e.target;
 
     setPasswordForm((prev) => ({
       ...prev,
@@ -466,82 +506,79 @@ function ProfileEO() {
     }));
   };
 
-  const handleSavePassword =
-    async () => {
-      setMessage("");
-      setError("");
+  const handleSavePassword = async () => {
+    setMessage("");
+    setError("");
 
-      if (
-        !passwordForm.oldPassword ||
-        !passwordForm.newPassword ||
-        !passwordForm.confirmPassword
-      ) {
-        setError(
-          "Semua field password wajib diisi."
-        );
+    if (
+      !passwordForm.oldPassword ||
+      !passwordForm.newPassword ||
+      !passwordForm.confirmPassword
+    ) {
+      setError(
+        "Semua field password wajib diisi."
+      );
 
-        return;
-      }
+      return;
+    }
 
-      if (
-        passwordForm.newPassword !==
-        passwordForm.confirmPassword
-      ) {
-        setError(
-          "Konfirmasi password tidak cocok."
-        );
+    if (
+      passwordForm.newPassword !==
+      passwordForm.confirmPassword
+    ) {
+      setError(
+        "Konfirmasi password tidak cocok."
+      );
 
-        return;
-      }
+      return;
+    }
 
-      if (
-        passwordForm.newPassword.length <
-        6
-      ) {
-        setError(
-          "Password baru minimal 6 karakter."
-        );
+    if (
+      passwordForm.newPassword.length < 6
+    ) {
+      setError(
+        "Password baru minimal 6 karakter."
+      );
 
-        return;
-      }
+      return;
+    }
 
-      try {
-        setPasswordSaving(true);
+    try {
+      setPasswordSaving(true);
 
-        await changeOrganizerPassword({
-          oldPassword:
-            passwordForm.oldPassword,
+      await changeOrganizerPassword({
+        oldPassword:
+          passwordForm.oldPassword,
 
-          newPassword:
-            passwordForm.newPassword,
-        });
+        newPassword:
+          passwordForm.newPassword,
+      });
 
-        setMessage(
-          "Password berhasil diperbarui."
-        );
+      setMessage(
+        "Password berhasil diperbarui."
+      );
 
-        setPasswordForm({
-          oldPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
+      setPasswordForm({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
 
-        setShowPassword(false);
+      setShowPassword(false);
+    } catch (err) {
+      console.error(
+        "Gagal mengganti password:",
+        err
+      );
 
-      } catch (err) {
-        console.error(
-          "Gagal mengganti password:",
-          err
-        );
-
-        setError(
-          err?.message ||
-            "Gagal mengganti password."
-        );
-      } finally {
-        setPasswordSaving(false);
-      }
-    };
+      setError(
+        err?.message ||
+          "Gagal mengganti password."
+      );
+    } finally {
+      setPasswordSaving(false);
+    }
+  };
 
   // ==========================================
   // AVATAR INITIAL
@@ -575,19 +612,27 @@ function ProfileEO() {
   return (
     <div className="profile-eo-page">
 
-      {/* SIDEBAR */}
+      {/* ==========================================
+          SIDEBAR
+      ========================================== */}
 
       <SidebarEO />
 
-      {/* MAIN */}
+      {/* ==========================================
+          MAIN
+      ========================================== */}
 
       <main className="profile-eo-main">
 
-        {/* NAVBAR */}
+        {/* ========================================
+            NAVBAR
+        ======================================== */}
 
         <NavbarEO />
 
-        {/* CONTENT */}
+        {/* ========================================
+            CONTENT
+        ======================================== */}
 
         <div className="profile-eo-content">
 
@@ -597,7 +642,9 @@ function ProfileEO() {
             <h1>Profil</h1>
           </div>
 
-          {/* MESSAGE */}
+          {/* ========================================
+              SUCCESS MESSAGE
+          ======================================== */}
 
           {message && (
             <div
@@ -614,6 +661,10 @@ function ProfileEO() {
             </div>
           )}
 
+          {/* ========================================
+              ERROR MESSAGE
+          ======================================== */}
+
           {error && (
             <div
               style={{
@@ -629,11 +680,15 @@ function ProfileEO() {
             </div>
           )}
 
-          {/* PROFILE HEADER CARD */}
+          {/* ========================================
+              PROFILE HEADER CARD
+          ======================================== */}
 
           <section className="profile-main-card">
 
             <div className="profile-company">
+
+              {/* PROFILE IMAGE */}
 
               <div className="profile-image-wrapper">
 
@@ -649,27 +704,38 @@ function ProfileEO() {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  className="profile-image-edit"
-                  onClick={
-                    handleAvatarClick
-                  }
-                >
-                  ✎
-                </button>
+                {/* TOMBOL EDIT FOTO
+                    HANYA MUNCUL SAAT EDIT */}
 
-                <input
-                  ref={avatarInputRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={
-                    handleAvatarChange
-                  }
-                />
+                {isEditing && (
+                  <>
+                    <button
+                      type="button"
+                      className="profile-image-edit"
+                      onClick={
+                        handleAvatarClick
+                      }
+                    >
+                      ✎
+                    </button>
+
+                    <input
+                      ref={avatarInputRef}
+                      type="file"
+                      accept="image/*"
+                      style={{
+                        display: "none",
+                      }}
+                      onChange={
+                        handleAvatarChange
+                      }
+                    />
+                  </>
+                )}
 
               </div>
+
+              {/* COMPANY INFO */}
 
               <div className="profile-company-info">
 
@@ -688,7 +754,11 @@ function ProfileEO() {
 
             </div>
 
+            {/* ACTION BUTTON */}
+
             <div className="profile-actions">
+
+              {/* GANTI PASSWORD */}
 
               <button
                 type="button"
@@ -702,6 +772,10 @@ function ProfileEO() {
                 Ganti Password
               </button>
 
+              {/* =================================
+                  MODE NORMAL
+              ================================= */}
+
               {!isEditing ? (
                 <button
                   type="button"
@@ -714,6 +788,8 @@ function ProfileEO() {
                 </button>
               ) : (
                 <>
+                  {/* BATAL */}
+
                   <button
                     type="button"
                     className="change-password-btn"
@@ -723,6 +799,8 @@ function ProfileEO() {
                   >
                     Batal
                   </button>
+
+                  {/* SIMPAN */}
 
                   <button
                     type="button"
@@ -743,9 +821,13 @@ function ProfileEO() {
 
           </section>
 
-          {/* INFORMATION CARD */}
+          {/* ========================================
+              INFORMATION CARD
+          ======================================== */}
 
           <section className="profile-information-card">
+
+            {/* TITLE */}
 
             <div className="profile-section-title">
 
@@ -760,6 +842,10 @@ function ProfileEO() {
             </div>
 
             <div className="profile-divider"></div>
+
+            {/* ======================================
+                PROFILE INFO GRID
+            ====================================== */}
 
             <div className="profile-info-grid">
 
@@ -787,35 +873,45 @@ function ProfileEO() {
                     readOnly={!isEditing}
                   />
 
-                  <span className="field-icon">
-                    ✎
-                  </span>
+                  {isEditing && (
+                    <span className="field-icon">
+                      ✎
+                    </span>
+                  )}
 
                 </div>
 
               </div>
 
-              {/* NIB / NIK */}
+              {/* NPWP */}
 
               <div className="profile-field">
 
                 <label>
-                  NO. NIB / NIK
+                  NPWP
                 </label>
 
                 <div className="profile-input-wrapper">
 
                   <input
                     type="text"
+                    name="npwp"
                     value={
-                      profile.npwp || "-"
+                      isEditing
+                        ? editForm.npwp
+                        : profile.npwp || "-"
                     }
-                    readOnly
+                    onChange={
+                      handleEditChange
+                    }
+                    readOnly={!isEditing}
                   />
 
-                  <span className="field-icon">
-                    ✎
-                  </span>
+                  {isEditing && (
+                    <span className="field-icon">
+                      ✎
+                    </span>
+                  )}
 
                 </div>
 
@@ -838,10 +934,6 @@ function ProfileEO() {
                     }
                     readOnly
                   />
-
-                  <span className="field-icon">
-                    ✎
-                  </span>
 
                 </div>
 
@@ -871,9 +963,11 @@ function ProfileEO() {
                     readOnly={!isEditing}
                   />
 
-                  <span className="field-icon">
-                    ✎
-                  </span>
+                  {isEditing && (
+                    <span className="field-icon">
+                      ✎
+                    </span>
+                  )}
 
                 </div>
 
@@ -903,9 +997,11 @@ function ProfileEO() {
                     readOnly={!isEditing}
                   />
 
-                  <span className="field-icon">
-                    ✎
-                  </span>
+                  {isEditing && (
+                    <span className="field-icon">
+                      ✎
+                    </span>
+                  )}
 
                 </div>
 
@@ -935,9 +1031,46 @@ function ProfileEO() {
                     readOnly={!isEditing}
                   />
 
-                  <span className="field-icon">
-                    ✎
-                  </span>
+                  {isEditing && (
+                    <span className="field-icon">
+                      ✎
+                    </span>
+                  )}
+
+                </div>
+
+              </div>
+
+              {/* NOMOR REKENING */}
+
+              <div className="profile-field">
+
+                <label>
+                  NOMOR REKENING
+                </label>
+
+                <div className="profile-input-wrapper">
+
+                  <input
+                    type="text"
+                    name="bank_account_number"
+                    value={
+                      isEditing
+                        ? editForm.bank_account_number
+                        : profile.bank_account_number ||
+                          "-"
+                    }
+                    onChange={
+                      handleEditChange
+                    }
+                    readOnly={!isEditing}
+                  />
+
+                  {isEditing && (
+                    <span className="field-icon">
+                      ✎
+                    </span>
+                  )}
 
                 </div>
 
@@ -945,7 +1078,9 @@ function ProfileEO() {
 
             </div>
 
-            {/* PORTFOLIO */}
+            {/* ======================================
+                PORTFOLIO
+            ====================================== */}
 
             <div className="profile-document">
 
@@ -968,31 +1103,42 @@ function ProfileEO() {
 
                 </div>
 
-                <button
-                  type="button"
-                  className="download-document"
-                  onClick={
-                    handlePortfolioClick
-                  }
-                >
-                  ↑
-                </button>
+                {/* UPLOAD BUTTON
+                    HANYA MUNCUL SAAT EDIT */}
 
-                <input
-                  ref={portfolioInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  hidden
-                  onChange={
-                    handlePortfolioChange
-                  }
-                />
+                {isEditing && (
+                  <>
+                    <button
+                      type="button"
+                      className="download-document"
+                      onClick={
+                        handlePortfolioClick
+                      }
+                    >
+                      ↑
+                    </button>
+
+                    <input
+                      ref={portfolioInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      style={{
+                        display: "none",
+                      }}
+                      onChange={
+                        handlePortfolioChange
+                      }
+                    />
+                  </>
+                )}
 
               </div>
 
             </div>
 
-            {/* AKTA */}
+            {/* ======================================
+                AKTA
+            ====================================== */}
 
             <div className="profile-document">
 
@@ -1012,28 +1158,36 @@ function ProfileEO() {
                     {documents.deed_name ||
                       "Belum ada akta"}
                   </span>
-
                 </div>
 
-                <button
-                  type="button"
-                  className="download-document"
-                  onClick={
-                    handleDeedClick
-                  }
-                >
-                  ↑
-                </button>
+                {/* UPLOAD BUTTON
+                    HANYA MUNCUL SAAT EDIT */}
 
-                <input
-                  ref={deedInputRef}
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  hidden
-                  onChange={
-                    handleDeedChange
-                  }
-                />
+                {isEditing && (
+                  <>
+                    <button
+                      type="button"
+                      className="download-document"
+                      onClick={
+                        handleDeedClick
+                      }
+                    >
+                      ↑
+                    </button>
+
+                    <input
+                      ref={deedInputRef}
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      style={{
+                        display: "none",
+                      }}
+                      onChange={
+                        handleDeedChange
+                      }
+                    />
+                  </>
+                )}
 
               </div>
 
@@ -1045,7 +1199,9 @@ function ProfileEO() {
 
       </main>
 
-      {/* PASSWORD MODAL */}
+      {/* ==========================================
+          PASSWORD MODAL
+      ========================================== */}
 
       {showPassword && (
         <div className="password-overlay">
@@ -1079,6 +1235,8 @@ function ProfileEO() {
 
             <div className="password-form">
 
+              {/* PASSWORD LAMA */}
+
               <label>
                 PASSWORD LAMA
               </label>
@@ -1094,6 +1252,8 @@ function ProfileEO() {
                 }
                 placeholder="Masukkan password lama"
               />
+
+              {/* PASSWORD BARU */}
 
               <label>
                 PASSWORD BARU
@@ -1111,6 +1271,8 @@ function ProfileEO() {
                 placeholder="Masukkan password baru"
               />
 
+              {/* KONFIRMASI */}
+
               <label>
                 KONFIRMASI PASSWORD
               </label>
@@ -1126,6 +1288,8 @@ function ProfileEO() {
                 }
                 placeholder="Konfirmasi password baru"
               />
+
+              {/* SIMPAN PASSWORD */}
 
               <button
                 type="button"

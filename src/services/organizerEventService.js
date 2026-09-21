@@ -1,5 +1,3 @@
-// src/services/organizerEventService.js
-
 import { apiFetch } from "./api";
 
 // =====================================================
@@ -57,16 +55,64 @@ export const publishOrganizerEvent = async (data) => {
 };
 
 // =====================================================
-// GET SALES SUMMARY EVENT
-// GET /api/organizer/events/{id}/sales-summary
+// UPLOAD BANNER EVENT
+// POST /api/organizer/events/banner
+// Content-Type: multipart/form-data
 // =====================================================
 
-export const getOrganizerEventSalesSummary = async (
-  eventId
-) => {
+export const uploadOrganizerEventBanner = async (file) => {
+  const formData = new FormData();
+
+  formData.append("file", file);
+
+  return apiFetch("/api/organizer/events/banner", {
+    method: "POST",
+    body: formData,
+  });
+};
+
+// =====================================================
+// GET SALES SUMMARY EVENT
+// GET /api/organizer/events/{eventId}/sales-summary
+// =====================================================
+
+export const getOrganizerEventSalesSummary = async (eventId) => {
+  if (!eventId) {
+    throw new Error("Event ID wajib diisi");
+  }
+
   return apiFetch(
     `/api/organizer/events/${encodeURIComponent(
       eventId
     )}/sales-summary`
   );
+};
+
+// =====================================================
+// GET PUBLIC EVENT DETAIL
+// GET /api/events/{eventId}
+// =====================================================
+
+export const getPublicEventDetail = async (eventId) => {
+  if (!eventId) {
+    throw new Error("Event ID wajib diisi");
+  }
+
+  return apiFetch(
+    `/api/events/${encodeURIComponent(eventId)}`
+  );
+};
+
+// =====================================================
+// GET EVENT DETAIL
+// Alias untuk getPublicEventDetail
+// Bisa digunakan di halaman Detail Event Organizer
+// =====================================================
+
+export const getOrganizerEventDetail = async (eventId) => {
+  if (!eventId) {
+    throw new Error("Event ID wajib diisi");
+  }
+
+  return getPublicEventDetail(eventId);
 };

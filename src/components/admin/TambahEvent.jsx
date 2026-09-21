@@ -1,10 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { createAdminEvent, updateAdminEventStatus } from "../../services/adminEventService";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 
 import "./TambahEvent.css";
+
+// "Music Festival" (label UI) → "MUSIC_FESTIVAL" (enum BE)
+const toBackendCategory = (label) => {
+  if (!label) return "MUSIC_FESTIVAL";
+  return String(label).trim().toUpperCase().replace(/[\s-]+/g, "_");
+};
 
 function TambahEvent() {
   const navigate = useNavigate();
@@ -78,35 +86,104 @@ function TambahEvent() {
   // Hitung Total Kuota Tiket
   const totalKuota = tiketList.reduce((acc, item) => acc + (Number(item.kuota) || 0), 0);
 
-  // Submit & Simpan ke LocalStorage
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+  // URL gambar banner (satu-satunya cara isi banner saat ini —
+  // backend belum punya endpoint upload file banner, lihat catatan di seksi Banner)
+  const [bannerUrl, setBannerUrl] = useState("");
+  // Status cek URL gambar: idle | checking | ok | error
+  const [bannerCheck, setBannerCheck] = useState("idle");
 
-    if (!namaEvent) {
+  // Cek apakah URL benar-benar mengembalikan gambar (debounce 500ms).
+  // Link halaman Google (imgres/search) atau link Drive biasa akan
+  // gagal di sini karena bukan file gambar langsung.
+  useEffect(() => {
+    const url = bannerUrl.trim();
+    if (!url) {
+      setBannerCheck("idle");
+      return;
+    }
+    setBannerCheck("checking");
+    let cancelled = false;
+    const t = setTimeout(() => {
+      const img = new Image();
+      img.onload = () => { if (!cancelled) setBannerCheck("ok"); };
+      img.onerror = () => { if (!cancelled) setBannerCheck("error"); };
+      img.src = url;
+    }, 500);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [bannerUrl]);
+  // Backend selalu membuat event sebagai DRAFT, jadi admin
+  // langsung publish otomatis via PATCH /{id}/status → PUBLISHED.
+
+  // Submit → POST /api/admin/events (CreateEventRequest, API.md §17.11)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitError(null);
+
+    if (!namaEvent.trim()) {
       alert("Harap isi Nama Event terlebih dahulu!");
       return;
     }
 
-    const newEvent = {
-      id: Date.now(),
-      title: namaEvent,
-      category: kategoriEvent || "Music Festival",
-      date: jadwalList[0]?.tanggal || "TBA",
-      time: `${jadwalList[0]?.jamMulai || "00:00"} - ${jadwalList[0]?.jamSelesai || "00:00"} WIB`,
-      location: lokasi || "Lokasi Belum Ditentukan",
-      status: "Aktif",
-      statusClass: "active",
-      tickets: `0 / ${totalKuota}`,
-      organizer: organizer || "EventDay Organizer",
-      imageClass: "event-purple",
-      bannerUrl: bannerPreview
+    // Tolak URL gambar yang terbukti tidak bisa dimuat — kalau lolos,
+    // banner tersimpan tapi tidak tampil di list/detail.
+    if (bannerUrl.trim() && bannerCheck === "error") {
+      alert(
+        "URL gambar tidak bisa dimuat (bukan file gambar langsung). " +
+        "Pakai 'Copy image address' dari gambarnya, bukan link halaman Google."
+      );
+      return;
+    }
+
+    const jadwal = jadwalList[0] || {};
+    const tanggal = jadwal.tanggal || new Date().toISOString().slice(0, 10);
+    const jam = jadwal.jamMulai || "10:00";
+    // BE minta ISO datetime: "2026-12-01T10:00:00"
+    const eventDate = `${tanggal}T${jam.length === 5 ? jam + ":00" : jam}`;
+
+    const payload = {
+      title: namaEvent.trim(),
+      description: deskripsi.trim() || namaEvent.trim(),
+      category: toBackendCategory(kategoriEvent),
+      location: lokasi.trim() || "Lokasi Belum Ditentukan",
+      venueName: lokasi.trim() || "Lokasi Belum Ditentukan",
+      eventDate,
+      bannerUrl: bannerUrl.trim() || null,
+      facilities: [],
+      ticketTiers: tiketList
+        .filter((t) => t.namaKategori && Number(t.kuota) > 0)
+        .map((t) => ({
+          name: t.namaKategori,
+          price: Number(t.harga) || 0,
+          quota: Number(t.kuota) || 0,
+        })),
     };
 
-    const existingEvents = JSON.parse(localStorage.getItem("admin_events")) || [];
-    localStorage.setItem("admin_events", JSON.stringify([newEvent, ...existingEvents]));
-
-    alert("Event berhasil dibuat dan tersimpan!");
-    navigate("/event-management");
+    try {
+      setSubmitting(true);
+      const res = await createAdminEvent(payload);
+      const newId = res?.data?.eventId || res?.data?.id;
+      if (newId) {
+        try {
+          await updateAdminEventStatus(newId, "PUBLISHED");
+        } catch (pubErr) {
+          console.error("Event dibuat tapi gagal publish:", pubErr);
+          alert("Event dibuat sebagai DRAFT (gagal publish otomatis). Publish manual dari halaman detail.");
+          navigate(`/admin/event/${newId}`);
+          return;
+        }
+      }
+      alert("Event berhasil dibuat & dipublish!");
+      navigate("/admin/event-management");
+    } catch (err) {
+      console.error("Gagal membuat event:", err);
+      const msg = err?.data?.msg || err?.message || "Gagal membuat event.";
+      setSubmitError(msg);
+      alert(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -141,11 +218,16 @@ function TambahEvent() {
                   type="button"
                   className="btn-buat-event"
                   onClick={handleSubmit}
+                  disabled={submitting}
                 >
-                  + Buat Event
+                  {submitting ? "Menyimpan..." : "+ Buat Event"}
                 </button>
               </div>
             </div>
+
+            {submitError && (
+              <p style={{ color: "#dc6868", marginBottom: 12 }}>{submitError}</p>
+            )}
 
             <form onSubmit={handleSubmit} className="tambah-event-form">
 
@@ -217,6 +299,38 @@ function TambahEvent() {
               {/* 3. BANNER EVENT */}
               <div className="form-section-card">
                 <h3>Banner Event</h3>
+                <div className="form-group full" style={{ marginBottom: 12 }}>
+                  <label>URL GAMBAR BANNER</label>
+                  <input
+                    type="url"
+                    placeholder="https://... (kosong = tanpa banner)"
+                    value={bannerUrl}
+                    onChange={(e) => setBannerUrl(e.target.value)}
+                  />
+                  <span className="upload-subtitle">
+                    Wajib link file gambar langsung (berakhiran .jpg/.png/webp).
+                    Di Google: klik kanan gambar → “Copy image address”, bukan link halaman pencarian.
+                    Link halaman (google.com/imgres, .../search) dan link Drive biasa tidak akan tampil.
+                  </span>
+                  {bannerCheck === "checking" && (
+                    <span className="upload-subtitle">Mengecek URL gambar...</span>
+                  )}
+                  {bannerCheck === "ok" && (
+                    <span className="upload-subtitle" style={{ color: "#2e9e5b" }}>
+                      ✓ URL valid, gambar bisa dimuat.
+                    </span>
+                  )}
+                  {bannerCheck === "error" && (
+                    <span className="upload-subtitle" style={{ color: "#dc6868" }}>
+                      ✕ URL ini bukan file gambar langsung / diblokir hotlink. Ganti URL-nya.
+                    </span>
+                  )}
+                </div>
+                {bannerCheck === "ok" && (
+                  <div className="preview-container" style={{ marginBottom: 12 }}>
+                    <img src={bannerUrl.trim()} alt="Preview banner dari URL" className="banner-preview-img" />
+                  </div>
+                )}
                 <div className="upload-dropzone">
                   {bannerPreview ? (
                     <div className="preview-container">
@@ -234,7 +348,8 @@ function TambahEvent() {
                       <div className="upload-icon">☁️</div>
                       <p className="upload-title">Upload Banner Event (16:9)</p>
                       <span className="upload-subtitle">
-                        Drag & drop atau klik untuk memilih file (Max 5MB)
+                        File di sini hanya preview di form — tidak tersimpan ke server
+                        (backend belum punya endpoint upload banner). Isi URL di atas agar banner tampil.
                       </span>
                       <input
                         type="file"

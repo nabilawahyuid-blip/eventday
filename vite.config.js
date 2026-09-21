@@ -46,26 +46,17 @@ export default defineConfig(({ mode }) => {
           // REWRITE
           // ==================================
           //
-          // /api/payments/... dan
-          // /api/tickets/...
-          // tetap menggunakan /api
+          // Backend sudah memakai prefix /api
+          // (mis. /api/admin/events), jadi path
+          // diteruskan apa adanya TANPA diubah.
           //
-          // Endpoint lainnya juga tetap
-          // menggunakan prefix /api.
+          // JANGAN pakai
+          // path.replace(/^\/api/, "/api/")
+          // karena itu menghasilkan double-slash
+          // (/api/admin/...) → backend 500
+          // "No static resource api/admin/...".
 
-          rewrite: (path) => {
-            if (
-              path.startsWith("/api/payments") ||
-              path.startsWith("/api/tickets")
-            ) {
-              return path;
-            }
-
-            return path.replace(
-              /^\/api/,
-              "/api/"
-            );
-          },
+          rewrite: (path) => path,
 
           // ==================================
           // DEBUG PROXY

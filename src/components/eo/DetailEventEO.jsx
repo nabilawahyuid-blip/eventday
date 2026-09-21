@@ -1,132 +1,977 @@
-import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import React, {
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
 
-import "./DetailEventEO.css";
+import {
+  getOrganizerEventSalesSummary,
+  getPublicEventDetail,
+} from "../../services/organizerEventService";
 
+import "./DetailEventEO.css";
 
 function DetailEventEO() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  /*
-    Data event sementara.
-    Nanti bagian ini bisa diganti dengan data dari API.
-  */
+  // =====================================================
+  // STATE
+  // =====================================================
 
-  const event = {
-    id: id || "EVT-2024-001",
+  const [event, setEvent] = useState(null);
 
-    title: "Music Festival 2024",
+  const [salesSummary, setSalesSummary] =
+    useState(null);
 
-    status: "Event Aktif",
+  const [loading, setLoading] =
+    useState(true);
 
-    category: "Kategori Event",
+  const [loadingSales, setLoadingSales] =
+    useState(true);
 
-    date: "02 Februari 2027",
+  const [error, setError] =
+    useState("");
 
-    time: "19:00",
+  const [salesError, setSalesError] =
+    useState("");
 
-    location: "Lokasi/Venue Event",
+  // =====================================================
+  // GET EVENT DETAIL
+  // =====================================================
 
-    description: [
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+  useEffect(() => {
+    const fetchEvent = async () => {
+      if (!id) {
+        setError(
+          "ID event tidak ditemukan."
+        );
 
-      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-    ],
+        setLoading(false);
 
-    facilities:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+        return;
+      }
 
-    banner:
-      "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1600&q=85",
+      try {
+        setLoading(true);
+        setError("");
 
-    ticketSold: 200,
+        const response =
+          await getPublicEventDetail(id);
 
-    ticketTotal: 400,
+        console.log(
+          "EVENT DETAIL RESPONSE:",
+          response
+        );
 
-    categories: [
-      {
-        name: "VIP",
-        price: "Rp 1.500.000",
-        sold: "50 / 100",
-      },
-      {
-        name: "Festival",
-        price: "Rp 750.000",
-        sold: "150 / 300",
-      },
-    ],
+        /*
+         * apiFetch biasanya mengembalikan:
+         *
+         * {
+         *   data: {...}
+         * }
+         *
+         * Jadi kita ambil response.data.
+         */
 
-    lineup: [
-      {
-        name: "Bintang Tamu",
-      },
-      {
-        name: "Bintang Tamu",
-      },
-      {
-        name: "Bintang Tamu",
-      },
-    ],
-  };
+        const eventData =
+          response?.data?.data ||
+          response?.data ||
+          response;
 
+        console.log(
+          "EVENT DATA:",
+          eventData
+        );
 
-  const percentage = Math.round(
-    (event.ticketSold / event.ticketTotal) * 100
-  );
+        if (!eventData) {
+          setError(
+            "Event tidak ditemukan."
+          );
 
+          setEvent(null);
+
+          return;
+        }
+
+        setEvent(eventData);
+      } catch (err) {
+        console.error(
+          "Gagal mengambil detail event:",
+          err
+        );
+
+        setError(
+          err?.message ||
+            "Gagal mengambil data event."
+        );
+
+        setEvent(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvent();
+  }, [id]);
+
+  // =====================================================
+  // GET SALES SUMMARY
+  // =====================================================
+
+  useEffect(() => {
+    const fetchSalesSummary =
+      async () => {
+        if (!id) {
+          return;
+        }
+
+        try {
+          setLoadingSales(true);
+          setSalesError("");
+
+          const response =
+            await getOrganizerEventSalesSummary(
+              id
+            );
+
+          console.log(
+            "SALES SUMMARY RESPONSE:",
+            response
+          );
+
+          const salesData =
+            response?.data?.data ||
+            response?.data ||
+            response;
+
+          setSalesSummary(
+            salesData
+          );
+        } catch (err) {
+          console.error(
+            "Gagal mengambil statistik penjualan:",
+            err
+          );
+
+          setSalesSummary(null);
+
+          setSalesError(
+            err?.message ||
+              "Gagal mengambil statistik penjualan."
+          );
+        } finally {
+          setLoadingSales(false);
+        }
+      };
+
+    fetchSalesSummary();
+  }, [id]);
+
+  // =====================================================
+  // NAVIGATION
+  // =====================================================
 
   const handleBack = () => {
     navigate("/eo/event");
   };
 
-
   const handleEdit = () => {
-    navigate(`/eo/event/${event.id}/edit`);
+    navigate(
+      `/eo/event/${id}/edit`
+    );
   };
 
+  // =====================================================
+  // FORMAT DATE
+  // =====================================================
+
+  const formatDate = (
+    dateValue
+  ) => {
+    if (!dateValue) {
+      return "-";
+    }
+
+    const date =
+      new Date(dateValue);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return dateValue;
+    }
+
+    return date.toLocaleDateString(
+      "id-ID",
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }
+    );
+  };
+
+  // =====================================================
+  // FORMAT TIME
+  // =====================================================
+
+  const formatTime = (
+    dateValue
+  ) => {
+    if (!dateValue) {
+      return "";
+    }
+
+    const date =
+      new Date(dateValue);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return "";
+    }
+
+    return date.toLocaleTimeString(
+      "id-ID",
+      {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }
+    );
+  };
+
+  // =====================================================
+  // FORMAT CURRENCY
+  // =====================================================
+
+  const formatCurrency = (
+    value
+  ) => {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ""
+    ) {
+      return "Rp 0";
+    }
+
+    const number =
+      Number(value);
+
+    if (
+      Number.isNaN(number)
+    ) {
+      return "Rp 0";
+    }
+
+    return new Intl.NumberFormat(
+      "id-ID",
+      {
+        style: "currency",
+        currency: "IDR",
+        minimumFractionDigits: 0,
+      }
+    ).format(number);
+  };
+
+  // =====================================================
+  // STATUS
+  // =====================================================
+
+  const getStatusText = (
+    status
+  ) => {
+    if (!status) {
+      return "Event";
+    }
+
+    const normalized =
+      String(status).toUpperCase();
+
+    if (
+      normalized ===
+      "PUBLISHED"
+    ) {
+      return "Event Aktif";
+    }
+
+    if (
+      normalized ===
+      "DRAFT"
+    ) {
+      return "Draft";
+    }
+
+    if (
+      normalized ===
+      "CANCELLED"
+    ) {
+      return "Dibatalkan";
+    }
+
+    if (
+      normalized ===
+        "COMPLETED" ||
+      normalized ===
+        "FINISHED" ||
+      normalized ===
+        "ENDED"
+    ) {
+      return "Selesai";
+    }
+
+    return status;
+  };
+
+  // =====================================================
+  // IMAGE URL
+  // =====================================================
+
+  const getImageUrl = (
+    image
+  ) => {
+    if (!image) {
+      return "";
+    }
+
+    const imageString =
+      String(image).trim();
+
+    if (!imageString) {
+      return "";
+    }
+
+    // URL lengkap
+    if (
+      imageString.startsWith(
+        "http://"
+      ) ||
+      imageString.startsWith(
+        "https://"
+      ) ||
+      imageString.startsWith(
+        "data:"
+      )
+    ) {
+      return imageString;
+    }
+
+    const baseUrl = (
+      import.meta.env
+        .VITE_NGROK_URL ||
+      ""
+    ).replace(/\/$/, "");
+
+    // Kalau backend mengirim
+    // relative path dan VITE_NGROK_URL
+    // belum tersedia
+    if (!baseUrl) {
+      return imageString;
+    }
+
+    if (
+      imageString.startsWith("/")
+    ) {
+      return `${baseUrl}${imageString}`;
+    }
+
+    return `${baseUrl}/${imageString}`;
+  };
+
+  // =====================================================
+  // GET BANNER
+  // =====================================================
+
+  const getBanner = () => {
+    /*
+     * Prioritas utama:
+     * banner_url
+     *
+     * Karena AddEvent mengirim:
+     *
+     * banner_url: bannerUrl
+     */
+
+    const image =
+      event?.banner_url ||
+      event?.bannerUrl ||
+      event?.image ||
+      event?.banner;
+
+    return getImageUrl(
+      image
+    );
+  };
+
+  // =====================================================
+  // DESCRIPTION
+  // =====================================================
+
+  const getDescription = () => {
+    if (!event?.description) {
+      return [
+        "Tidak ada deskripsi event.",
+      ];
+    }
+
+    if (
+      Array.isArray(
+        event.description
+      )
+    ) {
+      return event.description;
+    }
+
+    return String(
+      event.description
+    )
+      .split("\n")
+      .filter(
+        (item) =>
+          item.trim() !== ""
+      );
+  };
+
+  // =====================================================
+  // FACILITIES
+  // =====================================================
+
+  const getFacilities = () => {
+    const facility =
+      event?.facility;
+
+    if (!facility) {
+      return "-";
+    }
+
+    if (
+      Array.isArray(facility)
+    ) {
+      return facility.join(
+        ", "
+      );
+    }
+
+    return facility;
+  };
+
+  // =====================================================
+  // LINEUP
+  // =====================================================
+
+  const getLineup = () => {
+    const lineup =
+      event?.lineup;
+
+    if (!lineup) {
+      return [];
+    }
+
+    if (
+      Array.isArray(lineup)
+    ) {
+      return lineup.map(
+        (item) => {
+          if (
+            typeof item ===
+            "string"
+          ) {
+            return {
+              name: item,
+            };
+          }
+
+          return {
+            name:
+              item?.name ||
+              item?.artist_name ||
+              item?.title ||
+              "Bintang Tamu",
+          };
+        }
+      );
+    }
+
+    if (
+      typeof lineup ===
+      "string"
+    ) {
+      return lineup
+        .split(",")
+        .map(
+          (item) =>
+            item.trim()
+        )
+        .filter(Boolean)
+        .map(
+          (item) => ({
+            name: item,
+          })
+        );
+    }
+
+    return [];
+  };
+
+  // =====================================================
+  // TICKET DATA
+  // =====================================================
+
+  const getTickets = () => {
+    const tickets =
+      event?.tickets ||
+      event?.ticket_categories ||
+      event?.ticket_tiers ||
+      event?.ticketTiers ||
+      [];
+
+    if (
+      !Array.isArray(tickets)
+    ) {
+      return [];
+    }
+
+    return tickets.map(
+      (
+        ticket,
+        index
+      ) => {
+        // -----------------------------------------------
+        // TOTAL QUOTA
+        // -----------------------------------------------
+
+        const quota =
+          Number(
+            ticket?.total_quota ??
+              ticket?.totalQuota ??
+              ticket?.quota ??
+              0
+          ) || 0;
+
+        // -----------------------------------------------
+        // AVAILABLE QUOTA
+        // -----------------------------------------------
+
+        const remaining =
+          Number(
+            ticket?.available_quota ??
+              ticket?.availableQuota ??
+              ticket?.remaining ??
+              0
+          ) || 0;
+
+        // -----------------------------------------------
+        // SOLD
+        // -----------------------------------------------
+
+        const sold =
+          ticket?.sold !==
+            undefined &&
+          ticket?.sold !== null
+            ? Number(
+                ticket.sold
+              ) || 0
+            : Math.max(
+                quota -
+                  remaining,
+                0
+              );
+
+        // -----------------------------------------------
+        // PRICE
+        // -----------------------------------------------
+
+        const price =
+          Number(
+            ticket?.price ??
+              ticket?.ticket_price ??
+              0
+          ) || 0;
+
+        return {
+          id:
+            ticket?.tier_id ||
+            ticket?.tierId ||
+            ticket?.id ||
+            ticket?.ticket_id ||
+            `ticket-${index}`,
+
+          name:
+            ticket?.tier_name ||
+            ticket?.tierName ||
+            ticket?.name ||
+            ticket?.ticket_name ||
+            ticket?.category_name ||
+            "Tiket",
+
+          price,
+
+          quota,
+
+          remaining,
+
+          sold,
+        };
+      }
+    );
+  };
+
+  // =====================================================
+  // TOTAL TICKET SOLD
+  // =====================================================
+
+  const getTicketSold = () => {
+    const summaryValue =
+      salesSummary?.tickets_sold ??
+      salesSummary?.ticket_sold ??
+      salesSummary?.ticketSold ??
+      salesSummary?.total_sold ??
+      salesSummary?.totalSold ??
+      salesSummary?.sold;
+
+    if (
+      summaryValue !==
+        undefined &&
+      summaryValue !== null
+    ) {
+      return (
+        Number(
+          summaryValue
+        ) || 0
+      );
+    }
+
+    const tickets =
+      getTickets();
+
+    return tickets.reduce(
+      (
+        total,
+        ticket
+      ) =>
+        total +
+        Number(
+          ticket.sold || 0
+        ),
+      0
+    );
+  };
+
+  // =====================================================
+  // TOTAL TICKET QUOTA
+  // =====================================================
+
+  const getTicketTotal = () => {
+    const tickets =
+      getTickets();
+
+    return tickets.reduce(
+      (
+        total,
+        ticket
+      ) =>
+        total +
+        Number(
+          ticket.quota || 0
+        ),
+      0
+    );
+  };
+
+  // =====================================================
+  // TOTAL REMAINING
+  // =====================================================
+
+  const getTotalRemaining = () => {
+    const tickets =
+      getTickets();
+
+    return tickets.reduce(
+      (
+        total,
+        ticket
+      ) =>
+        total +
+        Number(
+          ticket.remaining ||
+            0
+        ),
+      0
+    );
+  };
+
+  // =====================================================
+  // REVENUE
+  // =====================================================
+
+  const getRevenue = () => {
+    const summaryRevenue =
+      salesSummary?.total_revenue ??
+      salesSummary?.totalRevenue ??
+      salesSummary?.revenue;
+
+    if (
+      summaryRevenue !==
+        undefined &&
+      summaryRevenue !== null
+    ) {
+      return (
+        Number(
+          summaryRevenue
+        ) || 0
+      );
+    }
+
+    return getTickets().reduce(
+      (
+        total,
+        ticket
+      ) =>
+        total +
+        ticket.price *
+          ticket.sold,
+      0
+    );
+  };
+
+  // =====================================================
+  // CALCULATED DATA
+  // =====================================================
+
+  const ticketSold =
+    getTicketSold();
+
+  const ticketTotal =
+    getTicketTotal();
+
+  const totalRemaining =
+    getTotalRemaining();
+
+  const revenue =
+    getRevenue();
+
+  const percentage =
+    ticketTotal > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (ticketSold /
+              ticketTotal) *
+              100
+          )
+        )
+      : 0;
+
+  // =====================================================
+  // EVENT DATE
+  // =====================================================
+
+  const eventDate =
+    event?.start_date ||
+    event?.event_date ||
+    event?.date ||
+    event?.startDate;
+
+  const eventEndDate =
+    event?.end_date ||
+    event?.event_end_date ||
+    event?.endDate ||
+    eventDate;
+
+  const eventTime =
+    formatTime(
+      eventDate
+    );
+
+  const eventEndTime =
+    formatTime(
+      eventEndDate
+    );
+
+  const sameDate =
+    formatDate(
+      eventDate
+    ) ===
+    formatDate(
+      eventEndDate
+    );
+
+  const dateText =
+    sameDate
+      ? formatDate(
+          eventDate
+        )
+      : `${formatDate(
+          eventDate
+        )} - ${formatDate(
+          eventEndDate
+        )}`;
+
+  const timeText =
+    eventTime &&
+    eventEndTime
+      ? `${eventTime} - ${eventEndTime}`
+      : eventTime ||
+        eventEndTime ||
+        "";
+
+  const lineup =
+    getLineup();
+
+  const tickets =
+    getTickets();
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
+  if (loading) {
+    return (
+      <div className="detail-event-eo-page">
+
+        <SidebarEO />
+
+        <main className="detail-event-eo-main">
+
+          <NavbarEO />
+
+          <div className="detail-event-eo-content">
+
+            <div className="detail-event-page-title">
+
+              <h1>
+                Detail Event
+              </h1>
+
+            </div>
+
+            <div className="detail-card">
+
+              <p>
+                Memuat data event...
+              </p>
+
+            </div>
+
+          </div>
+
+        </main>
+
+      </div>
+    );
+  }
+
+  // =====================================================
+  // ERROR
+  // =====================================================
+
+  if (
+    error ||
+    !event
+  ) {
+    return (
+      <div className="detail-event-eo-page">
+
+        <SidebarEO />
+
+        <main className="detail-event-eo-main">
+
+          <NavbarEO />
+
+          <div className="detail-event-eo-content">
+
+            <div className="detail-event-page-title">
+
+              <h1>
+                Detail Event
+              </h1>
+
+            </div>
+
+            <div className="detail-card">
+
+              <p>
+                {error ||
+                  "Event tidak ditemukan."}
+              </p>
+
+              <button
+                type="button"
+                className="back-button"
+                onClick={
+                  handleBack
+                }
+              >
+
+                <span className="back-arrow">
+                  ←
+                </span>
+
+                Kembali ke Kelola Event
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </main>
+
+      </div>
+    );
+  }
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="detail-event-eo-page">
 
-      {/* =====================================================
+      {/* =================================================
           SIDEBAR
-      ===================================================== */}
+      ================================================= */}
 
       <SidebarEO />
 
-
-      {/* =====================================================
+      {/* =================================================
           MAIN
-      ===================================================== */}
+      ================================================= */}
 
       <main className="detail-event-eo-main">
 
-        {/* ===================================================
+        {/* =================================================
             NAVBAR
-        =================================================== */}
+        ================================================= */}
 
         <NavbarEO />
 
-
-        {/* ===================================================
-            CONTENT
-        =================================================== */}
-
         <div className="detail-event-eo-content">
-
 
           {/* =================================================
               PAGE TITLE
           ================================================= */}
 
           <div className="detail-event-page-title">
-            <h1>Detail Event</h1>
-          </div>
 
+            <h1>
+              Detail Event
+            </h1>
+
+          </div>
 
           {/* =================================================
               BACK BUTTON
@@ -137,48 +982,128 @@ function DetailEventEO() {
             <button
               type="button"
               className="back-button"
-              onClick={handleBack}
+              onClick={
+                handleBack
+              }
             >
-              <span className="back-arrow">←</span>
+
+              <span className="back-arrow">
+                ←
+              </span>
 
               Kembali ke Kelola Event
+
             </button>
 
           </div>
 
-
           {/* =================================================
-              HERO CARD
+              HERO
           ================================================= */}
 
           <section className="detail-event-eo-hero-card">
 
-            {/* BANNER */}
-
             <div className="banner-wrapper">
 
-              <img
-                src={event.banner}
-                alt={event.title}
-                className="event-banner"
-              />
+              {getBanner() ? (
+                <img
+                  src={getBanner()}
+                  alt={
+                    event.title ||
+                    "Event"
+                  }
+                  className="event-banner"
+                  onError={(e) => {
+                    console.error(
+                      "Banner gagal dimuat:",
+                      e.currentTarget.src
+                    );
 
+                    /*
+                     * JANGAN lagi diganti
+                     * dengan Unsplash.
+                     */
 
-              {/* STATUS */}
+                    e.currentTarget.style.display =
+                      "none";
+
+                    const wrapper =
+                      e.currentTarget
+                        .parentElement;
+
+                    if (
+                      wrapper &&
+                      !wrapper.querySelector(
+                        ".banner-error-message"
+                      )
+                    ) {
+                      const message =
+                        document.createElement(
+                          "div"
+                        );
+
+                      message.className =
+                        "banner-error-message";
+
+                      message.textContent =
+                        "Banner gagal dimuat";
+
+                      message.style.cssText =
+                        `
+                          width: 100%;
+                          height: 100%;
+                          min-height: 300px;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          background: #f2f2f2;
+                          color: #777;
+                          font-size: 16px;
+                        `;
+
+                      wrapper.appendChild(
+                        message
+                      );
+                    }
+                  }}
+                />
+              ) : (
+                <div
+                  className="event-banner"
+                  style={{
+                    display:
+                      "flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "center",
+                    background:
+                      "#f2f2f2",
+                    color:
+                      "#777",
+                    minHeight:
+                      "300px",
+                  }}
+                >
+                  Banner belum tersedia
+                </div>
+              )}
 
               <span className="status-badge active">
-                {event.status}
+
+                {getStatusText(
+                  event.status
+                )}
+
               </span>
 
             </div>
 
-
-            {/* HERO INFO */}
-
             <div className="hero-info">
 
               <h2>
-                {event.title}
+                {event.title ||
+                  "Tanpa Judul"}
               </h2>
 
               <p className="event-id">
@@ -187,7 +1112,12 @@ function DetailEventEO() {
                   ▣
                 </span>
 
-                ID Event: {event.id}
+                ID Event:{" "}
+
+                {event.event_id ||
+                  event.eventId ||
+                  event.id ||
+                  id}
 
               </p>
 
@@ -195,13 +1125,11 @@ function DetailEventEO() {
 
           </section>
 
-
           {/* =================================================
-              TWO COLUMN
+              CONTENT GRID
           ================================================= */}
 
           <div className="detail-event-eo-content-grid">
-
 
             {/* =================================================
                 LEFT COLUMN
@@ -209,54 +1137,65 @@ function DetailEventEO() {
 
             <div className="detail-event-left-column">
 
-
-              {/* =============================================
-                  EVENT INFORMATION
-              ============================================= */}
+              {/* =================================================
+                  META
+              ================================================= */}
 
               <section className="detail-card meta-card">
 
                 <h3>
-                  {event.title}
+                  {event.title ||
+                    "Nama Event"}
                 </h3>
-
 
                 <div className="meta-list">
 
                   <span>
+
                     <span className="meta-icon tag-icon">
                       ◇
                     </span>
 
-                    {event.category}
+                    {event.category ||
+                      "Kategori Event"}
+
                   </span>
 
-
                   <span>
+
                     <span className="meta-icon">
                       ▣
                     </span>
 
-                    {event.date} {event.time}
+                    {dateText}
+
+                    {timeText
+                      ? ` ${timeText}`
+                      : ""}
+
                   </span>
 
-
                   <span>
+
                     <span className="meta-icon location-icon">
                       ♧
                     </span>
 
-                    {event.location}
+                    {event.venue_name ||
+                      event.venueName ||
+                      event.location ||
+                      event.venue ||
+                      "Lokasi belum tersedia"}
+
                   </span>
 
                 </div>
 
               </section>
 
-
-              {/* =============================================
+              {/* =================================================
                   DESCRIPTION
-              ============================================= */}
+              ================================================= */}
 
               <section className="detail-card">
 
@@ -264,13 +1203,21 @@ function DetailEventEO() {
                   Deskripsi Event
                 </h2>
 
-
                 <div className="description-text">
 
-                  {event.description.map(
-                    (paragraph, index) => (
-                      <p key={index}>
-                        {paragraph}
+                  {getDescription().map(
+                    (
+                      paragraph,
+                      index
+                    ) => (
+                      <p
+                        key={
+                          index
+                        }
+                      >
+                        {
+                          paragraph
+                        }
                       </p>
                     )
                   )}
@@ -279,10 +1226,9 @@ function DetailEventEO() {
 
               </section>
 
-
-              {/* =============================================
+              {/* =================================================
                   FACILITIES
-              ============================================= */}
+              ================================================= */}
 
               <section className="detail-card">
 
@@ -290,21 +1236,19 @@ function DetailEventEO() {
                   Fasilitas
                 </h2>
 
-
                 <div className="facilities-text">
 
                   <p>
-                    {event.facilities}
+                    {getFacilities()}
                   </p>
 
                 </div>
 
               </section>
 
-
-              {/* =============================================
+              {/* =================================================
                   LINEUP
-              ============================================= */}
+              ================================================= */}
 
               <section className="detail-card lineup-card">
 
@@ -312,33 +1256,107 @@ function DetailEventEO() {
                   LineUp
                 </h2>
 
-
                 <div className="lineup-grid">
 
-                  {event.lineup.map(
-                    (person, index) => (
+                  {lineup.length >
+                  0 ? (
+                    lineup.map(
+                      (
+                        person,
+                        index
+                      ) => (
+                        <div
+                          className="lineup-item"
+                          key={
+                            index
+                          }
+                        >
 
-                      <div
-                        className="lineup-item"
-                        key={index}
-                      >
+                          <div className="lineup-avatar">
 
-                        <div className="lineup-avatar">
+                            <span>
+                              ♙
+                            </span>
+
+                          </div>
 
                           <span>
-                            ♙
+                            {
+                              person.name
+                            }
                           </span>
 
                         </div>
-
-
-                        <span>
-                          {person.name}
-                        </span>
-
-                      </div>
-
+                      )
                     )
+                  ) : (
+                    <p>
+                      Belum ada lineup.
+                    </p>
+                  )}
+
+                </div>
+
+              </section>
+
+              {/* =================================================
+                  TICKET CATEGORY
+              ================================================= */}
+
+              <section className="detail-card">
+
+                <h2>
+                  Kategori Tiket
+                </h2>
+
+                <div className="ticket-detail-list">
+
+                  {tickets.length >
+                  0 ? (
+                    tickets.map(
+                      (
+                        ticket
+                      ) => (
+                        <div
+                          className="ticket-detail-row"
+                          key={
+                            ticket.id
+                          }
+                        >
+
+                          <div>
+
+                            <strong>
+                              {
+                                ticket.name
+                              }
+                            </strong>
+
+                            <span>
+                              {
+                                ticket.sold
+                              }{" "}
+                              terjual dari{" "}
+                              {
+                                ticket.quota
+                              }
+                            </span>
+
+                          </div>
+
+                          <strong>
+                            {formatCurrency(
+                              ticket.price
+                            )}
+                          </strong>
+
+                        </div>
+                      )
+                    )
+                  ) : (
+                    <p>
+                      Belum ada data tiket.
+                    </p>
                   )}
 
                 </div>
@@ -347,30 +1365,29 @@ function DetailEventEO() {
 
             </div>
 
-
             {/* =================================================
                 RIGHT COLUMN
             ================================================= */}
 
             <aside className="detail-event-right-column">
 
-
-              {/* =============================================
+              {/* =================================================
                   EDIT BUTTON
-              ============================================= */}
+              ================================================= */}
 
               <button
                 type="button"
                 className="edit-event-btn"
-                onClick={handleEdit}
+                onClick={
+                  handleEdit
+                }
               >
                 Edit Event
               </button>
 
-
-              {/* =============================================
+              {/* =================================================
                   SALES STATISTICS
-              ============================================= */}
+              ================================================= */}
 
               <section className="detail-card stats-card">
 
@@ -378,26 +1395,53 @@ function DetailEventEO() {
                   Statistik Penjualan
                 </h2>
 
+                {salesError && (
+                  <p
+                    style={{
+                      fontSize:
+                        "10px",
+                      color:
+                        "#b34c4c",
+                      marginBottom:
+                        "10px",
+                    }}
+                  >
+                    Statistik realtime
+                    tidak tersedia.
+                    Menampilkan data
+                    dari tiket event.
+                  </p>
+                )}
 
-                <div className="stats-divider-top"></div>
+                <div className="stats-divider-top" />
 
-
-                {/* SALES TEXT */}
+                {/* =================================================
+                    TOTAL SOLD
+                ================================================= */}
 
                 <div className="sales-text-row">
 
                   <span>
-                    {event.ticketSold}/{event.ticketTotal} Tiket Terjual
+
+                    {loadingSales
+                      ? "Memuat..."
+                      : `${ticketSold}/${ticketTotal} Tiket Terjual`}
+
                   </span>
 
                   <span>
-                    {percentage}%
+
+                    {loadingSales
+                      ? "..."
+                      : `${percentage}%`}
+
                   </span>
 
                 </div>
 
-
-                {/* PROGRESS */}
+                {/* =================================================
+                    PROGRESS BAR
+                ================================================= */}
 
                 <div className="progress-bar-bg">
 
@@ -406,17 +1450,15 @@ function DetailEventEO() {
                     style={{
                       width: `${percentage}%`,
                     }}
-                  ></div>
+                  />
 
                 </div>
 
-
-                {/* DIVIDER */}
-
                 <hr className="stats-divider" />
 
-
-                {/* CATEGORY */}
+                {/* =================================================
+                    CATEGORY BREAKDOWN
+                ================================================= */}
 
                 <div className="category-breakdown">
 
@@ -424,36 +1466,100 @@ function DetailEventEO() {
                     RINCIAN PER KATEGORI
                   </h4>
 
+                  {tickets.length >
+                  0 ? (
+                    tickets.map(
+                      (
+                        ticket
+                      ) => (
+                        <div
+                          className="category-row"
+                          key={
+                            ticket.id
+                          }
+                        >
 
-                  {event.categories.map(
-                    (category, index) => (
+                          <div className="cat-info">
 
-                      <div
-                        className="category-row"
-                        key={index}
-                      >
+                            <span className="cat-name">
 
-                        <div className="cat-info">
+                              {
+                                ticket.name
+                              }
 
-                          <span className="cat-name">
-                            {category.name}
-                          </span>
+                            </span>
 
-                          <span className="cat-price">
-                            {category.price}
+                            <span className="cat-price">
+
+                              {formatCurrency(
+                                ticket.price
+                              )}
+
+                            </span>
+
+                          </div>
+
+                          <span className="cat-count">
+
+                            {
+                              ticket.sold
+                            }
+
+                            {" / "}
+
+                            {
+                              ticket.quota
+                            }
+
                           </span>
 
                         </div>
-
-
-                        <span className="cat-count">
-                          {category.sold}
-                        </span>
-
-                      </div>
-
+                      )
                     )
+                  ) : (
+                    <p>
+                      Belum ada data
+                      kategori tiket.
+                    </p>
                   )}
+
+                </div>
+
+                <hr className="stats-divider" />
+
+                {/* =================================================
+                    EXTRA SALES INFO
+                ================================================= */}
+
+                <div className="sales-summary-extra">
+
+                  <div>
+
+                    <span>
+                      Tiket Tersisa
+                    </span>
+
+                    <strong>
+                      {
+                        totalRemaining
+                      }
+                    </strong>
+
+                  </div>
+
+                  <div>
+
+                    <span>
+                      Pendapatan
+                    </span>
+
+                    <strong>
+                      {formatCurrency(
+                        revenue
+                      )}
+                    </strong>
+
+                  </div>
 
                 </div>
 
@@ -470,6 +1576,5 @@ function DetailEventEO() {
     </div>
   );
 }
-
 
 export default DetailEventEO;

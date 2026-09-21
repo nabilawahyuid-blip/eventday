@@ -5,84 +5,197 @@
 .dashboard-eo-page {
   width: 100%;
   min-height: 100vh;
-
   background: #faf8ff;
-
   font-family: "Poppins", sans-serif;
-
   color: #24212f;
 }
-
-
-/* =====================================================
-   MAIN
-===================================================== */
 
 .dashboard-eo-main {
   width: calc(100% - 220px);
   min-height: 100vh;
-
   margin-left: 220px;
-
   background: #faf8ff;
 }
 
-
-/* =====================================================
-   CONTENT
-===================================================== */
-
 .dashboard-eo-content {
   width: 100%;
-
   padding: 28px 34px 60px;
-
   box-sizing: border-box;
 }
-
 
 /* =====================================================
    PAGE HEADER
 ===================================================== */
 
 .dashboard-page-header {
-  width: 100%;
-
-  margin-bottom: 35px;
+  margin-bottom: 22px;
 }
 
 .dashboard-page-header h1 {
   margin: 0;
-
-  color: #171522;
-
-  font-size: 25px;
+  color: #292533;
+  font-size: 24px;
   font-weight: 650;
-
-  line-height: 1.2;
-
-  letter-spacing: -0.2px;
+  line-height: 1.3;
 }
 
-
 /* =====================================================
-   DASHBOARD SECTION
+   GENERAL SECTION
 ===================================================== */
 
 .dashboard-section {
   width: 100%;
 }
 
+.recent-event-section {
+  margin-top: 31px;
+}
+
+.transaction-section {
+  margin-top: 30px;
+}
 
 /* =====================================================
-   SECTION HEADER
+   SUMMARY CARDS
 ===================================================== */
 
-.dashboard-section-header {
+.summary-cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.summary-card {
+  position: relative;
+  min-width: 0;
+  height: 134px;
+  padding: 21px;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  background: #ffffff;
+  border: 1px solid #e8e4ef;
+  border-radius: 12px;
+
+  box-shadow: 0 3px 9px rgba(42, 35, 70, 0.06);
+}
+
+.summary-card-content {
+  position: relative;
+  z-index: 3;
+
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  padding-bottom: 2px;
+}
+
+.summary-card-label {
+  color: #6e6878;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.25px;
+}
+
+.summary-card-value {
+  color: #211e29;
+  font-size: 32px;
+  font-weight: 650;
+  line-height: 1;
+
+  letter-spacing: -0.7px;
+}
+
+.income-value {
+  font-size: 25px;
+  letter-spacing: -0.5px;
+}
+
+/* =====================================================
+   SUMMARY ICON
+===================================================== */
+
+.summary-icon {
+  position: absolute;
+  z-index: 4;
+
+  top: 20px;
+  right: 20px;
+
+  width: 39px;
+  height: 39px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+}
+
+.summary-icon-purple {
+  background: #e2e0ff;
+  color: #5041d5;
+}
+
+.summary-icon-green {
+  background: #d7f6e8;
+  color: #087a50;
+}
+
+.summary-icon-orange {
+  background: #ffebcf;
+  color: #a76b16;
+}
+
+/* =====================================================
+   SUMMARY DECORATION
+===================================================== */
+
+.summary-decoration {
+  position: absolute;
+  z-index: 1;
+
+  width: 95px;
+  height: 95px;
+
+  right: -31px;
+  bottom: -40px;
+
+  border-radius: 50%;
+
+  opacity: 0.35;
+}
+
+.purple-decoration {
+  background: #d8d5ff;
+}
+
+.green-decoration {
+  background: #c9f1df;
+}
+
+.orange-decoration {
+  background: #ffe2b7;
+}
+
+/* =====================================================
+   SECTION TITLE
+===================================================== */
+
+.dashboard-section-title-row {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
   margin-bottom: 14px;
 }
 
-.dashboard-section-header h2,
 .dashboard-section-title-row h2 {
   margin: 0;
 
@@ -92,230 +205,15 @@
   font-weight: 600;
 
   line-height: 1.3;
-
-  letter-spacing: -0.1px;
 }
-
-
-/* =====================================================
-   SUMMARY CARDS
-===================================================== */
-
-.summary-cards {
-  width: 100%;
-
-  display: grid;
-
-  grid-template-columns:
-    repeat(3, minmax(0, 1fr));
-
-  gap: 22px;
-}
-
-
-/* =====================================================
-   SUMMARY CARD
-===================================================== */
-
-.summary-card {
-  height: 134px;
-
-  position: relative;
-
-  overflow: hidden;
-
-  padding: 20px;
-
-  box-sizing: border-box;
-
-  border-radius: 12px;
-
-  background: #ffffff;
-
-  border: 1px solid #f0edf5;
-
-  box-shadow:
-    0 3px 8px rgba(42, 35, 70, 0.07);
-}
-
-
-/* =====================================================
-   SUMMARY CARD CONTENT
-===================================================== */
-
-.summary-card-content {
-  position: relative;
-
-  z-index: 2;
-
-  display: flex;
-  flex-direction: column;
-
-  height: 100%;
-
-  justify-content: space-between;
-}
-
-
-/* =====================================================
-   SUMMARY LABEL
-===================================================== */
-
-.summary-card-label {
-  color: #4a4655;
-
-  font-size: 10px;
-  font-weight: 650;
-
-  letter-spacing: 0.25px;
-}
-
-
-/* =====================================================
-   SUMMARY VALUE
-===================================================== */
-
-.summary-card-value {
-  color: #1f1d27;
-
-  font-size: 32px;
-  font-weight: 650;
-
-  line-height: 1;
-
-  margin-bottom: 3px;
-
-  letter-spacing: -0.4px;
-}
-
-.income-value {
-  font-size: 29px;
-
-  letter-spacing: -0.5px;
-}
-
-
-/* =====================================================
-   SUMMARY ICON
-===================================================== */
-
-.summary-icon {
-  width: 38px;
-  height: 38px;
-
-  position: absolute;
-
-  top: 20px;
-  right: 20px;
-
-  z-index: 3;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-}
-
-
-/* =====================================================
-   PURPLE ICON
-===================================================== */
-
-.summary-icon-purple {
-  background: #dedcff;
-
-  color: #5142dc;
-}
-
-
-/* =====================================================
-   GREEN ICON
-===================================================== */
-
-.summary-icon-green {
-  background: #66e7b0;
-
-  color: #087c52;
-}
-
-
-/* =====================================================
-   ORANGE ICON
-===================================================== */
-
-.summary-icon-orange {
-  background: #ffdcae;
-
-  color: #a86b13;
-}
-
-
-/* =====================================================
-   SUMMARY DECORATION
-===================================================== */
-
-.summary-decoration {
-  position: absolute;
-
-  width: 100px;
-  height: 100px;
-
-  right: -22px;
-  bottom: -38px;
-
-  border-radius: 50%;
-}
-
-.purple-decoration {
-  background: #f0f0ff;
-}
-
-.green-decoration {
-  background: #d7f8eb;
-}
-
-.orange-decoration {
-  background: #fff0d9;
-}
-
-
-/* =====================================================
-   EVENT TERBARU
-===================================================== */
-
-.recent-event-section {
-  margin-top: 31px;
-}
-
-
-/* =====================================================
-   SECTION TITLE ROW
-===================================================== */
-
-.dashboard-section-title-row {
-  width: 100%;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  margin-bottom: 14px;
-}
-
-
-/* =====================================================
-   LIHAT SEMUA
-===================================================== */
 
 .see-all-button {
   border: none;
+  outline: none;
 
   background: transparent;
 
-  color: #493bd1;
+  color: #4d3ed1;
 
   font-family: "Poppins", sans-serif;
 
@@ -324,17 +222,15 @@
 
   cursor: pointer;
 
-  padding: 3px 0;
+  padding: 4px 0;
 
   transition: 0.2s ease;
 }
 
 .see-all-button:hover {
-  color: #3426b8;
-
+  color: #3021b5;
   text-decoration: underline;
 }
-
 
 /* =====================================================
    EVENT LIST
@@ -344,12 +240,10 @@
   width: 100%;
 
   display: flex;
-
   flex-direction: column;
 
   gap: 14px;
 }
-
 
 /* =====================================================
    EVENT CARD
@@ -357,53 +251,61 @@
 
 .event-dashboard-card {
   width: 100%;
-
-  min-height: 190px;
+  min-width: 0;
 
   padding: 20px;
 
   box-sizing: border-box;
 
-  border-radius: 12px;
-
   background: #ffffff;
 
   border: 1px solid #e1dce9;
+  border-radius: 12px;
 
-  box-shadow:
-    0 3px 8px rgba(42, 35, 70, 0.06);
+  box-shadow: 0 3px 8px rgba(42, 35, 70, 0.055);
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+.event-dashboard-card:hover {
+  border-color: #d4cee0;
+
+  box-shadow: 0 5px 12px rgba(42, 35, 70, 0.08);
+}
 
 /* =====================================================
    EVENT TOP
 ===================================================== */
 
 .event-card-top {
-  display: flex;
+  width: 100%;
 
+  display: flex;
   align-items: flex-start;
   justify-content: space-between;
 
-  gap: 15px;
+  gap: 20px;
 }
 
-
-/* =====================================================
-   EVENT INFO
-===================================================== */
+.event-card-info {
+  min-width: 0;
+  flex: 1;
+}
 
 .event-card-info h3 {
-  margin: 0 0 5px;
+  margin: 0 0 8px;
 
-  color: #25222e;
+  color: #292631;
 
   font-size: 17px;
   font-weight: 600;
 
-  letter-spacing: -0.15px;
-}
+  line-height: 1.35;
 
+  word-break: break-word;
+}
 
 /* =====================================================
    EVENT META
@@ -411,49 +313,42 @@
 
 .event-meta {
   display: flex;
-
   align-items: center;
+  flex-wrap: wrap;
 
-  gap: 5px;
+  gap: 7px;
 
-  color: #625d6d;
+  color: #676171;
 
   font-size: 10px;
-
   font-weight: 450;
 }
 
 .event-meta span {
-  display: flex;
-
+  display: inline-flex;
   align-items: center;
 
   gap: 4px;
 }
 
-.event-meta svg {
-  color: #615b6c;
-}
-
 .meta-dot {
-  display: inline-block !important;
-
-  color: #777180;
+  color: #aaa4b1;
+  font-size: 10px;
 }
-
 
 /* =====================================================
    EVENT STATUS
 ===================================================== */
 
 .event-status {
-  min-width: 89px;
+  flex-shrink: 0;
+
+  min-width: 85px;
   height: 25px;
 
   padding: 0 11px;
 
   display: inline-flex;
-
   align-items: center;
   justify-content: center;
 
@@ -461,36 +356,54 @@
 
   border-radius: 14px;
 
+  background: #f0edf5;
+  border: 1px solid #ddd8e5;
+
+  color: #696271;
+
   font-size: 9px;
   font-weight: 600;
+
+  white-space: nowrap;
 }
 
-
-/* =====================================================
-   EVENT ACTIVE
-===================================================== */
-
-.event-active {
-  color: #267b59;
-
+.event-status.event-active {
   background: #e7f5ef;
-
-  border: 1px solid #b9dfd0;
+  border-color: #b9dfd0;
+  color: #267b59;
 }
 
+.event-status.event-ended {
+  background: #f0edf3;
+  border-color: #d9d3df;
+  color: #716b78;
+}
 
 /* =====================================================
-   EVENT ENDED
+   EVENT IMAGE
 ===================================================== */
 
-.event-ended {
-  color: #d94848;
+.event-dashboard-card > div[style] {
+  margin-top: 16px !important;
 
-  background: #fff0f0;
+  width: 100% !important;
+  height: 190px !important;
 
-  border: 1px solid #f0cccc;
+  border-radius: 10px !important;
+
+  overflow: hidden;
+
+  background: #f3f1f7 !important;
 }
 
+.event-dashboard-card > div[style] img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+}
 
 /* =====================================================
    EVENT PROGRESS
@@ -503,20 +416,24 @@
 }
 
 .event-progress-info {
-  display: flex;
+  width: 100%;
 
+  display: flex;
   align-items: center;
   justify-content: space-between;
 
   margin-bottom: 7px;
 
-  color: #5d5868;
+  color: #5f5969;
 
   font-size: 10px;
-
   font-weight: 500;
 }
 
+.event-progress-info span:last-child {
+  color: #37323f;
+  font-weight: 600;
+}
 
 /* =====================================================
    PROGRESS BAR
@@ -530,7 +447,7 @@
 
   border-radius: 10px;
 
-  background: #e5e3eb;
+  background: #e7e4ec;
 }
 
 .event-progress-fill {
@@ -538,57 +455,41 @@
 
   border-radius: 10px;
 
-  transition: width 0.3s ease;
+  transition: width 0.35s ease;
 }
-
-
-/* =====================================================
-   ACTIVE PROGRESS
-===================================================== */
 
 .progress-active {
-  background: #5143d8;
+  background: #5142d8;
 }
-
-
-/* =====================================================
-   ENDED PROGRESS
-===================================================== */
 
 .progress-ended {
-  background: #9695a5;
+  background: #9d98a5;
 }
-
 
 /* =====================================================
    EVENT BOTTOM
 ===================================================== */
 
 .event-card-bottom {
-  display: flex;
+  width: 100%;
 
+  display: flex;
   justify-content: flex-end;
 
-  margin-top: 22px;
+  margin-top: 20px;
 }
-
-
-/* =====================================================
-   DETAIL EVENT BUTTON
-===================================================== */
 
 .detail-event-button {
   height: 34px;
 
   padding: 0 17px;
 
-  border: 1px solid #767181;
-
+  border: 1px solid #777180;
   border-radius: 7px;
 
   background: #ffffff;
 
-  color: #373340;
+  color: #393440;
 
   font-family: "Poppins", sans-serif;
 
@@ -602,23 +503,9 @@
 
 .detail-event-button:hover {
   background: #f7f5fa;
-
-  border-color: #4d40d8;
-
-  color: #4d40d8;
+  border-color: #4d3ed1;
+  color: #4d3ed1;
 }
-
-
-/* =====================================================
-   TRANSAKSI TERBARU
-===================================================== */
-
-.transaction-section {
-  width: 100%;
-
-  margin-top: 27px;
-}
-
 
 /* =====================================================
    TRANSACTION LIST
@@ -628,220 +515,130 @@
   width: 100%;
 
   display: flex;
-
   flex-direction: column;
 
-  gap: 15px;
+  gap: 14px;
 }
-
 
 /* =====================================================
    TRANSACTION CARD
-   DESKTOP = KIRI / KANAN
 ===================================================== */
 
 .transaction-card {
   width: 100%;
+  min-height: 108px;
 
-  min-height: 113px;
-
-  padding: 19px 20px;
+  padding: 18px 20px;
 
   box-sizing: border-box;
 
-  display: flex !important;
-
-  flex-direction: row !important;
-
-  align-items: center !important;
-
-  justify-content: space-between !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
   gap: 20px;
 
   background: #ffffff;
 
-  border: 1px solid #cfc9dc;
-
+  border: 1px solid #d8d2df;
   border-radius: 11px;
 
-  box-shadow:
-    0 3px 7px rgba(45, 37, 73, 0.06);
+  box-shadow: 0 3px 7px rgba(45, 37, 73, 0.05);
 
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
 
-
-/* =====================================================
-   TRANSACTION CARD HOVER
-===================================================== */
-
 .transaction-card:hover {
-  border-color: #c4bdd3;
+  border-color: #c9c2d3;
 
-  box-shadow:
-    0 4px 10px rgba(45, 37, 73, 0.08);
+  box-shadow: 0 4px 10px rgba(45, 37, 73, 0.07);
 }
-
 
 /* =====================================================
    TRANSACTION INFO
-   BAGIAN KIRI
 ===================================================== */
 
 .transaction-info {
+  min-width: 0;
   flex: 1;
 
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 
-  display: flex !important;
-
-  flex-direction: column !important;
-
-  align-items: flex-start !important;
-
-  justify-content: center !important;
-
-  text-align: left !important;
+  text-align: left;
 }
 
-
-/* =====================================================
-   CUSTOMER NAME
-===================================================== */
-
 .transaction-info h3 {
-  margin: 0 0 3px;
+  margin: 0 0 5px;
 
   color: #292631;
 
   font-size: 15px;
+  font-weight: 550;
 
-  font-weight: 500;
+  line-height: 1.35;
 
-  line-height: 1.3;
-
-  text-align: left;
+  word-break: break-word;
 }
-
-
-/* =====================================================
-   TICKET
-===================================================== */
 
 .transaction-info p {
-  margin: 0 0 13px;
+  margin: 0 0 4px;
 
-  color: #5f596b;
+  color: #302b39;
 
-  font-size: 11px;
-
-  font-weight: 400;
-
-  line-height: 1.3;
-
-  text-align: left;
+  font-size: 13px;
+  font-weight: 650;
 }
-
-
-/* =====================================================
-   TRANSACTION ID
-===================================================== */
 
 .transaction-info strong {
-  color: #282430;
+  color: #777180;
 
-  font-size: 10px;
+  font-size: 9px;
+  font-weight: 400;
 
-  font-weight: 650;
+  line-height: 1.4;
 
-  line-height: 1.3;
-
-  text-align: left;
-
-  letter-spacing: 0.05px;
+  word-break: break-all;
 }
 
-
 /* =====================================================
-   TRANSACTION ACTIONS
-   BAGIAN KANAN
+   TRANSACTION ACTION
 ===================================================== */
 
 .transaction-actions {
   flex-shrink: 0;
 
-  display: flex !important;
-
-  flex-direction: column !important;
-
-  align-items: flex-end !important;
-
-  justify-content: center !important;
-
-  gap: 12px;
-
-  margin-left: auto;
-
-  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
-
-/* =====================================================
-   TRANSACTION STATUS
-===================================================== */
-
 .transaction-status {
-  min-width: 69px;
-
+  min-width: 72px;
   height: 27px;
 
   padding: 0 11px;
 
   box-sizing: border-box;
 
-  display: inline-flex !important;
-
-  flex-direction: row !important;
-
-  align-items: center !important;
-
-  justify-content: center !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
   gap: 6px;
 
   border-radius: 14px;
 
   font-size: 9px;
-
   font-weight: 600;
 
   white-space: nowrap;
 }
 
-
-/* =====================================================
-   STATUS DOT
-===================================================== */
-
-.transaction-dot {
-  width: 6px;
-
-  height: 6px;
-
-  flex-shrink: 0;
-
-  border-radius: 50%;
-}
-
-
-/* =====================================================
-   STATUS LUNAS
-===================================================== */
-
-.status-paid {
+.transaction-status.status-paid {
   color: #267b59;
 
   background: #e7f5ef;
@@ -849,91 +646,85 @@
   border: 1px solid #b9dfd0;
 }
 
-.status-paid .transaction-dot {
-  background: #267b59;
+.transaction-status.status-waiting {
+  color: #a06b20;
+
+  background: #fff3dc;
+
+  border: 1px solid #efd5a8;
 }
 
+.transaction-status.status-cancelled {
+  color: #b34c4c;
+
+  background: #fbeaea;
+
+  border: 1px solid #ebc2c2;
+}
+
+.transaction-dot {
+  width: 5px;
+  height: 5px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: currentColor;
+}
 
 /* =====================================================
-   STATUS MENUNGGU
+   ERROR
 ===================================================== */
 
-.status-waiting {
-  color: #a66e0d;
+.dashboard-error {
+  width: 100%;
 
-  background: #fff7e8;
+  margin-bottom: 15px;
 
-  border: 1px solid #efd7aa;
+  padding: 11px 14px;
+
+  box-sizing: border-box;
+
+  border-radius: 8px;
+
+  background: #fff0f0;
+
+  border: 1px solid #efcaca;
+
+  color: #c33d3d;
+
+  font-size: 10px;
+  font-weight: 500;
 }
-
-.status-waiting .transaction-dot {
-  background: #d89118;
-}
-
 
 /* =====================================================
-   STATUS DIBATALKAN
+   EMPTY STATE
 ===================================================== */
 
-.status-cancelled {
-  color: #d84949;
-
-  background: #fdeaea;
-
-  border: 1px solid #f2c1c1;
-}
-
-.status-cancelled .transaction-dot {
-  background: #df4b4b;
-}
-
-
-/* =====================================================
-   DETAIL TRANSAKSI BUTTON
-===================================================== */
-
-.detail-transaction-button {
-  min-width: 141px;
-
-  height: 35px;
-
-  padding: 0 16px;
+.dashboard-empty {
+  width: 100%;
+  min-height: 100px;
 
   display: flex;
-
   align-items: center;
-
   justify-content: center;
 
   box-sizing: border-box;
 
-  border: 1px solid #797386;
+  padding: 25px;
 
-  border-radius: 7px;
+  border-radius: 11px;
 
   background: #ffffff;
 
-  color: #36313f;
+  border: 1px solid #e1dce9;
 
-  font-family: "Poppins", sans-serif;
+  color: #777180;
 
-  font-size: 10px;
-
-  font-weight: 500;
-
-  cursor: pointer;
-
-  transition: 0.2s ease;
+  font-size: 11px;
+  font-weight: 450;
 }
-
-.detail-transaction-button:hover {
-  color: #4b3dd4;
-
-  border-color: #5b4de2;
-
-  background: #faf9ff;
-}
-
 
 /* =====================================================
    TABLET
@@ -942,18 +733,16 @@
 @media (max-width: 1000px) {
 
   .dashboard-eo-content {
-    padding: 26px 24px 50px;
+    padding: 25px 24px 50px;
   }
-
-
-  /* SUMMARY */
 
   .summary-cards {
     gap: 15px;
   }
 
   .summary-card {
-    padding: 17px;
+    height: 125px;
+    padding: 18px;
   }
 
   .summary-card-value {
@@ -961,24 +750,26 @@
   }
 
   .income-value {
-    font-size: 23px;
+    font-size: 22px;
   }
 
   .summary-icon {
-    right: 17px;
-
     top: 17px;
+    right: 17px;
   }
 
-
-  /* TRANSACTION */
-
-  .transaction-card {
+  .event-dashboard-card {
     padding: 18px;
   }
 
-}
+  .event-dashboard-card > div[style] {
+    height: 175px !important;
+  }
 
+  .transaction-card {
+    padding: 17px 18px;
+  }
+}
 
 /* =====================================================
    MOBILE
@@ -988,51 +779,28 @@
 
   .dashboard-eo-main {
     width: 100%;
-
     margin-left: 0;
   }
-
 
   .dashboard-eo-content {
     padding: 22px 15px 40px;
   }
 
-
-  /* ===================================================
-     PAGE TITLE
-  =================================================== */
-
   .dashboard-page-header {
-    margin-bottom: 27px;
+    margin-bottom: 18px;
   }
 
   .dashboard-page-header h1 {
     font-size: 21px;
   }
 
-
-  /* ===================================================
-     SECTION TITLE
-  =================================================== */
-
-  .dashboard-section-header h2,
-  .dashboard-section-title-row h2 {
-    font-size: 15px;
-  }
-
-
-  /* ===================================================
-     SUMMARY
-  =================================================== */
-
   .summary-cards {
     grid-template-columns: 1fr;
-
     gap: 12px;
   }
 
   .summary-card {
-    height: 115px;
+    height: 112px;
   }
 
   .summary-card-value {
@@ -1040,123 +808,113 @@
   }
 
   .income-value {
-    font-size: 24px;
+    font-size: 23px;
   }
 
+  .summary-icon {
+    width: 36px;
+    height: 36px;
 
-  /* ===================================================
-     EVENT
-  =================================================== */
+    top: 17px;
+    right: 17px;
+  }
+
+  .recent-event-section {
+    margin-top: 27px;
+  }
+
+  .transaction-section {
+    margin-top: 25px;
+  }
+
+  .dashboard-section-title-row {
+    margin-bottom: 12px;
+  }
+
+  .dashboard-section-title-row h2 {
+    font-size: 15px;
+  }
+
+  .see-all-button {
+    font-size: 9px;
+  }
 
   .event-dashboard-card {
-    padding: 17px;
-
-    min-height: 180px;
+    padding: 16px;
   }
 
   .event-card-top {
-    flex-direction: column;
+    gap: 10px;
   }
 
   .event-card-info h3 {
     font-size: 15px;
   }
 
-  .event-card-bottom {
-    margin-top: 18px;
+  .event-status {
+    min-width: 78px;
+    height: 24px;
+    padding: 0 9px;
+    font-size: 8px;
   }
 
+  .event-meta {
+    font-size: 9px;
+  }
 
-  /* ===================================================
-     TRANSACTION MOBILE
-  =================================================== */
+  .event-dashboard-card > div[style] {
+    height: 155px !important;
+    margin-top: 14px !important;
+  }
+
+  .event-progress-section {
+    margin-top: 15px;
+  }
+
+  .event-progress-info {
+    font-size: 9px;
+  }
+
+  .event-card-bottom {
+    margin-top: 17px;
+  }
+
+  .detail-event-button {
+    height: 33px;
+    padding: 0 15px;
+    font-size: 9px;
+  }
 
   .transaction-card {
-    min-height: 145px;
+    min-height: 135px;
 
-    padding: 17px;
+    padding: 16px;
 
-    flex-direction: column !important;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
 
-    align-items: flex-start !important;
-
-    justify-content: flex-start !important;
-
-    gap: 15px;
+    gap: 13px;
   }
-
 
   .transaction-info {
     width: 100%;
-
-    flex: none;
-
-    align-items: flex-start !important;
-
-    justify-content: flex-start !important;
   }
-
 
   .transaction-info h3 {
     font-size: 14px;
   }
 
   .transaction-info p {
-    font-size: 10px;
-
-    margin-bottom: 12px;
+    font-size: 12px;
   }
-
-  .transaction-info strong {
-    font-size: 9px;
-  }
-
 
   .transaction-actions {
     width: 100%;
 
-    margin-left: 0;
-
-    align-items: flex-end !important;
-
-    justify-content: flex-start !important;
-
-    gap: 9px;
+    justify-content: flex-end;
   }
-
-
-  .transaction-status {
-    min-width: 63px;
-
-    height: 27px;
-
-    padding: 0 9px;
-
-    font-size: 9px;
-  }
-
-
-  .detail-transaction-button {
-    min-width: 120px;
-
-    height: 32px;
-
-    padding: 0 11px;
-
-    font-size: 9px;
-  }
-
-
-  /* ===================================================
-     SEE ALL
-  =================================================== */
-
-  .see-all-button {
-    font-size: 9px;
-  }
-
 }
-
 
 /* =====================================================
    SMALL MOBILE
@@ -1164,18 +922,55 @@
 
 @media (max-width: 430px) {
 
+  .dashboard-eo-content {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .summary-card {
+    height: 108px;
+    padding: 16px;
+  }
+
+  .summary-card-value {
+    font-size: 25px;
+  }
+
+  .income-value {
+    font-size: 21px;
+  }
+
+  .summary-icon {
+    top: 16px;
+    right: 16px;
+  }
+
+  .event-dashboard-card {
+    padding: 14px;
+  }
+
+  .event-card-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .event-status {
+    order: -1;
+  }
+
+  .event-dashboard-card > div[style] {
+    height: 145px !important;
+  }
+
+  .detail-event-button {
+    width: 100%;
+  }
+
   .transaction-card {
-    flex-direction: column !important;
+    padding: 15px;
   }
 
   .transaction-actions {
-    width: 100%;
-
-    align-items: flex-end !important;
+    justify-content: flex-start;
   }
-
-  .detail-transaction-button {
-    min-width: 125px;
-  }
-
 }

@@ -1,148 +1,247 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
+
+import {
+  getEoApplications,
+} from "../../services/adminEoService";
 
 import "./PengajuanAkunEO.css";
 
 function PengajuanAkunEO() {
   const navigate = useNavigate();
 
-  // ==
-  // DATA PENGAJUAN EO SEMENTARA
-  // ==
+  // ==========================================
+  // STATE
+  // ==========================================
 
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      company: "PT Harmoni Musik Indonesia",
-      applicant: "Budi Santoso",
-      date: "24 Okt 2023",
-      status: "Pending Verifikasi",
-      statusClass: "pending",
-    },
-    {
-      id: 2,
-      company: "CV Gelora Event Nusantara",
-      applicant: "Siti Aminah",
-      date: "23 Okt 2023",
-      status: "Pending Verifikasi",
-      statusClass: "pending",
-    },
-    {
-      id: 3,
-      company: "Maju Jaya Productions",
-      applicant: "Anton Wibowo",
-      date: "20 Okt 2023",
-      status: "Disetujui",
-      statusClass: "approved",
-    },
-    {
-      id: 4,
-      company: "PT Kreasi Anak Bangsa",
-      applicant: "Rina Maharani",
-      date: "18 Okt 2023",
-      status: "Ditolak",
-      statusClass: "rejected",
-    },
-  ]);
+  const [applications, setApplications] =
+    useState([]);
 
-  // ==
-  // STATE FILTER
-  // ==
+  const [filter, setFilter] =
+    useState("Semua");
 
-  const [filter, setFilter] = useState("Semua");
+  const [loading, setLoading] =
+    useState(true);
 
-  // ==
-  // FILTER DATA
-  // ==
+  const [error, setError] =
+    useState("");
 
-  const filteredApplications = applications.filter((item) => {
-    if (filter === "Semua") {
-      return true;
+  // ==========================================
+  // FETCH DATA
+  // ==========================================
+
+  const fetchApplications = async (
+    status = ""
+  ) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response =
+        await getEoApplications(status);
+
+      console.log(
+        "ADMIN EO APPLICATION RESPONSE:",
+        response
+      );
+
+      const data =
+        response?.data ?? response;
+
+      if (!Array.isArray(data)) {
+        throw new Error(
+          "Data pengajuan EO tidak berbentuk array."
+        );
+      }
+
+      setApplications(data);
+    } catch (error) {
+      console.error(
+        "Gagal mengambil pengajuan EO:",
+        error
+      );
+
+      setError(
+        error?.message ||
+          "Gagal mengambil data pengajuan EO."
+      );
+
+      setApplications([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ==========================================
+  // LOAD AWAL
+  // ==========================================
+
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  // ==========================================
+  // FILTER
+  // ==========================================
+
+  const handleFilter = async (selectedFilter) => {
+    setFilter(selectedFilter);
+
+    let status = "";
+
+    if (selectedFilter === "Pending") {
+      status = "UNVERIFIED";
     }
 
-    if (filter === "Pending") {
-      return item.status === "Pending Verifikasi";
+    if (selectedFilter === "Disetujui") {
+      status = "VERIFIED";
     }
 
-    if (filter === "Disetujui") {
-      return item.status === "Disetujui";
+    if (selectedFilter === "Ditolak") {
+      status = "REJECTED";
     }
 
-    if (filter === "Ditolak") {
-      return item.status === "Ditolak";
-    }
+    await fetchApplications(status);
+  };
 
-    return true;
-  });
-
-  // ==
-  // DETAIL PENGAJUAN
-  // ==
+  // ==========================================
+  // DETAIL
+  // ==========================================
 
   const handleDetail = (application) => {
-    navigate(`/admin/pengajuan-eo/${application.id}`);
+    if (!application.organizerId) {
+      console.error(
+        "Organizer ID tidak ditemukan:",
+        application
+      );
+
+      return;
+    }
+
+    navigate(
+      `/admin/pengajuan-eo/${encodeURIComponent(
+        application.organizerId
+      )}`
+    );
   };
 
-  // ==
-  // FILTER BUTTON
-  // ==
+  // ==========================================
+  // FORMAT DATE
+  // ==========================================
 
-  const handleFilter = () => {
-    if (filter === "Semua") {
-      setFilter("Pending");
-    } else if (filter === "Pending") {
-      setFilter("Disetujui");
-    } else if (filter === "Disetujui") {
-      setFilter("Ditolak");
-    } else {
-      setFilter("Semua");
+  const formatDate = (date) => {
+    if (!date) return "-";
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date;
+    }
+
+    return parsedDate.toLocaleDateString(
+      "id-ID",
+      {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  };
+
+  // ==========================================
+  // STATUS LABEL
+  // ==========================================
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case "UNVERIFIED":
+        return "Pending Verifikasi";
+
+      case "VERIFIED":
+        return "Disetujui";
+
+      case "REJECTED":
+        return "Ditolak";
+
+      default:
+        return status || "-";
     }
   };
 
-  // ==
-  // EXPORT
-  // ==
+  // ==========================================
+  // STATUS CLASS
+  // ==========================================
 
-  const handleExport = () => {
-    console.log("Export data pengajuan EO");
+  const getStatusClass = (status) => {
+    switch (status) {
+      case "UNVERIFIED":
+        return "pending";
+
+      case "VERIFIED":
+        return "approved";
+
+      case "REJECTED":
+        return "rejected";
+
+      default:
+        return "pending";
+    }
   };
 
-  // ==
+  // ==========================================
+  // STATISTICS
+  // ==========================================
+
+  const totalPending =
+    applications.filter(
+      (item) =>
+        item.verificationStatus ===
+        "UNVERIFIED"
+    ).length;
+
+  const totalApproved =
+    applications.filter(
+      (item) =>
+        item.verificationStatus ===
+        "VERIFIED"
+    ).length;
+
+  const totalRejected =
+    applications.filter(
+      (item) =>
+        item.verificationStatus ===
+        "REJECTED"
+    ).length;
+
+  // ==========================================
   // RENDER
-  // ==
+  // ==========================================
 
   return (
     <div className="pengajuan-eo-page">
 
-      {/* ======
+      {/* ======================================
           SIDEBAR
-      ======= */}
+      ====================================== */}
 
       <Sidebar />
 
-      {/* ======
+      {/* ======================================
           MAIN
-      ======= */}
+      ====================================== */}
 
       <main className="pengajuan-eo-main">
 
-        {/* ======
-            NAVBAR
-        ======= */}
-
         <Navbar />
-
-        {/* ======
-            CONTENT
-        ======= */}
 
         <section className="pengajuan-eo-content">
 
-          {/* ====
-              PAGE HEADER
-          ===== */}
+          {/* ==================================
+              HEADER
+          ================================== */}
 
           <div className="pengajuan-header">
 
@@ -153,26 +252,63 @@ function PengajuanAkunEO() {
               </h1>
 
               <p>
-                Review dan verifikasi pengajuan Event Organizer baru.
+                Review dan verifikasi pengajuan
+                Event Organizer baru.
               </p>
 
             </div>
 
             <div className="pengajuan-actions">
 
-              <button
-                type="button"
-                className="filter-button"
-                onClick={handleFilter}
-              >
-                <span>☰</span>
-                Filter
-              </button>
+              {/* FILTER */}
+
+              <div className="filter-wrapper">
+
+                <button
+                  type="button"
+                  className="filter-button"
+                  onClick={() => {
+                    if (
+                      filter === "Semua"
+                    ) {
+                      handleFilter(
+                        "Pending"
+                      );
+                    } else if (
+                      filter === "Pending"
+                    ) {
+                      handleFilter(
+                        "Disetujui"
+                      );
+                    } else if (
+                      filter === "Disetujui"
+                    ) {
+                      handleFilter(
+                        "Ditolak"
+                      );
+                    } else {
+                      handleFilter(
+                        "Semua"
+                      );
+                    }
+                  }}
+                >
+                  <span>☰</span>
+                  Filter: {filter}
+                </button>
+
+              </div>
+
+              {/* EXPORT */}
 
               <button
                 type="button"
                 className="export-button"
-                onClick={handleExport}
+                onClick={() =>
+                  alert(
+                    "Export pengajuan EO belum tersedia di API backend."
+                  )
+                }
               >
                 <span>↓</span>
                 Export Data
@@ -182,13 +318,13 @@ function PengajuanAkunEO() {
 
           </div>
 
-          {/* ====
+          {/* ==================================
               STATISTICS
-          ===== */}
+          ================================== */}
 
           <div className="pengajuan-statistics">
 
-            {/* TOTAL PENDING */}
+            {/* PENDING */}
 
             <div className="stat-card pending-card">
 
@@ -205,7 +341,7 @@ function PengajuanAkunEO() {
               </div>
 
               <h2>
-                24
+                {totalPending}
               </h2>
 
               <p>
@@ -214,14 +350,14 @@ function PengajuanAkunEO() {
 
             </div>
 
-            {/* DISETUJUI */}
+            {/* APPROVED */}
 
             <div className="stat-card approved-card">
 
               <div className="stat-card-top">
 
                 <span className="stat-label">
-                  DISETUJUI BULAN INI
+                  DISETUJUI
                 </span>
 
                 <div className="stat-icon approved-icon">
@@ -231,7 +367,7 @@ function PengajuanAkunEO() {
               </div>
 
               <h2>
-                156
+                {totalApproved}
               </h2>
 
               <p>
@@ -240,7 +376,7 @@ function PengajuanAkunEO() {
 
             </div>
 
-            {/* DITOLAK */}
+            {/* REJECTED */}
 
             <div className="stat-card rejected-card">
 
@@ -257,7 +393,7 @@ function PengajuanAkunEO() {
               </div>
 
               <h2>
-                8
+                {totalRejected}
               </h2>
 
               <p>
@@ -268,9 +404,9 @@ function PengajuanAkunEO() {
 
           </div>
 
-          {/* ====
-              APPLICATION LIST
-          ===== */}
+          {/* ==================================
+              APPLICATION PANEL
+          ================================== */}
 
           <div className="application-panel">
 
@@ -285,7 +421,8 @@ function PengajuanAkunEO() {
                 </h2>
 
                 <p>
-                  Daftar Event Organizer yang mengajukan akun.
+                  Daftar Event Organizer yang
+                  mengajukan akun.
                 </p>
 
               </div>
@@ -296,83 +433,131 @@ function PengajuanAkunEO() {
 
             </div>
 
-            {/* ==
-                APPLICATION LIST
-            === */}
+            {/* ==================================
+                ERROR
+            ================================== */}
+
+            {error && (
+              <div className="empty-application">
+
+                <p>
+                  {error}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleFilter(filter)
+                  }
+                >
+                  Coba Lagi
+                </button>
+
+              </div>
+            )}
+
+            {/* ==================================
+                LIST
+            ================================== */}
 
             <div className="application-list">
 
-              {filteredApplications.length > 0 ? (
+              {loading ? (
 
-                filteredApplications.map((application) => (
+                <div className="empty-application">
+                  Memuat pengajuan EO...
+                </div>
 
-                  <div
-                    className="application-item"
-                    key={application.id}
-                  >
+              ) : applications.length > 0 ? (
 
-                    {/* COMPANY ICON */}
+                applications.map(
+                  (application) => {
 
-                    <div className="company-icon">
-                      ▣
-                    </div>
+                    const status =
+                      application.verificationStatus;
 
-                    {/* COMPANY INFORMATION */}
+                    return (
+                      <div
+                        className="application-item"
+                        key={
+                          application.organizerId
+                        }
+                      >
 
-                    <div className="company-info">
+                        {/* ICON */}
 
-                      <h3>
-                        {application.company}
-                      </h3>
+                        <div className="company-icon">
+                          ▣
+                        </div>
 
-                      <div className="company-meta">
+                        {/* INFO */}
 
-                        <span>
-                          {application.applicant}
-                        </span>
+                        <div className="company-info">
 
-                        <span className="meta-dot">
-                          •
-                        </span>
+                          <h3>
+                            {application.nameOrganizer ||
+                              "-"}
+                          </h3>
 
-                        <span>
-                          {application.date}
-                        </span>
+                          <div className="company-meta">
+
+                            <span>
+                              {application.userEmail ||
+                                "-"}
+                            </span>
+
+                            <span className="meta-dot">
+                              •
+                            </span>
+
+                            <span>
+                              {formatDate(
+                                application.createdAt
+                              )}
+                            </span>
+
+                          </div>
+
+                        </div>
+
+                        {/* STATUS */}
+
+                        <div
+                          className={`application-status ${getStatusClass(
+                            status
+                          )}`}
+                        >
+                          {getStatusLabel(
+                            status
+                          )}
+                        </div>
+
+                        {/* DETAIL */}
+
+                        <button
+                          type="button"
+                          className="detail-button"
+                          onClick={() =>
+                            handleDetail(
+                              application
+                            )
+                          }
+                        >
+                          {status ===
+                          "VERIFIED"
+                            ? "Lihat Profil"
+                            : "Lihat Detail"}
+                        </button>
 
                       </div>
-
-                    </div>
-
-                    {/* STATUS */}
-
-                    <div
-                      className={`application-status ${application.statusClass}`}
-                    >
-                      {application.status}
-                    </div>
-
-                    {/* ACTION */}
-
-                    <button
-                      type="button"
-                      className="detail-button"
-                      onClick={() =>
-                        handleDetail(application)
-                      }
-                    >
-                      {application.status === "Disetujui"
-                        ? "Lihat Profil"
-                        : "Lihat Detail"}
-                    </button>
-
-                  </div>
-
-                ))
+                    );
+                  }
+                )
 
               ) : (
 
                 <div className="empty-application">
-                  Tidak ada pengajuan yang ditemukan.
+                  Belum ada pengajuan akun EO.
                 </div>
 
               )}

@@ -1,6 +1,5 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import {
   LayoutDashboard,
   CalendarDays,
@@ -10,8 +9,8 @@ import {
   UserRound,
   LogOut,
 } from "lucide-react";
-
 import "./SidebarEO.css";
+import { logoutOrganizer } from "../../services/organizerAuthService";
 
 function SidebarEO() {
   const navigate = useNavigate();
@@ -21,15 +20,24 @@ function SidebarEO() {
     return location.pathname === path;
   };
 
+  const handleLogout = async () => {
+    try {
+      await logoutOrganizer();
+    } catch (error) {
+      console.error("Logout API gagal:", error);
+    } finally {
+      localStorage.clear();
+      sessionStorage.clear();
+
+      navigate("/", {
+        replace: true,
+      });
+    }
+  };
+
   return (
     <aside className="sidebar-eo">
-
-      {/* =====================================================
-          BRAND
-      ===================================================== */}
-
       <div className="sidebar-eo-brand">
-
         <div className="sidebar-eo-logo">
           E
         </div>
@@ -38,18 +46,9 @@ function SidebarEO() {
           <h2>EventDay</h2>
           <span>EVENT ORGANIZER</span>
         </div>
-
       </div>
 
-
-      {/* =====================================================
-          MENU
-      ===================================================== */}
-
       <nav className="sidebar-eo-menu">
-
-        {/* DASHBOARD */}
-
         <button
           type="button"
           className={`sidebar-eo-item ${
@@ -68,9 +67,6 @@ function SidebarEO() {
             Dashboard
           </span>
         </button>
-
-
-        {/* EVENT */}
 
         <button
           type="button"
@@ -93,9 +89,6 @@ function SidebarEO() {
           </span>
         </button>
 
-
-        {/* TRANSAKSI */}
-
         <button
           type="button"
           className={`sidebar-eo-item ${
@@ -116,9 +109,6 @@ function SidebarEO() {
             Transaksi
           </span>
         </button>
-
-
-        {/* PENGAJUAN PAYOUT */}
 
         <button
           type="button"
@@ -141,9 +131,6 @@ function SidebarEO() {
           </span>
         </button>
 
-
-        {/* REFUND */}
-
         <button
           type="button"
           className={`sidebar-eo-item ${
@@ -165,9 +152,6 @@ function SidebarEO() {
           </span>
         </button>
 
-
-        {/* PROFIL */}
-
         <button
           type="button"
           className={`sidebar-eo-item ${
@@ -188,25 +172,12 @@ function SidebarEO() {
             Profil
           </span>
         </button>
-
       </nav>
-
-
-      {/* =====================================================
-          LOGOUT
-      ===================================================== */}
 
       <button
         type="button"
         className="sidebar-eo-logout"
-        onClick={() => {
-          localStorage.clear();
-          sessionStorage.clear();
-
-          navigate("/", {
-            replace: true,
-          });
-        }}
+        onClick={handleLogout}
       >
         <span className="sidebar-eo-logout-icon">
           <LogOut
@@ -219,7 +190,6 @@ function SidebarEO() {
           Keluar
         </span>
       </button>
-
     </aside>
   );
 }

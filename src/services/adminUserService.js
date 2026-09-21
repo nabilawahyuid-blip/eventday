@@ -1,31 +1,47 @@
 import { apiFetch } from "./api";
 
-export const getAdminUsers = async () => {
-  return apiFetch("/api/admin/users");
+// ===============================
+// GET ALL USERS
+// ===============================
+export const getAdminUsers = async (role = "") => {
+  const query = role ? `?role=${encodeURIComponent(role)}` : "";
+
+  return apiFetch(`/api/admin/users${query}`);
 };
 
+// ===============================
+// GET USER DETAIL
+// ===============================
 export const getAdminUserDetail = async (id) => {
   return apiFetch(
     `/api/admin/users/${encodeURIComponent(id)}`
   );
 };
 
-export const updateAdminUserStatus = async (id, data) => {
+// ===============================
+// UPDATE USER STATUS
+// ACTIVE / INACTIVE / SUSPENDED
+// ===============================
+export const updateAdminUserStatus = async (id, status) => {
   return apiFetch(
     `/api/admin/users/${encodeURIComponent(id)}/status`,
     {
       method: "PATCH",
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        status,
+      }),
     }
   );
 };
 
-export const suspendAdminUser = async (id, data = {}) => {
+// ===============================
+// SUSPEND USER
+// ===============================
+export const suspendAdminUser = async (id) => {
   return apiFetch(
     `/api/admin/users/${encodeURIComponent(id)}/suspend`,
     {
       method: "PATCH",
-      body: JSON.stringify(data),
     }
   );
 };

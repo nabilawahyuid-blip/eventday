@@ -59,7 +59,6 @@ const extractErrorMessage = (result, fallback) => {
   }
 
   return (
-    result.msg ||
     result.message ||
     result.error ||
     (result.data && typeof result.data === "object"
@@ -90,33 +89,20 @@ export const toQueryString = (params = {}) => {
 const buildUrl = (path, raw = false) => {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-  // ========================================
   // RAW REQUEST
-  // ========================================
   //
-  // Jika raw: true,
-  // request langsung menuju backend/ngrok.
-  //
-  // Contoh:
-  // apiFetch("/api/events", { raw: true })
-  //
-  // menjadi:
-  // https://ngrok.../api/events
-
+  // Kalau raw: true, langsung menggunakan
+  // URL backend/ngrok.
   if (raw) {
     return `${API_URL}${cleanPath}`;
   }
 
-  // ========================================
   // DEFAULT → VITE PROXY
-  // ========================================
   //
-  // Browser:
+  // Browser request:
   // localhost:5173/api/...
   //
-  // Vite akan meneruskan request
-  // ke backend melalui proxy.
-
+  // Vite proxy meneruskannya ke backend.
   return cleanPath;
 };
 
@@ -147,8 +133,8 @@ export const apiFetch = async (path, options = {}) => {
   const headers = {
     ...(isFormData
       ? {
-          // Untuk FormData, jangan set
-          // Content-Type secara manual.
+          // Jangan set Content-Type secara manual
+          // untuk FormData.
           Accept: "application/json",
         }
       : getHeaders()),
@@ -157,15 +143,15 @@ export const apiFetch = async (path, options = {}) => {
     ...(options.headers || {}),
   };
 
-  // Browser akan otomatis menentukan:
-  // multipart/form-data; boundary=...
+  // Untuk FormData, browser yang menentukan
+  // multipart/form-data + boundary.
   if (isFormData) {
     delete headers["Content-Type"];
     delete headers["content-type"];
   }
 
   // ========================================
-  // FETCH REQUEST
+  // FETCH
   // ========================================
 
   const response = await fetch(url, {
@@ -194,7 +180,6 @@ export const apiFetch = async (path, options = {}) => {
       extractErrorMessage(result, `Request gagal (${response.status})`),
     );
 
-    // Informasi tambahan untuk component
     error.status = response.status;
     error.data = result;
 
@@ -202,7 +187,7 @@ export const apiFetch = async (path, options = {}) => {
   }
 
   // ========================================
-  // RETURN DATA
+  // RETURN
   // ========================================
 
   return result;

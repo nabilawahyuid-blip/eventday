@@ -262,6 +262,12 @@ body {
   color: #b67819;
 }
 
+.event-status.finished {
+  background: #fde2e2;
+
+  color: #d33a3a;
+}
+
 
 /* =====
    HERO CATEGORY

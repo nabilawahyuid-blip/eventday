@@ -1,5 +1,3 @@
-// src/components/eo/EventEO.jsx
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -70,14 +68,9 @@ function EventEO() {
 
       const response = await getOrganizerEvents();
 
-      console.log(
-        "ORGANIZER EVENTS RESPONSE:",
-        response
-      );
+      console.log("ORGANIZER EVENTS RESPONSE:", response);
 
-      const eventData = Array.isArray(
-        response?.data
-      )
+      const eventData = Array.isArray(response?.data)
         ? response.data
         : [];
 
@@ -111,17 +104,11 @@ function EventEO() {
       setDraftLoading(true);
       setDraftError("");
 
-      const response =
-        await getOrganizerDraftEvents();
+      const response = await getOrganizerDraftEvents();
 
-      console.log(
-        "DRAFT EVENTS RESPONSE:",
-        response
-      );
+      console.log("DRAFT EVENTS RESPONSE:", response);
 
-      const draftData = Array.isArray(
-        response?.data
-      )
+      const draftData = Array.isArray(response?.data)
         ? response.data
         : [];
 
@@ -940,6 +927,7 @@ function EventEO() {
               marginTop: "20px",
             }}
           >
+
             <button
               type="button"
               className="event-eo-see-all"
@@ -947,6 +935,7 @@ function EventEO() {
             >
               Refresh Data
             </button>
+
           </div>
 
         </div>
