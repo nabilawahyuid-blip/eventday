@@ -5,9 +5,7 @@
 // ==========================================
 
 // URL backend dari .env
-const API_URL = (
-  import.meta.env.VITE_NGROK_URL || ""
-).replace(/\/$/, "");
+const API_URL = (import.meta.env.VITE_NGROK_URL || "").replace(/\/$/, "");
 
 // ==========================================
 // HEADERS
@@ -64,14 +62,9 @@ const extractErrorMessage = (result, fallback) => {
     result.msg ||
     result.message ||
     result.error ||
-    (
-      result.data &&
-      typeof result.data === "object"
-        ? result.data.msg ||
-          result.data.message ||
-          result.data.error
-        : null
-    ) ||
+    (result.data && typeof result.data === "object"
+      ? result.data.msg || result.data.message || result.data.error
+      : null) ||
     fallback
   );
 };
@@ -83,11 +76,8 @@ const extractErrorMessage = (result, fallback) => {
 export const toQueryString = (params = {}) => {
   const query = new URLSearchParams(
     Object.entries(params).filter(
-      ([, value]) =>
-        value !== undefined &&
-        value !== null &&
-        value !== ""
-    )
+      ([, value]) => value !== undefined && value !== null && value !== "",
+    ),
   ).toString();
 
   return query ? `?${query}` : "";
@@ -98,9 +88,7 @@ export const toQueryString = (params = {}) => {
 // ==========================================
 
 const buildUrl = (path, raw = false) => {
-  const cleanPath = path.startsWith("/")
-    ? path
-    : `/${path}`;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
   // ========================================
   // RAW REQUEST
@@ -136,18 +124,12 @@ const buildUrl = (path, raw = false) => {
 // MAIN API FETCH
 // ==========================================
 
-export const apiFetch = async (
-  path,
-  options = {}
-) => {
+export const apiFetch = async (path, options = {}) => {
   // ========================================
   // URL
   // ========================================
 
-  const url = buildUrl(
-    path,
-    options.raw === true
-  );
+  const url = buildUrl(path, options.raw === true);
 
   console.log(`[API] ${options.method || "GET"} ${url}`);
 
@@ -156,8 +138,7 @@ export const apiFetch = async (
   // ========================================
 
   const isFormData =
-    typeof FormData !== "undefined" &&
-    options.body instanceof FormData;
+    typeof FormData !== "undefined" && options.body instanceof FormData;
 
   // ========================================
   // HEADERS
@@ -210,10 +191,7 @@ export const apiFetch = async (
 
   if (!response.ok) {
     const error = new Error(
-      extractErrorMessage(
-        result,
-        `Request gagal (${response.status})`
-      )
+      extractErrorMessage(result, `Request gagal (${response.status})`),
     );
 
     // Informasi tambahan untuk component

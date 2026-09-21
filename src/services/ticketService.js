@@ -6,12 +6,26 @@ import { apiFetch } from "./api";
 // Daftar tiket saya → data: [TicketItem...]
 // GET /api/tickets/my-tickets?userEmail=<email>
 export const getMyTickets = (userEmail) =>
-  apiFetch(`/api/tickets/my-tickets?userEmail=${encodeURIComponent(userEmail)}`);
+  apiFetch(
+    `/api/tickets/my-tickets?userEmail=${encodeURIComponent(userEmail)}`,
+  );
 
 // Detail E-Ticket → data: TicketDetailResponse
-// GET /api/tickets/issued-detail?ticketCode=<uuid>
-export const getTicketDetail = (ticketCode) =>
-  apiFetch(`/api/tickets/issued-detail?ticketCode=${encodeURIComponent(ticketCode)}`);
+// GET /api/tickets/issued-detail?ticketCode=<uuid>&userEmail=<email>
+export const getTicketDetail = (ticketCode, userEmail) => {
+  // Ambil email dari parameter, atau otomatis ambil dari localStorage sebagai fallback
+  const email =
+    userEmail ||
+    localStorage.getItem("email") ||
+    localStorage.getItem("userEmail");
+
+  const queryParams = new URLSearchParams({ ticketCode });
+  if (email) {
+    queryParams.append("userEmail", email);
+  }
+
+  return apiFetch(`/api/tickets/issued-detail?${queryParams.toString()}`);
+};
 
 // Scan tiket (untuk admin/EO) → data: {status: "TIKET_VALID"|"TIKET_SUDAH_DIPAKAI", message}
 // POST /api/tickets/scan  body: { ticketCode: "<uuid>" }

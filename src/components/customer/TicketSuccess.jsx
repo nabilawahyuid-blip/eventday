@@ -22,6 +22,8 @@ function TicketSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const fromMyTicket = location.state?.fromMyTicket || false;
+  const singleTicket = location.state?.ticket || null;
   const stateEvent = location.state?.event || null;
   const stateBuyers = location.state?.buyers || [];
   const orderId = location.state?.orderId || null;
@@ -32,37 +34,29 @@ function TicketSuccess() {
   const [usedFallback, setUsedFallback] = useState(false);
 
   useEffect(() => {
+    if (fromMyTicket || singleTicket) return;
+
     const fetchTickets = async () => {
       const email = localStorage.getItem("email");
       if (!email) return;
 
       setLoading(true);
       try {
-        console.log("[TicketSuccess] Fetch tiket untuk email:", email, "orderId:", orderId);
         const res = await getMyTickets(email);
-        console.log("[TicketSuccess] Response backend:", res);
-
         const allTickets = res?.data || [];
-        console.log("[TicketSuccess] Jumlah tiket dari backend:", allTickets.length);
-        if (allTickets.length > 0) {
-          console.log("[TicketSuccess] Tiket pertama:", allTickets[0]);
-        }
 
         const filtered = orderId
           ? allTickets.filter((t) => t.orderId === orderId)
           : allTickets;
 
-        console.log("[TicketSuccess] Setelah filter orderId:", filtered.length, "tiket");
         if (filtered.length > 0) {
           setTickets(filtered);
           setUsedFallback(false);
         } else {
-          console.log("[TicketSuccess] Tidak ada tiket dari backend, pakai fallback");
           setUsedFallback(true);
         }
       } catch (err) {
         console.error("[TicketSuccess] ERROR:", err.message);
-        console.error("[TicketSuccess] Full error:", err);
         setUsedFallback(true);
       } finally {
         setLoading(false);
@@ -70,14 +64,16 @@ function TicketSuccess() {
     };
 
     fetchTickets();
-  }, [orderId]);
+  }, [orderId, fromMyTicket, singleTicket]);
 
-  const displayTickets = usedFallback
+  const displayTickets = fromMyTicket && singleTicket
+    ? [singleTicket]
+    : usedFallback
     ? stateBuyers.map((b, i) => ({
         ticketCode: `TK-${String(i + 1).padStart(3, "0")}`,
         attendeeName: b.name || b.fullName || "-",
-        categoryName: stateEvent?.category || "-",
-        status: "UNREDEEMED",
+        categoryName: stateEvent?.ticketName || stateEvent?.category || "-",
+        checkInStatus: "UNREDEEMED",
         eventTitle: stateEvent?.title || "Event",
         eventDate: stateEvent?.date || "-",
         venueName: stateEvent?.location || stateEvent?.venue || "-",
@@ -86,36 +82,21 @@ function TicketSuccess() {
       }))
     : tickets;
 
-  // Simpan tiket ke localStorage agar MyTicket bisa tampilkan
   useEffect(() => {
-    if (displayTickets.length > 0) {
-      const stored = JSON.parse(localStorage.getItem("issued_tickets") || "[]");
-      const existingCodes = new Set(stored.map((t) => t.ticketCode));
-      const newTickets = displayTickets.filter(
-        (t) => !existingCodes.has(t.ticketCode)
-      );
-      if (newTickets.length > 0) {
-        localStorage.setItem(
-          "issued_tickets",
-          JSON.stringify([...stored, ...newTickets])
-        );
-      }
-    }
-  }, [displayTickets]);
+    if (fromMyTicket || displayTickets.length === 0) return;
 
-  const displayEvent = usedFallback && stateEvent
-    ? {
-        title: stateEvent.title || "Event",
-        date: stateEvent.date || "-",
-        location: stateEvent.location || stateEvent.venue || "-",
-      }
-    : displayTickets.length > 0
-    ? {
-        title: displayTickets[0].eventTitle || "Event",
-        date: displayTickets[0].eventDate || "-",
-        location: displayTickets[0].venueName || "-",
-      }
-    : { title: "Event", date: "-", location: "-" };
+    const stored = JSON.parse(localStorage.getItem("issued_tickets") || "[]");
+    const existingCodes = new Set(stored.map((t) => t.ticketCode || t.ticketItemId));
+    const newTickets = displayTickets.filter(
+      (t) => !existingCodes.has(t.ticketCode) && !existingCodes.has(t.ticketItemId)
+    );
+    if (newTickets.length > 0) {
+      localStorage.setItem(
+        "issued_tickets",
+        JSON.stringify([...stored, ...newTickets])
+      );
+    }
+  }, [displayTickets, fromMyTicket]);
 
   const downloadQR = (ticketCode) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
@@ -133,13 +114,15 @@ function TicketSuccess() {
       <NavbarCustomer />
 
       <main className="ticket-success-container">
-        <div className="success-message">
-          <strong>Pembayaran Berhasil</strong>
-          <span>Tiket Berhasil Diterbitkan</span>
-          {orderNumber && (
-            <span className="order-number">Nomor Pesanan: {orderNumber}</span>
-          )}
-        </div>
+        {!fromMyTicket && (
+          <div className="success-message">
+            <strong>Pembayaran Berhasil</strong>
+            <span>Tiket Berhasil Diterbitkan</span>
+            {orderNumber && (
+              <span className="order-number">Nomor Pesanan: {orderNumber}</span>
+            )}
+          </div>
+        )}
 
         {loading ? (
           <div className="ticket-loading">
@@ -154,9 +137,8 @@ function TicketSuccess() {
           <div className="ticket-list">
             {displayTickets.map((ticket, index) => (
               <TicketCard
-                key={ticket.ticketCode || ticket.ticketId || index}
+                key={ticket.ticketCode || ticket.ticketItemId || index}
                 ticket={ticket}
-                event={displayEvent}
                 index={index}
                 onDownload={downloadQR}
               />
@@ -179,16 +161,18 @@ function TicketSuccess() {
             Ke Tiket Saya
           </button>
 
-          <button
-            className="refund-button"
-            onClick={() =>
-              navigate("/customer/refund", {
-                state: { orderId },
-              })
-            }
-          >
-            Ajukan Refund
-          </button>
+          {!fromMyTicket && (
+            <button
+              className="refund-button"
+              onClick={() =>
+                navigate("/customer/refund", {
+                  state: { orderId },
+                })
+              }
+            >
+              Ajukan Refund
+            </button>
+          )}
         </div>
       </main>
 
@@ -199,29 +183,22 @@ function TicketSuccess() {
   );
 }
 
-function TicketCard({ ticket, event, index, onDownload }) {
-  const ticketCode = ticket.ticketCode || "-";
-  const statusKey = ticket.status || "UNREDEEMED";
+function TicketCard({ ticket, index, onDownload }) {
+  const ticketCode = ticket.ticketCode || ticket.ticketItemId || "-";
+  const statusKey = ticket.checkInStatus || ticket.status || "UNREDEEMED";
 
   return (
     <article className={`ticket-result-card ticket-card-${index + 1}`}>
       <div className="ticket-event-header">
         <div className="ticket-event-info">
-          <h2>{ticket.eventTitle || event.title}</h2>
+          <h2>{ticket.eventTitle || "Event"}</h2>
 
           <div className="ticket-info-row">
             <svg viewBox="0 0 24 24">
-              <rect
-                x="4"
-                y="5"
-                width="16"
-                height="15"
-                rx="2"
-              />
+              <rect x="4" y="5" width="16" height="15" rx="2" />
               <path d="M8 3v4M16 3v4M4 10h16" />
             </svg>
-
-            <span>{ticket.eventDate || event.date}</span>
+            <span>{ticket.eventDate || "-"}</span>
           </div>
 
           <div className="ticket-info-row">
@@ -229,8 +206,7 @@ function TicketCard({ ticket, event, index, onDownload }) {
               <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
               <circle cx="12" cy="9" r="2.3" />
             </svg>
-
-            <span>{ticket.venueName || event.location}</span>
+            <span>{ticket.venueName || "-"}</span>
           </div>
         </div>
 
@@ -262,7 +238,6 @@ function TicketCard({ ticket, event, index, onDownload }) {
             <path d="m7 10 5 5 5-5" />
             <path d="M5 20h14" />
           </svg>
-
           <span>Unduh QR Tiket</span>
         </button>
       </div>
