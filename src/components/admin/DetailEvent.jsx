@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import {
+  getAdminEventDetail,
+  getAdminEventSales,
+  deleteAdminEvent,
+  updateAdminEventStatus,
+} from "../../services/adminEventService";
+
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 
@@ -647,9 +654,7 @@ function DetailEvent() {
               {/* STATUS */}
 
               <span
-                className={`event-status ${
-                  isDraft ? "draft" : ""
-                }`}
+                className={`event-status ${statusClass}`}
               >
                 ● {normalizedStatus}
               </span>
@@ -998,6 +1003,28 @@ function DetailEvent() {
 
               <div className="detail-actions">
 
+                {isDraft && (
+                  <>
+                    <button
+                      type="button"
+                      className="edit-button"
+                      onClick={handleApprove}
+                      disabled={approving || rejecting}
+                    >
+                      {approving ? "Menyetujui..." : "Setujui"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="delete-button"
+                      onClick={handleReject}
+                      disabled={approving || rejecting}
+                    >
+                      {rejecting ? "Menolak..." : "Tolak"}
+                    </button>
+                  </>
+                )}
+
                 <button
                   type="button"
                   className="edit-button"
@@ -1020,7 +1047,7 @@ function DetailEvent() {
                     )
                   }
                 >
-                  Hapus Event
+                  {deleting ? "Menghapus..." : "Hapus Event"}
                 </button>
 
               </div>

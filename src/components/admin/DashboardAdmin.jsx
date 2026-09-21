@@ -14,7 +14,6 @@ import "./DashboardAdmin.css";
 export default function DashboardAdmin() {
   const navigate = useNavigate();
 
-  // State Data & Loading
   const [metrics, setMetrics] = useState({
     activeEvents: 0,
     totalUsers: 0,
@@ -24,8 +23,6 @@ export default function DashboardAdmin() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State untuk Search & Pagination Aktivitas Terbaru
-  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
@@ -39,15 +36,12 @@ export default function DashboardAdmin() {
           getAdminRecentTransactions()
         ]);
 
-        // 1. Tangkap metrik (bisa berupa metricsRes.data atau metricsRes langsung)
         const metricsData = metricsRes?.data || metricsRes;
         if (metricsData) setMetrics(metricsData);
 
-        // 2. Tangkap event (pastikan selalu menjadi array)
         const eventsData = eventsRes?.data || eventsRes;
         setEvents(Array.isArray(eventsData) ? eventsData : (eventsData?.content || []));
 
-        // 3. Tangkap transaksi (pastikan selalu menjadi array)
         const trxData = transactionsRes?.data || transactionsRes;
         setTransactions(Array.isArray(trxData) ? trxData : (trxData?.content || []));
 
@@ -61,26 +55,18 @@ export default function DashboardAdmin() {
     loadDashboardData();
   }, []);
 
-  // Filter transaksi berdasarkan pencarian (search)
-  const filteredTransactions = transactions.filter((item) => {
-    const customer = item.customerName || "";
-    const code = item.code || "";
-    const desc = item.description || "";
-    const query = searchTerm.toLowerCase();
-    return customer.toLowerCase().includes(query) || 
-           code.toLowerCase().includes(query) || 
-           desc.toLowerCase().includes(query);
-  });
-
-  // Logika Pagination
-  const totalItems = filteredTransactions.length;
+  const totalItems = transactions.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentTransactions = filteredTransactions.slice(indexOfFirstItem, indexOfLastItem);
+  const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem);
 
-  const handleViewAll = () => {
+  const handleViewAllEvents = () => {
     navigate("/event-management");
+  };
+
+  const handleViewAllTransactions = () => {
+    navigate("/admin/users");
   };
 
   const handleEventClick = (eventId) => {
@@ -137,138 +123,107 @@ export default function DashboardAdmin() {
             <section className="dashboard-grid">
 
               {/* EVENT TERBARU */}
-              <div className="dashboard-card events-card">
+              <div className="dashboard-card">
                 <div className="card-header">
                   <h3>Event Terbaru</h3>
-                  <button type="button" className="view-all" onClick={handleViewAll}>
+                  <button type="button" className="view-all" onClick={handleViewAllEvents}>
                     Lihat Semua
                   </button>
                 </div>
 
-                <div className="event-list">
+                <div className="dashboard-list">
                   {loading ? (
-                    <p style={{ fontSize: '11px', padding: '10px', color: '#8d889a' }}>Memuat event...</p>
+                    <p className="list-loading">Memuat event...</p>
                   ) : events.length === 0 ? (
-                    <p style={{ fontSize: '11px', padding: '10px', color: '#8d889a' }}>Belum ada event tersedia.</p>
+                    <p className="list-loading">Belum ada event tersedia.</p>
                   ) : (
                     events.map((event) => (
                       <button
                         key={event.id}
                         type="button"
-                        className="event-item"
+                        className="dashboard-list-item"
                         onClick={() => handleEventClick(event.id)}
                       >
-                        <div className="event-image">
+                        <div className="item-avatar">
                           <span>{event.title ? event.title.charAt(0).toUpperCase() : 'E'}</span>
                         </div>
-                        <div className="event-info">
+                        <div className="item-info">
                           <h4>{event.title}</h4>
-                          <p>
-                            📅 {event.startDate ? new Date(event.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Jadwal belum ditentukan'} • 📍 {event.venueName || 'Lokasi belum ditentukan'}
-                          </p>
+                          <div className="item-subtext-group">
+                            <span className="sub-text">
+                              📅 {event.startDate ? new Date(event.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Jadwal belum ditentukan'}
+                            </span>
+                            <span className="dot">•</span>
+                            <span className="sub-text">📍 {event.venueName || 'Lokasi belum ditentukan'}</span>
+                          </div>
                         </div>
-                        <div className={`event-status ${event.status === 'PUBLISHED' ? 'published' : 'draft'}`}>
+                        <div className={`item-status ${event.status === 'PUBLISHED' ? 'published' : 'draft'}`}>
                           {event.status}
                         </div>
-                        <span className="event-more">⋮</span>
+                        <span className="item-more">⋮</span>
                       </button>
                     ))
                   )}
                 </div>
               </div>
 
-              {/* AKTIVITAS TRANSAKSI DENGAN SEARCH & PAGINATION */}
-              <div className="dashboard-card transactions-card">
-                <div className="card-header" style={{ marginBottom: '12px' }}>
-                  <h3>Aktivitas Terbaru</h3>
-                  {/* Input Search */}
-                  <input
-                    type="text"
-                    placeholder="Cari transaksi..."
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1); // Reset ke halaman 1 saat mencari
-                    }}
-                    style={{
-                      padding: '6px 12px',
-                      fontSize: '11px',
-                      border: '1px solid #d8d1ec',
-                      borderRadius: '7px',
-                      outline: 'none',
-                      width: '150px'
-                    }}
-                  />
-                </div>
+              {/* AKTIVITAS TERBARU */}
+              <div className="dashboard-card">
+              <div className="card-header">
+                <h3>Aktivitas Terbaru</h3>
+                <button type="button" className="view-all" onClick={handleViewAllTransactions}>
+                  Lihat Semua
+                </button>
+              </div>
 
-                <div className="transaction-list">
+                <div className="dashboard-list">
                   {loading ? (
-                    <p style={{ fontSize: '11px', padding: '10px', color: '#8d889a' }}>Memuat data aktivitas...</p>
+                    <p className="list-loading">Memuat data aktivitas...</p>
                   ) : currentTransactions.length === 0 ? (
-                    <p style={{ fontSize: '11px', padding: '10px', color: '#8d889a' }}>Tidak ada transaksi ditemukan.</p>
+                    <p className="list-loading">Tidak ada transaksi ditemukan.</p>
                   ) : (
                     currentTransactions.map((item, index) => (
                       <button
                         key={item.id || index}
                         type="button"
-                        className="transaction-item"
+                        className="dashboard-list-item"
                         onClick={() => handleTransactionClick(item.customerName || "Customer")}
                       >
-                        <div className="transaction-left-group">
-                          <div className="event-image">
-                            <span>{item.initial || `N${indexOfFirstItem + index + 1}`}</span>
-                          </div>
-                          <div className="event-info">
-                            <h4>{item.customerName || "Nama Customer"}</h4>
-                            <div className="transaction-text-wrapper">
-                              <p className="trx-desc">🎫 {item.description || "Tiket Yang Dipesan"}</p>
-                              <p className="trx-code">{item.code || "TRX-0000"}</p>
-                            </div>
+                        <div className="item-avatar">
+                          <span>{item.initial || `N${indexOfFirstItem + index + 1}`}</span>
+                        </div>
+                        <div className="item-info">
+                          <h4>{item.customerName || "Nama Customer"}</h4>
+                          <div className="item-subtext-group">
+                            <span className="sub-text">🎫 {item.description || "Tiket Yang Dipesan"}</span>
+                            <span className="dot">•</span>
+                            <span className="badge-code">{item.code || "TRX-0000"}</span>
                           </div>
                         </div>
-
-                        <div className="transaction-right-group">
-                          <div className={`event-status ${
-                            item.status === 'Lunas' || item.status === 'PAID' ? 'published' : 
-                            item.status === 'EXPIRED' || item.status === 'Expired' ? 'expired' : 'draft'
-                          }`}>
-                            {item.status || "Menunggu"}
-                          </div>
-                          <span className="event-more">⋮</span>
+                        <div className={`item-status ${
+                          item.status === 'Lunas' || item.status === 'PAID' ? 'published' : 
+                          item.status === 'EXPIRED' || item.status === 'Expired' ? 'expired' : 'draft'
+                        }`}>
+                          {item.status || "Menunggu"}
                         </div>
+                        <span className="item-more">⋮</span>
                       </button>
                     ))
                   )}
                 </div>
 
-                {/* FOOTER PAGINATION (MENYERUPAI GAMBAR REFERENSI) */}
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: '12px',
-                  paddingTop: '8px',
-                  borderTop: '1px solid #f0edf8',
-                  fontSize: '11px',
-                  color: '#6e6882'
-                }}>
+                {/* FOOTER PAGINATION */}
+                <div className="pagination-footer">
                   <span>
                     Showing {totalItems === 0 ? 0 : indexOfFirstItem + 1} to {Math.min(indexOfLastItem, totalItems)} of {totalItems} entries
                   </span>
 
-                  <div style={{ display: 'flex', gap: '4px' }}>
+                  <div className="pagination-buttons">
                     <button
                       type="button"
                       onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      style={{
-                        padding: '2px 8px',
-                        border: '1px solid #d8d1ec',
-                        background: '#fff',
-                        borderRadius: '4px',
-                        cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                        opacity: currentPage === 1 ? 0.5 : 1
-                      }}
+                      className="page-btn"
                     >
                       &lt;
                     </button>
@@ -278,15 +233,7 @@ export default function DashboardAdmin() {
                         key={pageNumber}
                         type="button"
                         onClick={() => setCurrentPage(pageNumber)}
-                        style={{
-                          padding: '2px 8px',
-                          border: '1px solid #d8d1ec',
-                          background: currentPage === pageNumber ? '#6253dc' : '#fff',
-                          color: currentPage === pageNumber ? '#fff' : '#393445',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          fontWeight: '600'
-                        }}
+                        className={`page-btn ${currentPage === pageNumber ? 'active' : ''}`}
                       >
                         {pageNumber}
                       </button>
@@ -296,14 +243,7 @@ export default function DashboardAdmin() {
                       type="button"
                       onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      style={{
-                        padding: '2px 8px',
-                        border: '1px solid #d8d1ec',
-                        background: '#fff',
-                        borderRadius: '4px',
-                        cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                        opacity: currentPage === totalPages ? 0.5 : 1
-                      }}
+                      className="page-btn"
                     >
                       &gt;
                     </button>

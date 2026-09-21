@@ -618,7 +618,7 @@ function AddEvent() {
       // =================================================
 
       alert(
-        "Event berhasil dibuat dan dipublikasikan."
+        "Event berhasil diajukan dan menunggu persetujuan admin."
       );
 
       navigate("/eo/event");

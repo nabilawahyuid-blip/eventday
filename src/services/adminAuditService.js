@@ -1,7 +1,8 @@
-import { apiFetch } from "./api";
+import { apiFetch, toQueryString } from "./api";
 
-export const getAdminAuditLogs = async () => {
-  return apiFetch("/api/admin/audit-logs");
+// GET /api/admin/audit-logs?page=0&size=20 → Page<AuditLog>
+export const getAdminAuditLogs = async (page = 0, size = 20) => {
+  return apiFetch(`/api/admin/audit-logs${toQueryString({ page, size })}`);
 };
 
 export const exportAdminAuditLogs = async () => {
