@@ -1,28 +1,78 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+
+import {
+  getAdminEventDetail,
+  updateAdminEvent,
+} from "../../services/adminEventService";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 import "./EditEvent.css";
 
-import { 
-  FiSearch, FiUploadCloud, FiTrash2, FiPlus, FiX 
+import {
+  FiSearch, FiUploadCloud, FiTrash2, FiPlus, FiX
 } from "react-icons/fi";
+
+const toBackendCategory = (label) => {
+  if (!label) return "MUSIC_FESTIVAL";
+  return String(label).trim().toUpperCase().replace(/[\s-]+/g, "_");
+};
 
 function EditEvent() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [tickets, setTickets] = useState([
-    { id: 1, name: "VIP", price: "400000", quota: "200" },
-    { id: 2, name: "Reguler", price: "200000", quota: "400" }
-  ]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [categories, setCategories] = useState(["Konser"]);
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const [namaEvent, setNamaEvent] = useState("");
+  const [deskripsi, setDeskripsi] = useState("");
+  const [lokasi, setLokasi] = useState("");
+  const [kategori, setKategori] = useState("MUSIC_FESTIVAL");
+  const [tanggal, setTanggal] = useState("");
+  const [jamMulai, setJamMulai] = useState("10:00");
 
-  const [lineups, setLineups] = useState(["For Revenge"]);
+  const [tickets, setTickets] = useState([]);
+  const [lineups, setLineups] = useState([]);
   const [newLineup, setNewLineup] = useState("");
+
+  const fetchDetail = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getAdminEventDetail(id);
+      const ev = res?.data ?? {};
+      setNamaEvent(ev.title || "");
+      setDeskripsi(ev.description || "");
+      setLokasi(ev.venueName || "");
+      setKategori(String(ev.category || "MUSIC_FESTIVAL").replace(/_/g, " "));
+      if (ev.startDate) {
+        const d = new Date(ev.startDate);
+        setTanggal(d.toISOString().slice(0, 10));
+        setJamMulai(d.toISOString().slice(11, 16));
+      }
+      setTickets(
+        (ev.ticketTiers || []).map((t, i) => ({
+          id: t.tierId || i,
+          name: t.tierName || "",
+          price: String(t.price ?? ""),
+          quota: String(t.totalQuota ?? ""),
+        }))
+      );
+      setLineups(Array.isArray(ev.lineup) ? ev.lineup.map((l) => l?.name || l) : []);
+    } catch (err) {
+      console.error("Gagal memuat event:", err);
+      setError(err?.data?.msg || err?.message || "Gagal memuat event.");
+    } finally {
+      setLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchDetail();
+  }, [fetchDetail]);
 
   const addTicketRow = () => {
     setTickets([...tickets, { id: Date.now(), name: "", price: "", quota: "" }]);
@@ -32,16 +82,8 @@ function EditEvent() {
     setTickets(tickets.filter(t => t.id !== ticketId));
   };
 
-  const handleCategoryChange = (e) => {
-    const val = e.target.value;
-    if (val && !categories.includes(val)) {
-      setCategories([...categories, val]);
-    }
-    setSelectedCategory("");
-  };
-
-  const removeCategory = (catToRemove) => {
-    setCategories(categories.filter(c => c !== catToRemove));
+  const updateTicketRow = (ticketId, field, value) => {
+    setTickets(tickets.map(t => (t.id === ticketId ? { ...t, [field]: value } : t)));
   };
 
   const addLineupItem = () => {
@@ -57,11 +99,62 @@ function EditEvent() {
 
   const totalQuota = tickets.reduce((acc, curr) => acc + (parseInt(curr.quota) || 0), 0);
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    console.log("Simpan perubahan untuk event ID:", id);
-    navigate(`/admin/event/${id}`);
+    try {
+      setSaving(true);
+      const payload = {
+        title: namaEvent.trim(),
+        description: deskripsi.trim() || namaEvent.trim(),
+        category: toBackendCategory(kategori),
+        location: lokasi.trim(),
+        venueName: lokasi.trim(),
+        eventDate: `${tanggal || new Date().toISOString().slice(0, 10)}T${(jamMulai || "10:00").length === 5 ? jamMulai + ":00" : jamMulai}`,
+        ticketTiers: tickets
+          .filter((t) => t.name && Number(t.quota) > 0)
+          .map((t) => ({ name: t.name, price: Number(t.price) || 0, quota: Number(t.quota) || 0 })),
+      };
+      await updateAdminEvent(id, payload);
+      alert("Perubahan berhasil disimpan.");
+      navigate(`/admin/event/${id}`);
+    } catch (err) {
+      console.error("Gagal menyimpan:", err);
+      alert(err?.data?.msg || err?.message || "Gagal menyimpan perubahan.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="edit-event-page">
+        <Sidebar />
+        <main className="edit-main">
+          <Navbar />
+          <section className="edit-content">
+            <p style={{ padding: 30, color: "#8d889a" }}>Memuat data event...</p>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="edit-event-page">
+        <Sidebar />
+        <main className="edit-main">
+          <Navbar />
+          <section className="edit-content">
+            <p style={{ padding: 30, color: "#dc6868" }}>{error}</p>
+            <button type="button" className="btn-primary" onClick={() => navigate("/admin/event-management")}>
+              Kembali
+            </button>
+          </section>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="edit-event-page">
@@ -81,8 +174,9 @@ function EditEvent() {
               type="button"
               className="btn-primary"
               onClick={handleSave}
+              disabled={saving}
             >
-              <FiPlus /> Simpan Perubahan
+              <FiPlus /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
 
@@ -91,46 +185,39 @@ function EditEvent() {
             <section className="form-card">
               <h3>Informasi Dasar</h3>
 
-              <div className="form-group">
-                <label>EVENT ORGANIZER</label>
-                <select className="form-control" defaultValue="Int Entertainment">
-                  <option>Int Entertainment</option>
-                  <option>EventDay Organizer</option>
-                </select>
-              </div>
-
               <div className="form-row">
                 <div className="form-group col">
                   <label>NAMA EVENT</label>
-                  <input type="text" className="form-control" defaultValue="Sedih Fest 2024" />
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={namaEvent}
+                    onChange={(e) => setNamaEvent(e.target.value)}
+                  />
                 </div>
                 <div className="form-group col">
                   <label>KATEGORI EVENT</label>
-                  <select 
-                    className="form-control" 
-                    value={selectedCategory} 
-                    onChange={handleCategoryChange}
+                  <select
+                    className="form-control"
+                    value={kategori}
+                    onChange={(e) => setKategori(e.target.value)}
                   >
-                    <option value="" disabled>Pilih Kategori...</option>
-                    <option value="Konser">Konser</option>
-                    <option value="Festival">Festival</option>
-                    <option value="Technology">Technology</option>
-                    <option value="Art & Culture">Art & Culture</option>
+                    <option value="MUSIC FESTIVAL">Music Festival</option>
+                    <option value="CONFERENCE">Conference</option>
+                    <option value="EXHIBITION">Exhibition</option>
+                    <option value="CULINARY">Culinary</option>
+                    <option value="SEMINAR">Seminar</option>
                   </select>
-                  <div className="selected-categories-tags">
-                    {categories.map((cat, idx) => (
-                      <div className="badge-tag" key={idx}>
-                        <span>{cat}</span>
-                        <FiX size={12} onClick={() => removeCategory(cat)} />
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
 
               <div className="form-group">
                 <label>DESKRIPSI EVENT</label>
-                <textarea className="form-control textarea" defaultValue="Sedih fest berisi konser dari band playlist sedih"></textarea>
+                <textarea
+                  className="form-control textarea"
+                  value={deskripsi}
+                  onChange={(e) => setDeskripsi(e.target.value)}
+                />
               </div>
             </section>
 
@@ -141,7 +228,12 @@ function EditEvent() {
                 <label>DETAIL LOKASI / VENUE</label>
                 <div className="input-with-icon">
                   <FiSearch className="input-icon" />
-                  <input type="text" className="form-control" defaultValue="Stadion Manahan" />
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={lokasi}
+                    onChange={(e) => setLokasi(e.target.value)}
+                  />
                 </div>
               </div>
             </section>
@@ -152,7 +244,7 @@ function EditEvent() {
               <div className="upload-dropzone">
                 <FiUploadCloud size={32} className="upload-icon" />
                 <p className="upload-title">Upload Banner Event (16:9)</p>
-                <p className="upload-subtitle">Drag & drop atau klik untuk memilih file (Max 5mb)</p>
+                <p className="upload-subtitle">Drag &amp; drop atau klik untuk memilih file (Max 5mb)</p>
               </div>
             </section>
 
@@ -160,22 +252,26 @@ function EditEvent() {
             <section className="form-card">
               <div className="card-header-flex">
                 <h3>Jadwal Event</h3>
-                <button type="button" className="btn-text">+ Tambah Jadwal</button>
               </div>
               <div className="schedule-row">
                 <div className="form-group">
                   <label>TANGGAL</label>
-                  <input type="text" className="form-control" defaultValue="mm/dd/yyyy" />
+                  <input
+                    type="date"
+                    className="form-control"
+                    value={tanggal}
+                    onChange={(e) => setTanggal(e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label>JAM MULAI</label>
-                  <input type="text" className="form-control" defaultValue="--:--" />
+                  <input
+                    type="time"
+                    className="form-control"
+                    value={jamMulai}
+                    onChange={(e) => setJamMulai(e.target.value)}
+                  />
                 </div>
-                <div className="form-group">
-                  <label>JAM SELESAI</label>
-                  <input type="text" className="form-control" defaultValue="--:--" />
-                </div>
-                <button type="button" className="btn-icon-danger"><FiTrash2 /></button>
               </div>
             </section>
 
@@ -185,7 +281,7 @@ function EditEvent() {
                 <h3>Kategori Tiket</h3>
                 <button type="button" className="btn-text" onClick={addTicketRow}>+ Tambah Kategori</button>
               </div>
-              
+
               <div className="ticket-table-header">
                 <span>NAMA KATEGORI</span>
                 <span>HARGA TIKET (RP)</span>
@@ -195,9 +291,24 @@ function EditEvent() {
 
               {tickets.map((t) => (
                 <div className="ticket-row" key={t.id}>
-                  <input type="text" className="form-control" defaultValue={t.name} />
-                  <input type="text" className="form-control" defaultValue={t.price} />
-                  <input type="text" className="form-control" defaultValue={t.quota} />
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={t.name}
+                    onChange={(e) => updateTicketRow(t.id, "name", e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={t.price}
+                    onChange={(e) => updateTicketRow(t.id, "price", e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={t.quota}
+                    onChange={(e) => updateTicketRow(t.id, "quota", e.target.value)}
+                  />
                   <button type="button" className="btn-delete-row" onClick={() => removeTicketRow(t.id)}><FiX /></button>
                 </div>
               ))}
@@ -213,10 +324,10 @@ function EditEvent() {
               <div className="card-header-flex">
                 <h3>Line Up Event</h3>
                 <div className="add-lineup-group">
-                  <input 
-                    type="text" 
-                    className="form-control inline-input" 
-                    placeholder="Nama Artist..." 
+                  <input
+                    type="text"
+                    className="form-control inline-input"
+                    placeholder="Nama Artist..."
                     value={newLineup}
                     onChange={(e) => setNewLineup(e.target.value)}
                   />
@@ -230,16 +341,6 @@ function EditEvent() {
                     <FiX className="chip-close" onClick={() => removeLineupItem(idx)} />
                   </div>
                 ))}
-              </div>
-            </section>
-
-            {/* PERIZINAN EVENT */}
-            <section className="form-card">
-              <h3>Perizinan Event</h3>
-              <div className="upload-dropzone">
-                <FiUploadCloud size={32} className="upload-icon" />
-                <p className="upload-title">Upload Dokumen Perizinan</p>
-                <p className="upload-subtitle">Format: PDF atau ZIP (Max 10mb)</p>
               </div>
             </section>
           </form>

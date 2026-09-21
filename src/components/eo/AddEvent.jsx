@@ -6,7 +6,6 @@ import NavbarEO from "../shared/NavbarEO";
 
 import {
   createOrganizerEvent,
-  publishOrganizerEvent,
 } from "../../services/organizerEventService";
 
 import "./AddEvent.css";
@@ -430,18 +429,11 @@ function AddEvent() {
         eventId
       );
 
-      const publishResponse =
-        await publishOrganizerEvent({
-          eventId,
-        });
-
-      console.log(
-        "PUBLISH EVENT RESPONSE:",
-        publishResponse
-      );
-
+      // Alur persetujuan: event EO tersimpan sebagai DRAFT dan WAJIB
+      // disetujui admin (PATCH /api/admin/events/{id}/status → PUBLISHED)
+      // sebelum aktif. EO tidak boleh publish sendiri.
       alert(
-        "Event berhasil dibuat dan dipublikasikan."
+        "Event berhasil diajukan dan menunggu persetujuan admin."
       );
 
       navigate("/eo/event");
