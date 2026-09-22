@@ -37,6 +37,9 @@ function EditEvent() {
   const [tickets, setTickets] = useState([]);
   const [lineups, setLineups] = useState([]);
   const [newLineup, setNewLineup] = useState("");
+  // Banner URL event yang sudah tersimpan — dipertahankan saat update
+  // (backend meng-isi ulang bannerUrl null = banner terhapus)
+  const [bannerUrl, setBannerUrl] = useState("");
 
   const fetchDetail = useCallback(async () => {
     try {
@@ -48,6 +51,7 @@ function EditEvent() {
       setDeskripsi(ev.description || "");
       setLokasi(ev.venueName || "");
       setKategori(String(ev.category || "MUSIC_FESTIVAL").replace(/_/g, " "));
+      setBannerUrl(ev.bannerUrl || "");
       if (ev.startDate) {
         const d = new Date(ev.startDate);
         setTanggal(d.toISOString().slice(0, 10));
@@ -110,6 +114,7 @@ function EditEvent() {
         location: lokasi.trim(),
         venueName: lokasi.trim(),
         eventDate: `${tanggal || new Date().toISOString().slice(0, 10)}T${(jamMulai || "10:00").length === 5 ? jamMulai + ":00" : jamMulai}`,
+        bannerUrl: bannerUrl.trim() || null,
         ticketTiers: tickets
           .filter((t) => t.name && Number(t.quota) > 0)
           .map((t) => ({ name: t.name, price: Number(t.price) || 0, quota: Number(t.quota) || 0 })),

@@ -10,6 +10,8 @@ import {
   uploadOrganizerEventBanner,
 } from "../../services/organizerEventService";
 
+import { resolveBannerUrl } from "../../utils/bannerUrl";
+
 import "./AddEvent.css";
 
 function EditEventEO() {
@@ -80,28 +82,7 @@ function EditEventEO() {
   // IMAGE URL
   // =====================================================
 
-  const getImageUrl = (url) => {
-    if (!url) {
-      return "";
-    }
-
-    if (
-      url.startsWith("http://") ||
-      url.startsWith("https://")
-    ) {
-      return url;
-    }
-
-    const baseUrl = (
-      import.meta.env.VITE_NGROK_URL || ""
-    ).replace(/\/$/, "");
-
-    if (url.startsWith("/")) {
-      return `${baseUrl}${url}`;
-    }
-
-    return `${baseUrl}/${url}`;
-  };
+  const getImageUrl = (url) => resolveBannerUrl(url) || "";
 
   // =====================================================
   // GET EVENT DATA

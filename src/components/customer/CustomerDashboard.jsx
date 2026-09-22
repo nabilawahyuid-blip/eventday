@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
 import { getEvents, getFeaturedEvents } from "../../services/eventService";
+import { resolveBannerUrl } from "../../utils/bannerUrl";
 import "./CustomerDashboard.css";
 
 const CATEGORY_PARAMS = {
@@ -154,7 +155,9 @@ function DashboardCustomer() {
             id: ev.id,
             title: ev.title,
             location: ev.location || ev.dateDisplay || "",
-            image: ev.image || FALLBACK_HERO[0].image,
+            image:
+              resolveBannerUrl(ev.bannerUrl || ev.image) ||
+              FALLBACK_HERO[0].image,
           })),
         );
       }
@@ -181,7 +184,15 @@ function DashboardCustomer() {
       console.log("EVENTS RESPONSE:", JSON.stringify(res, null, 2));
       const list = res?.data?.content || res?.data || [];
 
-      setEvents(Array.isArray(list) ? list : []);
+      setEvents(
+        Array.isArray(list)
+          ? list.map((ev) => ({
+              ...ev,
+              image:
+                resolveBannerUrl(ev.bannerUrl || ev.image) || ev.image,
+            }))
+          : []
+      );
     } catch (err) {
       console.error("Gagal memuat event:", err);
       setEvents(FALLBACK_EVENTS);
