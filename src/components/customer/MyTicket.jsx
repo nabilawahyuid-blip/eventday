@@ -2,80 +2,130 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
-import { getMyTickets, getTicketDetail } from "../../services/ticketService";
+import {
+  getTransactionHistory,
+  getMyTicketsAuth,
+} from "../../services/ticketService";
 import "./MyTicket.css";
 
-const STATUS_LABEL = {
-  UNREDEEMED: "Belum Digunakan",
-  CHECKED_IN: "Sudah Digunakan",
-  REDEEMED: "Sudah Digunakan",
-  EXPIRED: "Tiket Expired",
+const ORDER_STATUS_LABEL = {
+  PAID: "Terbayar",
+  PENDING: "Menunggu",
+  REFUND_REQUESTED: "Refund Diajukan",
+  REFUNDED: "Refund Disetujui",
+  REJECTED: "Refund Ditolak",
+  EXPIRED: "Kedaluwarsa",
+  CANCELLED: "Dibatalkan",
 };
 
-const STATUS_TYPE = {
-  UNREDEEMED: "unused",
-  CHECKED_IN: "used",
-  REDEEMED: "used",
+const ORDER_STATUS_TYPE = {
+  PAID: "paid",
+  PENDING: "pending",
+  REFUND_REQUESTED: "refund-requested",
+  REFUNDED: "refunded",
+  REJECTED: "rejected",
   EXPIRED: "expired",
+  CANCELLED: "cancelled",
 };
+
+const FILTER_OPTIONS = [
+  { key: "all", label: "Semua" },
+  { key: "PAID", label: "Terbayar" },
+  { key: "REFUND_REQUESTED", label: "Refund Diajukan" },
+  { key: "REFUNDED", label: "Refund Disetujui" },
+  { key: "EXPIRED", label: "Kedaluwarsa" },
+];
+
+function formatCurrency(amount) {
+  if (!amount && amount !== 0) return "-";
+  return `Rp${Number(amount).toLocaleString("id-ID")}`;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 function MyTicket() {
   const navigate = useNavigate();
-  const [tickets, setTickets] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    const fetchTickets = async () => {
-      const email = localStorage.getItem("email");
+    const fetchOrders = async () => {
+      try {
+        const res = await getTransactionHistory();
+        const data = res?.data || [];
 
-      // 1) Coba ambil dari backend
-      if (email) {
+        // Deduplikasi by orderId (backend bisa return duplikat)
+        const seen = new Set();
+        const unique = data.filter((o) => {
+          if (seen.has(o.orderId)) return false;
+          seen.add(o.orderId);
+          return true;
+        });
+
+        setOrders(unique);
+      } catch (err) {
+        console.error("[MyTicket] transactions/history error:", err.message);
+
+        // Fallback: coba dari my-tickets lalu group by orderId
         try {
-          const res = await getMyTickets(email);
-          const data = res?.data || [];
-
-          if (data.length > 0) {
-            // Fetch detail tiap tiket untuk dapat event data
-            const enriched = await Promise.all(
-              data.map(async (ticket) => {
-                try {
-                  const detailRes = await getTicketDetail(ticket.ticketItemId);
-                  return { ...ticket, ...detailRes?.data };
-                } catch {
-                  return ticket;
-                }
-              }),
-            );
-            setTickets(enriched);
-            setLoading(false);
-            return;
-          }
-        } catch (err) {
-          console.error("[MyTicket] Backend error:", err.message);
+          const res = await getMyTicketsAuth();
+          const tickets = res?.data || [];
+          const orderMap = {};
+          tickets.forEach((t) => {
+            const oid = t.orderId;
+            if (!oid) return;
+            if (!orderMap[oid]) {
+              orderMap[oid] = {
+                orderId: oid,
+                orderNumber: oid.slice(0, 8).toUpperCase(),
+                eventTitle: t.eventTitle || "Event",
+                ticketTierName: t.categoryName || "-",
+                quantity: 0,
+                totalAmount: 0,
+                status: t.checkInStatus || "PENDING",
+                createdAt: t.issuedAt || null,
+                tickets: [],
+              };
+            }
+            orderMap[oid].quantity += 1;
+            orderMap[oid].tickets.push(t);
+          });
+          setOrders(Object.values(orderMap));
+        } catch (err2) {
+          console.error("[MyTicket] my-tickets fallback error:", err2.message);
         }
+      } finally {
+        setLoading(false);
       }
-
-      // 2) Fallback: ambil dari localStorage
-      const stored = JSON.parse(localStorage.getItem("issued_tickets") || "[]");
-      setTickets(stored);
-      setLoading(false);
     };
 
-    fetchTickets();
+    fetchOrders();
   }, []);
 
-  const filteredTickets =
-    filter === "all"
-      ? tickets
-      : tickets.filter(
-          (t) => (t.checkInStatus || t.status || "UNREDEEMED") === filter,
-        );
+  const filteredOrders = (filter === "all"
+    ? orders
+    : orders.filter((o) => o.status === filter)
+  ).sort((a, b) => {
+    const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return db - da;
+  });
 
-  const handleDetailTicket = (ticket) => {
-    navigate("/customer/ticket-success", {
-      state: { ticket, fromMyTicket: true },
-    });
+  const handleOrderClick = (order) => {
+    navigate(`/customer/orders/${order.orderId}`);
   };
 
   return (
@@ -86,20 +136,13 @@ function MyTicket() {
         <section className="my-ticket-heading">
           <div>
             <h1>Tiket Saya</h1>
-
             <p>
-              Kelola semua tiket acara Anda yang akan datang dan yang telah
-              lewat di sini.
+              Kelola semua pesanan dan tiket acara Anda di sini.
             </p>
           </div>
 
           <div className="my-ticket-filters">
-            {[
-              { key: "all", label: "Semua Tiket" },
-              { key: "UNREDEEMED", label: "Belum Digunakan" },
-              { key: "CHECKED_IN", label: "Sudah Digunakan" },
-              { key: "EXPIRED", label: "Expired" },
-            ].map((f) => (
+            {FILTER_OPTIONS.map((f) => (
               <button
                 key={f.key}
                 className={`filter-button ${filter === f.key ? "active" : ""}`}
@@ -117,9 +160,9 @@ function MyTicket() {
         {loading ? (
           <div className="my-ticket-loading">
             <div className="ticket-spinner" />
-            <span>Memuat tiket...</span>
+            <span>Memuat pesanan...</span>
           </div>
-        ) : filteredTickets.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <div className="my-ticket-empty">
             <svg
               viewBox="0 0 24 24"
@@ -131,18 +174,18 @@ function MyTicket() {
               <path d="M2 10h20" />
               <path d="M9 15h.01M15 15h.01" />
             </svg>
-            <p>Belum ada tiket</p>
+            <p>Belum ada pesanan</p>
             <button onClick={() => navigate("/customer/dashboard")}>
               Jelajahi Event
             </button>
           </div>
         ) : (
           <section className="my-ticket-list">
-            {filteredTickets.map((ticket) => (
-              <TicketCard
-                key={ticket.ticketItemId || ticket.ticketCode}
-                ticket={ticket}
-                onDetail={handleDetailTicket}
+            {filteredOrders.map((order) => (
+              <OrderCard
+                key={order.orderId}
+                order={order}
+                onClick={handleOrderClick}
               />
             ))}
           </section>
@@ -154,30 +197,28 @@ function MyTicket() {
   );
 }
 
-function TicketCard({ ticket, onDetail }) {
-  const statusKey = ticket.checkInStatus || ticket.status || "UNREDEEMED";
+function OrderCard({ order, onClick }) {
+  const statusKey = order.status || "PENDING";
+  const label = ORDER_STATUS_LABEL[statusKey] || statusKey;
+  const type = ORDER_STATUS_TYPE[statusKey] || "pending";
 
   return (
-    <article className="my-ticket-card">
+    <article
+      className="my-ticket-card"
+      onClick={() => onClick(order)}
+      style={{ cursor: "pointer" }}
+    >
       <div className="ticket-image-section">
-        {ticket.eventImageUrl ? (
-          <img src={ticket.eventImageUrl} alt={ticket.eventTitle || "Event"} />
-        ) : (
-          <div className="ticket-image-placeholder" />
-        )}
-
+        <div className="ticket-image-placeholder" />
         <div className="ticket-image-overlay"></div>
 
-        <span
-          className={`ticket-status-badge ${STATUS_TYPE[statusKey] || "unused"}`}
-        >
-          {STATUS_LABEL[statusKey] || statusKey}
+        <span className={`ticket-status-badge ${type}`}>
+          {label}
         </span>
 
         <div className="ticket-image-content">
-          <span className="ticket-category">{ticket.categoryName || "-"}</span>
-
-          <h2>{ticket.eventTitle || "Event"}</h2>
+          <span className="ticket-category">{order.ticketTierName || "-"}</span>
+          <h2>{order.eventTitle || "Event"}</h2>
         </div>
       </div>
 
@@ -188,24 +229,31 @@ function TicketCard({ ticket, onDetail }) {
               <rect x="4" y="5" width="16" height="15" rx="2" />
               <path d="M8 3v4M16 3v4M4 10h16" />
             </svg>
-
-            <span>{ticket.eventDate || "-"}</span>
+            <span>{formatDate(order.createdAt)}</span>
           </div>
 
           <div className="ticket-info-item">
             <svg viewBox="0 0 24 24">
-              <path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" />
-              <circle cx="12" cy="9" r="2.3" />
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
+            <span>{order.quantity || 0} Tiket</span>
+          </div>
 
-            <span>{ticket.venueName || "-"}</span>
+          <div className="ticket-info-item">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            <span>{formatCurrency(order.totalAmount)}</span>
           </div>
         </div>
 
         <div className="ticket-card-divider"></div>
 
         <div className="ticket-card-action">
-          <button onClick={() => onDetail(ticket)}>Detail Tiket</button>
+          <button>Lihat Detail</button>
         </div>
       </div>
     </article>

@@ -65,14 +65,16 @@ function Checkout() {
         const res = await getProfile();
         const data = res?.data || {};
         if (cancelled) return;
+        const hasNik = !!(data.nik || data.identityNumber);
         setBuyers((prev) =>
           prev.map((b, i) =>
             i === 0
-              ? createLockedBuyer(
-                  data.name || localStorage.getItem("name") || "",
-                  data.email || localStorage.getItem("email") || "",
-                  data.nik || ""
-                )
+              ? {
+                  name: data.name || localStorage.getItem("name") || "",
+                  email: data.email || localStorage.getItem("email") || "",
+                  nik: data.nik || data.identityNumber || "",
+                  isLocked: hasNik,
+                }
               : b
           )
         );
@@ -194,12 +196,25 @@ function Checkout() {
     let cancelled = false;
     const init = async () => {
       try {
+        console.log("[Checkout] initiateCheckout tierId:", tierId, "qty:", initialQuantity);
         const res = await initiateCheckout(tierId, initialQuantity);
-        const order = res?.data || res || {};
-        const newOrderId = order.orderId || order.id || null;
-        const expiredAt = order.expiredAt || order.expired_at || null;
+        console.log("[Checkout] initiateCheckout response:", res);
+        const raw = res?.data || res || {};
+        const newOrderId = raw.orderId || raw.id || null;
+        const expiredAt = raw.expiredAt || raw.expired_at || null;
+        console.log("[Checkout] parsed orderId:", newOrderId, "expiredAt:", expiredAt);
         if (!cancelled) {
-          if (newOrderId) setOrderId(newOrderId);
+          if (newOrderId) {
+            setOrderId(newOrderId);
+          } else {
+            console.error("[Checkout] Response tidak mengandung orderId:", raw);
+            Swal.fire({
+              icon: "error",
+              title: "Gagal Menyiapkan Order",
+              text: "Server tidak mengembalikan ID order. Silakan coba lagi.",
+              confirmButtonColor: "#5548dc",
+            });
+          }
           if (expiredAt) {
             const diff = Math.max(
               0,
@@ -209,7 +224,15 @@ function Checkout() {
           }
         }
       } catch (err) {
-        console.error("Gagal initiate checkout:", err);
+        console.error("[Checkout] Gagal initiate checkout:", err);
+        if (!cancelled) {
+          Swal.fire({
+            icon: "error",
+            title: "Gagal Menyiapkan Order",
+            text: err?.message || "Tidak dapat menghubungi server. Silakan coba lagi.",
+            confirmButtonColor: "#5548dc",
+          });
+        }
       }
     };
     init();
@@ -364,6 +387,16 @@ function Checkout() {
   };
 
   const handleCheckout = async () => {
+    if (timeLeft <= 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Waktu Habis",
+        text: "Waktu pemesanan telah habis. Silakan ulangi dari awal.",
+        confirmButtonColor: "#5548dc",
+      }).then(() => navigate("/customer/dashboard"));
+      return;
+    }
+
     if (!validateBuyers()) {
       return;
     }
@@ -378,8 +411,19 @@ function Checkout() {
       return;
     }
 
-    // Mode mock (tanpa tierId / BE mati): pertahankan alur lama
-    if (!tierId || !orderId) {
+    // Jika tierId ada tapi orderId belum ready, tunggu atau error
+    if (tierId && !orderId) {
+      Swal.fire({
+        icon: "info",
+        title: "Menyiapkan Order",
+        text: "Mohon tunggu sebentar, order sedang disiapkan...",
+        confirmButtonColor: "#5548dc",
+      });
+      return;
+    }
+
+    // Mode mock (tanpa tierId): pertahankan alur lama
+    if (!tierId) {
       Swal.fire({
         icon: "success",
         title: "Data Pemesan Siap",
@@ -421,7 +465,7 @@ function Checkout() {
         console.error("Gagal memuat ringkasan checkout:", err);
       }
 
-      // Charge pembayaran via Midtrans Snap (harus SEBELUM processCheckout — backend require status PENDING)
+      // Charge pembayaran via Midtrans Snap
       const grossAmount = summary?.totalAmount || totalPayment;
       const customerName = buyers[0]?.name || "";
       const customerEmail = buyers[0]?.email || "";
@@ -437,6 +481,13 @@ function Checkout() {
       const paymentResult = await openMidtransPayment(snapToken);
 
       if (paymentResult.status === "success" || paymentResult.status === "pending") {
+        // Kunci order → status WAITING_PAYMENT
+        try {
+          await processCheckout(orderId);
+        } catch (err) {
+          console.error("Gagal memproses checkout:", err);
+        }
+
         navigate("/customer/ticket-success", {
           state: {
             event,
@@ -688,6 +739,7 @@ function Checkout() {
               formatRupiah={formatRupiah}
               onCheckout={handleCheckout}
               isSubmitting={isSubmitting}
+              waitingForOrder={tierId && !orderId}
             />
           </aside>
         </div>
@@ -704,6 +756,7 @@ function Checkout() {
           formatRupiah={formatRupiah}
           onCheckout={handleCheckout}
           isSubmitting={isSubmitting}
+          waitingForOrder={tierId && !orderId}
         />
       </div>
 
@@ -792,6 +845,7 @@ function PaymentSummary({
   formatRupiah,
   onCheckout,
   isSubmitting = false,
+  waitingForOrder = false,
 }) {
   return (
     <div className="payment-summary-card">
@@ -849,9 +903,9 @@ function PaymentSummary({
         type="button"
         className="checkout-submit-button"
         onClick={onCheckout}
-        disabled={isSubmitting}
+        disabled={isSubmitting || waitingForOrder}
       >
-        <span>{isSubmitting ? "Memproses..." : "Checkout"}</span>
+        <span>{isSubmitting ? "Memproses..." : waitingForOrder ? "Menyiapkan Order..." : "Checkout"}</span>
 
         <svg viewBox="0 0 24 24">
           <path d="M5 12h13" />
