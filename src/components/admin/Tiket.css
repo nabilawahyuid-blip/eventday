@@ -649,6 +649,8 @@
   flex: 1;
 
   min-width: 0;
+
+  cursor: pointer;
 }
 
 .ticket-item-info h3 {

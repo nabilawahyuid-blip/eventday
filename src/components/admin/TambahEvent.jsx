@@ -109,6 +109,12 @@ function TambahEvent() {
     // BE minta ISO datetime: "2026-12-01T10:00:00"
     const eventDate = `${tanggal}T${jam.length === 5 ? jam + ":00" : jam}`;
 
+    // Jam selesai optional — dikirim best-effort (backend rev.14 baru
+    // mendukung eventDate; endDate aman diabaikan bila DTO belum ada).
+    const endDate = jadwal.jamSelesai
+      ? `${tanggal}T${jadwal.jamSelesai.length === 5 ? jadwal.jamSelesai + ":00" : jadwal.jamSelesai}`
+      : null;
+
     const payload = {
       title: namaEvent.trim(),
       description: deskripsi.trim() || namaEvent.trim(),
@@ -116,6 +122,7 @@ function TambahEvent() {
       location: lokasi.trim() || "Lokasi Belum Ditentukan",
       venueName: lokasi.trim() || "Lokasi Belum Ditentukan",
       eventDate,
+      endDate,
       bannerUrl: banner.url || null,
       facilities: [],
       ticketTiers: tiketList

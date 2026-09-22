@@ -1,8 +1,62 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 import "./Transaksi.css";
+import {
+  getAdminTransactions,
+  updateAdminTransactionStatus,
+  exportAdminTransactions,
+} from "../../services/adminTransactionService";
+
+// Map status BE (PENDING/WAITING_PAYMENT/PAID/EXPIRED/CANCELLED/REFUNDED)
+// ke label + class CSS yang tersedia (paid/pending/failed).
+const STATUS_MAP = {
+  PAID: { label: "Paid", cls: "paid" },
+  PENDING: { label: "Pending", cls: "pending" },
+  WAITING_PAYMENT: { label: "Waiting Payment", cls: "pending" },
+  CANCELLED: { label: "Cancelled", cls: "failed" },
+  EXPIRED: { label: "Expired", cls: "failed" },
+  REFUNDED: { label: "Refunded", cls: "failed" },
+};
+
+// Status filter toolbar → set status BE mentah
+const FILTER_MAP = {
+  "All Status": null,
+  Paid: ["PAID"],
+  Pending: ["PENDING", "WAITING_PAYMENT"],
+  Failed: ["CANCELLED", "EXPIRED", "REFUNDED"],
+};
+
+const formatRupiah = (value) => {
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value ?? "-");
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(num);
+};
+
+const formatDate = (iso) => {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString("en-GB", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const initials = (name = "") =>
+  String(name)
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join("") || "?";
 
 function Transaksi() {
   const navigate = useNavigate();
@@ -11,67 +65,130 @@ function Transaksi() {
   const [statusFilter, setStatusFilter] = useState("All Status");
   const [dateFilter, setDateFilter] = useState("Last 30 Days");
 
-  const transactions = [
-    {
-      id: "#TRX-99821",
-      customer: "John Doe",
-      email: "john.doe@example.com",
-      event: "Tech Conference 2024",
-      amount: "Rp 1.500.000",
-      status: "Paid",
-      date: "24 Oct, 14:30",
-      avatar: "JD",
-    },
-    {
-      id: "#TRX-99820",
-      customer: "Budi Santoso",
-      email: "budi.s@example.com",
-      event: "Music Festival: Sound of Nature",
-      amount: "Rp 750.000",
-      status: "Pending",
-      date: "24 Oct, 13:15",
-      avatar: "BS",
-    },
-    {
-      id: "#TRX-99819",
-      customer: "Siti Aminah",
-      email: "siti.a@example.com",
-      event: "Startup Pitching Workshop",
-      amount: "Rp 250.000",
-      status: "Failed",
-      date: "24 Oct, 11:45",
-      avatar: "SA",
-    },
-    {
-      id: "#TRX-99818",
-      customer: "Rina Melati",
-      email: "rina.m@example.com",
-      event: "Tech Conference 2024",
-      amount: "Rp 3.000.000",
-      status: "Paid",
-      date: "24 Oct, 10:05",
-      avatar: "RM",
-    },
-  ];
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [updatingId, setUpdatingId] = useState(null);
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    const keyword = search.toLowerCase();
+  const perPage = 10;
 
-    const matchesSearch =
-      transaction.id.toLowerCase().includes(keyword) ||
-      transaction.customer.toLowerCase().includes(keyword) ||
-      transaction.email.toLowerCase().includes(keyword) ||
-      transaction.event.toLowerCase().includes(keyword);
+  const loadTransactions = async () => {
+    try {
+      setLoading(true);
+      const res = await getAdminTransactions({ page: 0, size: 100 });
+      const data = res?.data || res;
+      setTransactions(
+        Array.isArray(data) ? data : data?.content || []
+      );
+      setError("");
+    } catch (err) {
+      console.error("Gagal memuat transaksi:", err);
+      setError(
+        err?.data?.msg || err?.message || "Gagal memuat transaksi."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const matchesStatus =
-      statusFilter === "All Status" ||
-      transaction.status === statusFilter;
+  useEffect(() => {
+    loadTransactions();
+  }, []);
 
-    return matchesSearch && matchesStatus;
-  });
+  const filtered = useMemo(() => {
+    const kw = search.trim().toLowerCase();
+    return transactions.filter((t) => {
+      const st = String(t.status || "").toUpperCase();
+      const ctx = [
+        t.id,
+        t.customerName,
+        t.userName,
+        t.user?.name,
+        t.userEmail,
+        t.user?.email,
+        t.eventTitle,
+        t.event?.title,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
 
-  const handleExport = () => {
-    console.log("Export transaksi");
+      const matchSearch = !kw || ctx.includes(kw);
+
+      const keys = FILTER_MAP[statusFilter];
+      const matchStatus =
+        !keys || keys.includes(st);
+
+      return matchSearch && matchStatus;
+    });
+  }, [transactions, search, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageItems = filtered.slice(
+    (safePage - 1) * perPage,
+    safePage * perPage
+  );
+
+  // Statistik dihitung dari snapshot data yang dimuat
+  const stats = useMemo(() => {
+    const paid = transactions.filter(
+      (t) => String(t.status || "").toUpperCase() === "PAID"
+    );
+    const pending = transactions.filter((t) =>
+      ["PENDING", "WAITING_PAYMENT"].includes(
+        String(t.status || "").toUpperCase()
+      )
+    );
+    const failed = transactions.filter((t) =>
+      ["CANCELLED", "EXPIRED", "REFUNDED"].includes(
+        String(t.status || "").toUpperCase()
+      )
+    );
+    const revenue = paid.reduce((sum, t) => {
+      const v = Number(t.totalAmount ?? t.amount ?? 0);
+      return sum + (Number.isNaN(v) ? 0 : v);
+    }, 0);
+    return { revenue, paid: paid.length, pending: pending.length, failed: failed.length };
+  }, [transactions]);
+
+  const handleExport = async () => {
+    try {
+      await exportAdminTransactions();
+      alert("Export transaksi berhasil diunduh.");
+    } catch (err) {
+      alert(err?.message || "Gagal export transaksi.");
+    }
+  };
+
+  const handleStatusChange = async (id, status) => {
+    if (!id || !status) return;
+    if (!window.confirm(`Ubah status transaksi ${id} menjadi ${status}?`)) return;
+    try {
+      setUpdatingId(id);
+      await updateAdminTransactionStatus(id, status);
+      alert("Status transaksi berhasil diubah.");
+      await loadTransactions();
+    } catch (err) {
+      alert(err?.data?.msg || err?.message || "Gagal mengubah status.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleDetail = (transaction) => {
+    if (transaction.id) {
+      navigate(`/admin/transaksi/${encodeURIComponent(transaction.id)}`);
+    } else {
+      alert("ID transaksi tidak tersedia.");
+    }
+  };
+
+  const renderStatus = (raw) => {
+    const st = String(raw || "").toUpperCase();
+    const map = STATUS_MAP[st] || { label: raw || "-", cls: "failed" };
+    return map;
   };
 
   return (
@@ -139,11 +256,11 @@ function Transaksi() {
                 </span>
 
                 <h2>
-                  Rp 42.5M
+                  {formatRupiah(stats.revenue)}
                 </h2>
 
                 <p className="stat-positive">
-                  ↗ +12.5% dari bulan lalu
+                  ↗ Dari transaksi berstatus PAID
                 </p>
 
               </div>
@@ -164,11 +281,11 @@ function Transaksi() {
                 </span>
 
                 <h2>
-                  1,248
+                  {stats.paid}
                 </h2>
 
                 <p className="stat-positive">
-                  ↗ +5.2% dari bulan lalu
+                  ↗ Berstatus PAID
                 </p>
 
               </div>
@@ -185,15 +302,15 @@ function Transaksi() {
               <div className="stat-card-content">
 
                 <span className="stat-title">
-                  PENDING / FAILED
+                  PENDING / GAGAL
                 </span>
 
                 <h2>
-                  42 / 12
+                  {stats.pending} / {stats.failed}
                 </h2>
 
                 <p className="stat-negative">
-                  ↘ -1.1% dari bulan lalu
+                  ↘ Belum / tidak berhasil dibayar
                 </p>
 
               </div>
@@ -222,60 +339,33 @@ function Transaksi() {
                   type="text"
                   placeholder="Search by ID, Customer, or Event..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
 
               </div>
 
               <div className="status-filters">
 
-                <button
-                  type="button"
-                  className={
-                    statusFilter === "All Status"
-                      ? "status-filter active"
-                      : "status-filter"
-                  }
-                  onClick={() => setStatusFilter("All Status")}
-                >
-                  All Status
-                </button>
-
-                <button
-                  type="button"
-                  className={
-                    statusFilter === "Paid"
-                      ? "status-filter active"
-                      : "status-filter"
-                  }
-                  onClick={() => setStatusFilter("Paid")}
-                >
-                  Paid
-                </button>
-
-                <button
-                  type="button"
-                  className={
-                    statusFilter === "Pending"
-                      ? "status-filter active"
-                      : "status-filter"
-                  }
-                  onClick={() => setStatusFilter("Pending")}
-                >
-                  Pending
-                </button>
-
-                <button
-                  type="button"
-                  className={
-                    statusFilter === "Failed"
-                      ? "status-filter active"
-                      : "status-filter"
-                  }
-                  onClick={() => setStatusFilter("Failed")}
-                >
-                  Failed
-                </button>
+                {["All Status", "Paid", "Pending", "Failed"].map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    className={
+                      statusFilter === f
+                        ? "status-filter active"
+                        : "status-filter"
+                    }
+                    onClick={() => {
+                      setStatusFilter(f);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
 
               </div>
 
@@ -298,91 +388,140 @@ function Transaksi() {
 
                 <tbody>
 
-                  {filteredTransactions.length > 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan="5" className="empty-transaction">
+                        Memuat transaksi...
+                      </td>
+                    </tr>
+                  ) : error ? (
+                    <tr>
+                      <td colSpan="5" className="empty-transaction">
+                        {error}
+                      </td>
+                    </tr>
+                  ) : pageItems.length > 0 ? (
 
-                    filteredTransactions.map((transaction) => (
+                    pageItems.map((transaction) => {
+                      const st = renderStatus(transaction.status);
+                      const customerName =
+                        transaction.customerName ||
+                        transaction.userName ||
+                        transaction.user?.name ||
+                        "-";
+                      const email =
+                        transaction.userEmail ||
+                        transaction.user?.email ||
+                        "-";
+                      const eventName =
+                        transaction.eventTitle ||
+                        transaction.event?.title ||
+                        "-";
+                      const amount =
+                        transaction.totalAmount ?? transaction.amount;
+                      const date = formatDate(
+                        transaction.createdAt ||
+                          transaction.paidAt ||
+                          transaction.transactionDate
+                      );
 
-                      <tr key={transaction.id}>
+                      return (
+                        <tr key={transaction.id}>
 
-                        {/* TRANSACTION ID */}
-                        <td>
-                          <button
-                            type="button"
-                            className="transaction-id"
-                            onClick={() =>
-                              console.log(
-                                "Detail transaksi:",
-                                transaction.id
-                              )
-                            }
-                          >
-                            {transaction.id}
-                          </button>
-                        </td>
-
-                        {/* CUSTOMER */}
-                        <td>
-
-                          <div className="customer-info">
-
-                            <div className="customer-avatar">
-                              {transaction.avatar}
-                            </div>
-
-                            <div>
-                              <strong>
-                                {transaction.customer}
-                              </strong>
-
-                              <span>
-                                {transaction.email}
-                              </span>
-                            </div>
-
-                          </div>
-
-                        </td>
-
-                        {/* EVENT */}
-                        <td>
-                          <span className="event-name">
-                            {transaction.event}
-                          </span>
-                        </td>
-
-                        {/* AMOUNT */}
-                        <td>
-                          <span className="amount">
-                            {transaction.amount}
-                          </span>
-                        </td>
-
-                        {/* STATUS */}
-                        <td>
-
-                          <div className="status-date">
-
-                            <span
-                              className={`transaction-status ${transaction.status.toLowerCase()}`}
+                          {/* TRANSACTION ID */}
+                          <td>
+                            <button
+                              type="button"
+                              className="transaction-id"
+                              onClick={() => handleDetail(transaction)}
                             >
-                              <span className="status-dot">
-                                ●
+                              {transaction.id}
+                            </button>
+                          </td>
+
+                          {/* CUSTOMER */}
+                          <td>
+
+                            <div className="customer-info">
+
+                              <div className="customer-avatar">
+                                {initials(customerName)}
+                              </div>
+
+                              <div>
+                                <strong>
+                                  {customerName}
+                                </strong>
+
+                                <span>
+                                  {email}
+                                </span>
+                              </div>
+
+                            </div>
+
+                          </td>
+
+                          {/* EVENT */}
+                          <td>
+                            <span className="event-name">
+                              {eventName}
+                            </span>
+                          </td>
+
+                          {/* AMOUNT + STATUS ACTION */}
+                          <td>
+                            <span className="amount">
+                              {formatRupiah(amount)}
+                            </span>
+                            <br />
+                            {["PENDING", "WAITING_PAYMENT"].includes(
+                              String(transaction.status || "").toUpperCase()
+                            ) && (
+                              <button
+                                type="button"
+                                className="transaction-id"
+                                disabled={updatingId === transaction.id}
+                                onClick={() =>
+                                  handleStatusChange(
+                                    transaction.id,
+                                    "CANCELLED"
+                                  )
+                                }
+                              >
+                                {updatingId === transaction.id
+                                  ? "Mengubah..."
+                                  : "Batalkan"}
+                              </button>
+                            )}
+                          </td>
+
+                          {/* STATUS */}
+                          <td>
+
+                            <div className="status-date">
+
+                              <span
+                                className={`transaction-status ${st.cls}`}
+                              >
+                                <span className="status-dot">
+                                  ●
+                                </span>
+
+                                {st.label}
                               </span>
 
-                              {transaction.status}
-                            </span>
+                              <span className="transaction-date">
+                                {date}
+                              </span>
 
-                            <span className="transaction-date">
-                              {transaction.date}
-                            </span>
+                            </div>
 
-                          </div>
+                          </td>
 
-                        </td>
-
-                      </tr>
-
-                    ))
+                        </tr>
+                      );
+                    })
 
                   ) : (
 
@@ -409,7 +548,12 @@ function Transaksi() {
             <div className="transaction-footer">
 
               <span>
-                Showing 1 to {filteredTransactions.length} of 1,290 results
+                {filtered.length === 0
+                  ? "Tidak ada hasil"
+                  : `Showing ${(safePage - 1) * perPage + 1} to ${Math.min(
+                      safePage * perPage,
+                      filtered.length
+                    )} of ${filtered.length} results`}
               </span>
 
               <div className="pagination">
@@ -417,45 +561,32 @@ function Transaksi() {
                 <button
                   type="button"
                   className="pagination-arrow"
+                  disabled={safePage === 1}
+                  onClick={() => setCurrentPage(safePage - 1)}
                 >
                   ‹
                 </button>
 
-                <button
-                  type="button"
-                  className="pagination-number active"
-                >
-                  1
-                </button>
-
-                <button
-                  type="button"
-                  className="pagination-number"
-                >
-                  2
-                </button>
-
-                <button
-                  type="button"
-                  className="pagination-number"
-                >
-                  3
-                </button>
-
-                <span className="pagination-dots">
-                  ...
-                </span>
-
-                <button
-                  type="button"
-                  className="pagination-number"
-                >
-                  10
-                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={
+                      p === safePage
+                        ? "pagination-number active"
+                        : "pagination-number"
+                    }
+                    onClick={() => setCurrentPage(p)}
+                  >
+                    {p}
+                  </button>
+                ))}
 
                 <button
                   type="button"
                   className="pagination-arrow"
+                  disabled={safePage === totalPages}
+                  onClick={() => setCurrentPage(safePage + 1)}
                 >
                   ›
                 </button>

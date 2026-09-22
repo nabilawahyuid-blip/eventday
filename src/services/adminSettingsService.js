@@ -1,17 +1,14 @@
 // src/services/adminSettingsService.js
+// Admin Settings — GET/PUT /api/admin/settings/general + POST /api/admin/settings/upload-logo
+// Audit log terpisah di adminAuditService.js (rev.14: /api/admin/audit-logs)
 import { apiFetch } from './api';
 
-// 1. Mengambil jejak log aktivitas admin — GET /api/admin/audit-logs?page&size
-export const getAdminAuditLogs = async (page = 0, size = 20) => {
-  return await apiFetch(`/api/admin/audit-logs?page=${page}&size=${size}`);
-};
-
-// 2. Mengambil pengaturan umum sistem — GET /api/admin/settings/general
+// 1. Mengambil pengaturan umum sistem — GET /api/admin/settings/general
 export const getAdminGeneralSettings = async () => {
   return await apiFetch('/api/admin/settings/general');
 };
 
-// 3. Memperbarui pengaturan umum sistem (nama app, admin fee, kedaluwarsa order)
+// 2. Memperbarui pengaturan umum sistem (nama app, admin fee, kedaluwarsa order)
 export const updateAdminGeneralSettings = async (settingsData) => {
   return await apiFetch('/api/admin/settings/general', {
     method: 'PUT',
@@ -19,17 +16,7 @@ export const updateAdminGeneralSettings = async (settingsData) => {
   });
 };
 
-// 4. Ekspor data log audit format JSON — GET /api/admin/audit-logs/export
-export const exportAdminAuditLogsJson = async () => {
-  return await apiFetch('/api/admin/audit-logs/export');
-};
-
-// 5. Ekspor data audit trail format string CSV — GET /api/admin/audit-logs/export/csv
-export const exportAdminAuditLogsCsv = async () => {
-  return await apiFetch('/api/admin/audit-logs/export/csv');
-};
-
-// 6. Mengunggah logo resmi platform (maksimal 5MB) — POST /api/admin/settings/upload-logo
+// 3. Mengunggah logo resmi platform (maksimal 5MB) — POST /api/admin/settings/upload-logo
 export const uploadAdminPlatformLogo = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
@@ -37,4 +24,10 @@ export const uploadAdminPlatformLogo = async (file) => {
     method: 'POST',
     body: formData, // Menggunakan FormData untuk unggah file multipart
   });
+};
+
+export const adminSettingsService = {
+  getAdminGeneralSettings,
+  updateAdminGeneralSettings,
+  uploadAdminPlatformLogo,
 };

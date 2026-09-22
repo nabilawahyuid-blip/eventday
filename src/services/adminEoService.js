@@ -51,3 +51,16 @@ export const getCompanyDeedDocument = async (id) => {
     )}/documents/company-deed`
   );
 };
+
+// ==========================================
+// DOWNLOAD AKTA PERUSAHAAN (binary)
+// GET /api/admin/eo-applications/{id}/documents/company-deed/download
+// ==========================================
+export const downloadCompanyDeedDocument = async (id) => {
+  if (!id) throw new Error("ID aplikasi EO wajib diisi.");
+  return apiFetch(
+    `/api/admin/eo-applications/${encodeURIComponent(
+      id
+    )}/documents/company-deed/download`
+  );
+};

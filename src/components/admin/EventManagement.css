@@ -238,9 +238,11 @@ body {
 .event-search span {
   flex-shrink: 0;
 
-  color: #8e899d;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 17px;
+  color: #8e899d;
 
   line-height: 1;
 }
@@ -623,9 +625,11 @@ body {
 
   flex-shrink: 0;
 
-  color: #665be1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 10px;
+  color: #665be1;
 
   line-height: 1.2;
 

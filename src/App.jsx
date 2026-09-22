@@ -25,6 +25,8 @@ import PengaturanPlatform from "./components/admin/PengaturanPlatform";
 import AuditLog from "./components/admin/AuditLog";
 import PengajuanPayout from "./components/admin/PengajuanPayout";
 import DetailPengajuanPayout from "./components/admin/DetailPengajuanPayout";
+import DetailTransaksi from "./components/admin/DetailTransaksi";
+import DetailTiket from "./components/admin/DetailTiket";
 
 // ==================== CUSTOMER ====================
 import CustomerDashboard from "./components/customer/CustomerDashboard";
@@ -136,8 +138,18 @@ function App() {
           />
 
           <Route
+            path="/admin/transaksi/:id"
+            element={<DetailTransaksi />}
+          />
+
+          <Route
             path="/admin/tiket"
             element={<Tiket />}
+          />
+
+          <Route
+            path="/admin/tiket/:id"
+            element={<DetailTiket />}
           />
 
           <Route

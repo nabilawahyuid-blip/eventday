@@ -24,6 +24,7 @@ npm run preview      # serve built dist/
   - `customer/` — `CustomerDashboard.jsx` (sudah terhubung BE via `eventService.js`), `DetailEventCustomer.jsx`, `Checkout.jsx`, `TicketSuccess.jsx`, `MyTicket.jsx`, `RefundRequest.jsx`, `RefundList.jsx` (sisanya masih mock, `API.md` §8-9 sudah live di BE, §10-19 masih SCHEMA ONLY)
   - `shared/` — `Navbar.jsx`, `NavbarEO.jsx`, `NavbarCustomer.jsx`, `Sidebar.jsx`, `SidebarEO.jsx`, `Button.jsx`, `FormInput.jsx`
 - `src/services/authService.js:10` — all auth API calls; `API_BASE=https://a2c2-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app` (ngrok → localhost:8082, override via `VITE_API_URL`), `fetchWithAuth` pakai `credentials:'include'` agar `Set-Cookie: access_token` HttpOnly dari BE terkirim (BE `@JsonIgnore` hide `data.token`). Helpers `isWrappedResponse`/`normalizeSuccess`/`extractErrorMessage` unwrap `msg`. **Baru:** `eventService.js` (getEvents/getFeatured/getEventById) sudah ada, `order/ticket/refundService` masih TODO.
+- `src/services/admin*.js` — **9 file, satu fitur per file, SEMUA sudah dipakai UI admin (rev.14):** `adminDashboardService` (metrics/recent-events/recent-transactions), `adminUserService` (list/detail/PATCH status/suspend), `adminEoService` (list/detail/PATCH status/company-deed + **download**), `adminPayoutService` (list/detail/PATCH status + adminNote/reconciliation), `adminEventService` (CRUD multipart/**approve/reject**/sales/export), `adminTicketService` (list/detail/**POST /tickets** generate/revoke→REVOKED/checkin/**inventory?eventId**/export), `adminTransactionService` (list/detail/PATCH status/export), `adminAuditService` (list/export/export-csv), `adminSettingsService` (GET/PUT settings/general + upload-logo). `api.js` menyediakan `apiFetch` + `toQueryString` (credentials include, Bearer fallback, Vite proxy `/api/admin/**`) — **api.js TIDAK BOLEH diubah**; helper `downloadFromEndpoint` (menangani export binary & CSV-string) ada di file terpisah `src/services/downloadExport.js`. Legacy `adminSettingService.js` (duplikat) & `adminService.js` (getAdminEvents→dashboard) sudah DIHAPUS — jangan dibuat ulang. `updateAdminEventStatus` (`/events/{id}/status`) tersisa hanya sebagai alias legacy untuk auto-publish fallback di TambahEvent — UI approve/reject pakai `/approve` + `/reject`.
 - `API.md:1` — canonical REST contract. Status 2026-09-10: **Auth aktif + Customer Event Catalog 7-9 aktif di BE**, **10-19 SCHEMA ONLY** (FE lebih lengkap mock). Response `{msg,status,data}`, register `201`, JWT 24h HttpOnly cookie, OTP 5min, reset code 15min, order expiry 15min.
 
 ## Routing
@@ -67,6 +68,31 @@ Centralized in `src/App.jsx:49`. Groups:
 | 19 | `GET /api/v1/refunds/{id}` | ⚠️ Link ada, Route 404 | ⏳ Spek siap | `RefundList.jsx:41` → `/customer/refund/:id` belum ada |
 
 **Legenda:** ✅ Done = UI + fetch + JWT sudah terhubung | 🎨 UI Done / Mock = UI jadi, data hardcode, belum `fetch` | ⚠️ Link ada, Route 404 = tombol `navigate()` ada tapi `App.jsx:158-216` belum ada `<Route>` | ⏳ Spek siap = kontrak ada di `API.md §8-13`, backend tinggal implement | **PR selanjutnya FE:** buat `src/services/eventService.js`, `orderService.js`, `ticketService.js`, `refundService.js` lalu ganti semua hardcode ke `fetch` + `Authorization`.
+
+### Admin rev.14 — status sinkron FE (2026-09-22)
+
+**Semua 15 halaman admin sudah terhubung ke service lokal FE** (prefix `/api/admin/**` via `api.js:apiFetch`). Halaman yang sebelumnya mock kini live:
+- `Transaksi.jsx` → `adminTransactionService` (list+filter+pagination+export+PATCH status; statistik PAID/PENDING/GAGAL diturunkan dari snapshot).
+- `Tiket.jsx` → `adminTicketService` (list+search+pagination+export+checkin/revoke; statistik turunan).
+- `PengajuanPayout.jsx` → `adminPayoutService` (list+statistik pending/approved/rejected).
+- `DetailPengajuanPayout.jsx` → `adminPayoutService` (detail via `useParams`, PATCH status+adminNote, dokumen rekonsiliasi via `getPayoutReconciliation`).
+- `AuditLog.jsx` → `adminAuditService` (list size=100 snip + filter client, export CSV prefer backend `/export/csv`, fallback build client; fallback mock bila BE mati).
+- `PengaturanPlatform.jsx` → `adminSettingsService` (GET/PUT `/settings/general` — nama sistem, email kontak, **admin fee, masa berlaku order** — + upload logo ≤5MB).
+
+**Penyelarasan endpoint ke rev.14:**
+- Event approve/reject: `PATCH /events/{id}/approve` + `/reject` (UI `DetailEvent.jsx` sudah pakai); `/events/{id}/status` hanya alias legacy.
+- Ticket generate: `POST /api/admin/tickets` (body `{orderId}`), bukan `/tickets/generate`. Revoke → status **REVOKED**. Inventory: `GET /api/admin/tickets/inventory?eventId=` (tanpa path param).
+- EO deed: tambah `GET /eo-applications/{id}/documents/company-deed/download`.
+- Duplikat/legacy dihapus: `adminSettingService.js` (dupe settings), `adminService.js` (dupe dashboard), fungsi audit dipindah ke `adminAuditService.js`.
+
+**Selisih kontrak presisi terbaru (sinkron dengan AGENTS.md backend rev.14, HEAD `4680644`):**
+- Settings payload: `PUT /admin/settings/general` harus `{appName, contactEmail, adminFee, orderExpiryMinutes}` (BE `AdminSettingsRequest`); GET mengembalikan `Map<String,String>` — FE membaca `contactEmail` (bukan `adminEmail`), `adminFee`/`orderExpiryMinutes` dikirim sebagai Number.
+- Dashboard metrics: BE `AdminDashboardMetricsResponse` memakai **`totalPlatformRevenue`** (bukan `totalRevenue`) + `totalTicketsSold`/`totalEvents`/`activeEvents`/`totalUsers` — `DashboardAdmin.jsx` membaca `totalPlatformRevenue ?? totalRevenue`.
+- Rekonsiliasi payout: `GET /admin/payouts/{id}/documents/reconciliation` → field **`reconciliationDocumentUrl`** (`DetailPengajuanPayout.jsx` baca dengan fallback ke `url`/`fileUrl`).
+- Audit export CSV: `GET /admin/audit-logs/export/csv` membungkus **string CSV dalam `ApiResponse`** (BUKAN binary attachment). Helper `src/services/downloadExport.js:downloadFromEndpoint` menangani dua bentuk export (blob binary events/tickets/transactions VS CSV-string audit) — jangan pakai `apiFetch` untuk endpoint export.
+- `downloadCompanyDeedDocument` (`/documents/company-deed/download`) ada di service tapi belum dipakai UI; `getCompanyDeedDocument` → `{documentUrl}` yang dipakai `DetailPengajuanEo.jsx`.
+
+**Detail transaksi/tiket DITAMBAHKAN (sesi ini):** `DetailTransaksi.jsx` (`/admin/transaksi/:id`) + `DetailTiket.jsx` (`/admin/tiket/:id`) dibuat, memakai ulang layout/CSS `DetailPengajuanPayout.css` (tanpa file CSS baru → penyeragaman admin otomatis konsisten). Klak ID di `Transaksi.jsx` → `navigate('/admin/transaksi/:id')`; `Tiket.jsx` → area info item `navigate('/admin/tiket/:id')`. Service `getAdminTransactionDetail`/`getAdminTicketDetail` sudah ada sejak awal — kini benar-benar dipakai.
 
 ## State & Auth Flow
 - Auth persistence: `localStorage` keys `token`, `userId`, `name`, `username`, `email`, `role` (`src/components/auth/Login.jsx:26`, `src/components/auth/Register.jsx:36`). **Update:** BE hide token (`@JsonIgnore`), `token` di `localStorage` hanya untuk fallback `Authorization` — utama adalah `Cookie: access_token` HttpOnly via `fetchWithAuth credentials:'include'` (`authService.js:10`).
