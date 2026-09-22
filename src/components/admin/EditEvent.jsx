@@ -33,6 +33,7 @@ function EditEvent() {
   const [kategori, setKategori] = useState("MUSIC_FESTIVAL");
   const [tanggal, setTanggal] = useState("");
   const [jamMulai, setJamMulai] = useState("10:00");
+  const [jamSelesai, setJamSelesai] = useState("");
 
   const [tickets, setTickets] = useState([]);
   const [lineups, setLineups] = useState([]);
@@ -56,6 +57,17 @@ function EditEvent() {
         const d = new Date(ev.startDate);
         setTanggal(d.toISOString().slice(0, 10));
         setJamMulai(d.toISOString().slice(11, 16));
+      }
+      const endDateRaw = ev.endDate || ev.end_date;
+      if (endDateRaw) {
+        const ed = new Date(endDateRaw);
+        if (!Number.isNaN(ed.getTime())) {
+          setJamSelesai(ed.toISOString().slice(11, 16));
+        } else {
+          setJamSelesai("");
+        }
+      } else {
+        setJamSelesai("");
       }
       setTickets(
         (ev.ticketTiers || []).map((t, i) => ({
@@ -107,13 +119,23 @@ function EditEvent() {
     e.preventDefault();
     try {
       setSaving(true);
+      const eventDate = `${tanggal || new Date().toISOString().slice(0, 10)}T${(jamMulai || "10:00").length === 5 ? jamMulai + ":00" : jamMulai}`;
+
+      // Jam selesai opsional — dikirim best-effort. Backend admin rev.14
+      // (CreateEventRequest) baru mendukung eventDate; field endDate aman
+      // diabaikan bila DTO backend belum memilikinya.
+      const endDate = jamSelesai
+        ? `${tanggal || new Date().toISOString().slice(0, 10)}T${jamSelesai.length === 5 ? jamSelesai + ":00" : jamSelesai}`
+        : null;
+
       const payload = {
         title: namaEvent.trim(),
         description: deskripsi.trim() || namaEvent.trim(),
         category: toBackendCategory(kategori),
         location: lokasi.trim(),
         venueName: lokasi.trim(),
-        eventDate: `${tanggal || new Date().toISOString().slice(0, 10)}T${(jamMulai || "10:00").length === 5 ? jamMulai + ":00" : jamMulai}`,
+        eventDate,
+        endDate,
         bannerUrl: bannerUrl.trim() || null,
         ticketTiers: tickets
           .filter((t) => t.name && Number(t.quota) > 0)
@@ -275,6 +297,15 @@ function EditEvent() {
                     className="form-control"
                     value={jamMulai}
                     onChange={(e) => setJamMulai(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>JAM SELESAI</label>
+                  <input
+                    type="time"
+                    className="form-control"
+                    value={jamSelesai}
+                    onChange={(e) => setJamSelesai(e.target.value)}
                   />
                 </div>
               </div>

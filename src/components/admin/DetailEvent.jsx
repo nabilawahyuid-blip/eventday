@@ -6,9 +6,13 @@ import {
   getAdminEventSales,
   deleteAdminEvent,
   updateAdminEventStatus,
+  approveAdminEvent,
+  rejectAdminEvent,
 } from "../../services/adminEventService";
 
 import { resolveBannerUrl } from "../../utils/bannerUrl";
+
+import { Calendar, Clock, MapPin } from "lucide-react";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -295,7 +299,7 @@ function DetailEvent() {
   const handleApprove = async () => {
     setApproving(true);
     try {
-      await updateAdminEventStatus(eventId, "PUBLISHED");
+      await approveAdminEvent(eventId);
       setEvent((prev) => ({
         ...prev,
         status: "PUBLISHED",
@@ -312,7 +316,7 @@ function DetailEvent() {
   const handleReject = async () => {
     setRejecting(true);
     try {
-      await updateAdminEventStatus(eventId, "REJECTED", "Ditolak oleh admin");
+      await rejectAdminEvent(eventId, "Ditolak oleh admin");
       setEvent((prev) => ({
         ...prev,
         status: "REJECTED",
@@ -714,7 +718,7 @@ function DetailEvent() {
                 <div className="meta-item">
 
                   <span className="meta-icon">
-                    ▣
+                    <Calendar size={15} strokeWidth={2} />
                   </span>
 
                   <span>
@@ -731,7 +735,7 @@ function DetailEvent() {
                 <div className="meta-item">
 
                   <span className="meta-icon">
-                    ◷
+                    <Clock size={15} strokeWidth={2} />
                   </span>
 
                   <span>
@@ -748,7 +752,7 @@ function DetailEvent() {
                 <div className="meta-item">
 
                   <span className="meta-icon">
-                    ◉
+                    <MapPin size={15} strokeWidth={2} />
                   </span>
 
                   <span>

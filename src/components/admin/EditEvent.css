@@ -370,6 +370,23 @@ label {
   font-size: 14px;
 }
 
+/* Input berikon pencarian: pastikan padding kiri TIDAK tertimpa
+   penyeragaman .form-control (specificity lebih tinggi) — teks tidak
+   menempel/menimpa ikon lensa. */
+.edit-event-page .input-with-icon .form-control {
+  padding-left: 42px;
+}
+
+/* Kolom TANGGAL / JAM MULAI / JAM SELESAI rata & rapi */
+.edit-event-page .schedule-row {
+  flex-wrap: wrap;
+}
+
+.edit-event-page .schedule-row .form-group {
+  flex: 1;
+  min-width: 170px;
+}
+
 .edit-event-page .badge-tag {
   font-size: 13px;
   padding: 6px 12px;

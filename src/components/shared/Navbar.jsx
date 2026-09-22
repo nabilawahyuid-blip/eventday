@@ -49,10 +49,16 @@ function Navbar() {
 
   return (
     <header className="navbar">
-      {/* BAGIAN KIRI: Judul dan Subtitle (Dinamis Berdasarkan Halaman) */}
-      <div className="navbar-title">
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
+      {/* BAGIAN KIRI: Logo aplikasi + Judul halaman */}
+      <div className="navbar-left">
+        <div className="navbar-brand" title="Eventday">
+          EVENT<span>DAY</span>
+        </div>
+
+        <div className="navbar-title">
+          <h1>{title}</h1>
+          <p>{subtitle}</p>
+        </div>
       </div>
 
       {/* BAGIAN KANAN: Tombol Notifikasi, Bantuan, dan Profil Admin */}
