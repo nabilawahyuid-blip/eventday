@@ -10,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
 
+import { resolveBannerUrl } from "../../utils/bannerUrl";
+
 import {
   getOrganizerDashboardMetrics,
   getOrganizerRecentEvents,
@@ -431,29 +433,7 @@ function DashboardEO() {
     }
   };
 
-  const getImageUrl = (image) => {
-    if (!image) {
-      return "";
-    }
-
-    if (
-      image.startsWith("http://") ||
-      image.startsWith("https://") ||
-      image.startsWith("data:")
-    ) {
-      return image;
-    }
-
-    const apiUrl = (
-      import.meta.env.VITE_NGROK_URL || ""
-    ).replace(/\/$/, "");
-
-    if (image.startsWith("/")) {
-      return `${apiUrl}${image}`;
-    }
-
-    return `${apiUrl}/${image}`;
-  };
+  const getImageUrl = (image) => resolveBannerUrl(image) || "";
 
   const handleDetailEvent = (eventId) => {
     if (!eventId) {

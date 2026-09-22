@@ -35,31 +35,80 @@ export const getAdminEventDetail = async (id) => {
   return apiFetch(`/api/admin/events/${encodeURIComponent(id)}`);
 };
 
+// Kontrak backend rev.14: create/update = MULTIPART (`event` JSON part +
+// `file` banner opsional). JSON polos → 400/500.
+// Kompatibilitas: backend lama (pra-rev.14) hanya terima JSON — bila
+// multipart ditolak ("Content-Type ... not supported"), fallback ke JSON
+// tanpa file (flag _bannerSkipped).
+const toEventFormData = (payload, file = null) => {
+  const formData = new FormData();
+  formData.append(
+    "event",
+    new Blob([JSON.stringify(payload)], { type: "application/json" })
+  );
+  if (file) {
+    formData.append("file", file);
+  }
+  return formData;
+};
+
+const isMultipartRejected = (err) => {
+  const msg = err?.data?.msg || err?.message || "";
+  return /content-type.*not supported/i.test(msg);
+};
+
 // ==========================================
 // CREATE EVENT
 // POST /api/admin/events → 201 AdminEventResponse + audit CREATE_EVENT
-// Body CreateEventRequest: {title, description, category, location, venueName,
-//   eventDate (ISO datetime), bannerUrl?, facilities?[], ticketTiers?[{name,price,quota}]}
+// payload = CreateEventRequest {title, description, category, location,
+//   venueName, eventDate (ISO datetime), bannerUrl?, facilities?[],
+//   ticketTiers?[{name,price,quota}]}, file = gambar banner opsional
+// rev.14: admin create → status langsung PUBLISHED.
 // ==========================================
-export const createAdminEvent = async (payload) => {
+export const createAdminEvent = async (payload, file = null) => {
   if (!payload?.title) throw new Error("Judul event wajib diisi.");
-  return apiFetch("/api/admin/events", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  try {
+    // Selalu multipart (backend rev.14 wajib multipart; file opsional)
+    return await apiFetch("/api/admin/events", {
+      method: "POST",
+      body: toEventFormData(payload, file),
+    });
+  } catch (err) {
+    if (!isMultipartRejected(err)) throw err;
+    // Backend lama hanya menerima JSON → fallback tanpa file
+    console.warn("Backend menolak multipart, fallback ke JSON tanpa file.");
+    const res = await apiFetch("/api/admin/events", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    res._bannerSkipped = true;
+    return res;
+  }
 };
 
 // ==========================================
 // UPDATE EVENT
 // PUT /api/admin/events/{id} → 200 AdminEventResponse + audit UPDATE_EVENT
-// Body sama dengan create
+// Param sama dengan create (multipart wajib; file opsional).
 // ==========================================
-export const updateAdminEvent = async (id, payload) => {
+export const updateAdminEvent = async (id, payload, file = null) => {
   if (!id) throw new Error("ID event wajib diisi.");
-  return apiFetch(`/api/admin/events/${encodeURIComponent(id)}`, {
-    method: "PUT",
-    body: JSON.stringify(payload),
-  });
+  const path = `/api/admin/events/${encodeURIComponent(id)}`;
+  try {
+    return await apiFetch(path, {
+      method: "PUT",
+      body: toEventFormData(payload, file),
+    });
+  } catch (err) {
+    if (!isMultipartRejected(err)) throw err;
+    console.warn("Backend menolak multipart, fallback ke JSON tanpa file.");
+    const res = await apiFetch(path, {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
+    if (file) res._bannerSkipped = true;
+    return res;
+  }
 };
 
 // ==========================================

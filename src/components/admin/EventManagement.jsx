@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { getAdminEvents } from "../../services/adminEventService";
 import { getAdminRecentEvents } from "../../services/adminDashboardService";
+import { resolveBannerUrl } from "../../utils/bannerUrl";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -496,6 +497,8 @@ export default function EventManagement() {
 
                     const imageClass = event?.imageClass || "event-purple";
 
+                    const bannerImage = resolveBannerUrl(event?.bannerUrl);
+
                     return (
                       <div
                         className="event-card"
@@ -506,9 +509,9 @@ export default function EventManagement() {
                         <div
                           className={`event-cover ${imageClass}`}
                           style={
-                            event?.bannerUrl
+                            bannerImage
                               ? {
-                                  backgroundImage: `url(${event.bannerUrl})`,
+                                  backgroundImage: `url("${bannerImage}")`,
                                   backgroundSize: "cover",
                                   backgroundPosition: "center",
                                 }

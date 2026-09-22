@@ -8,13 +8,10 @@ import {
   updateAdminEventStatus,
 } from "../../services/adminEventService";
 
+import { resolveBannerUrl } from "../../utils/bannerUrl";
+
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
-
-import {
-  getPublicEventDetail,
-  getOrganizerEventSalesSummary,
-} from "../../services/organizerEventService";
 
 import "./DetailEvent.css";
 
@@ -33,6 +30,11 @@ function DetailEvent() {
   const [salesLoading, setSalesLoading] = useState(false);
 
   const [error, setError] = useState("");
+
+  // Status change loading states (tombol Setujui/Tolak/Hapus)
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // =====================================================
   // LOAD EVENT DETAIL
@@ -56,7 +58,7 @@ function DetailEvent() {
         );
 
         const response =
-          await getPublicEventDetail(id);
+          await getAdminEventDetail(id);
 
         console.log(
           "EVENT DETAIL RESPONSE:",
@@ -94,6 +96,9 @@ function DetailEvent() {
         }
 
         setEvent(eventData);
+
+        // Load sales summary after event data is loaded
+        loadAdminEventSales(eventData.eventId || eventData.id);
       } catch (err) {
         console.error(
           "Gagal mengambil detail event:",
@@ -116,62 +121,31 @@ function DetailEvent() {
   // LOAD SALES SUMMARY
   // =====================================================
 
-  useEffect(() => {
-    const loadSalesSummary = async () => {
-      if (!event) {
-        return;
-      }
+  const loadAdminEventSales = async (eventId) => {
+    if (!eventId) return;
 
-      const eventId =
-        event.event_id ||
-        event.eventId ||
-        event.id;
+    try {
+      setSalesLoading(true);
+      const response = await getAdminEventSales(eventId);
 
-      if (!eventId) {
-        return;
-      }
+      const summary =
+        response?.data?.data ||
+        response?.data ||
+        response;
 
-      try {
-        setSalesLoading(true);
-
-        const response =
-          await getOrganizerEventSalesSummary(
-            eventId
-          );
-
-        console.log(
-          "SALES SUMMARY RESPONSE:",
-          response
-        );
-
-        const summary =
-          response?.data?.data ||
-          response?.data ||
-          response;
-
-        setSalesSummary(summary);
-      } catch (err) {
-        /*
-         * Sales summary bukan alasan
-         * untuk menggagalkan halaman detail.
-         *
-         * Jadi kalau endpoint sales summary
-         * gagal, halaman event tetap ditampilkan.
-         */
-
-        console.warn(
-          "Sales summary tidak tersedia:",
-          err
-        );
-
-        setSalesSummary(null);
-      } finally {
-        setSalesLoading(false);
-      }
-    };
-
-    loadSalesSummary();
-  }, [event]);
+      setSalesSummary(summary);
+    } catch (err) {
+      /*
+       * Sales summary bukan alasan untuk menggagalkan halaman detail.
+       * Jika admin tapi belum punya akses organizer, atau bukan organizer,
+       * tetap tampilkan event saja.
+       */
+      console.warn("Sales summary tidak tersedia:", err);
+      setSalesSummary(null);
+    } finally {
+      setSalesLoading(false);
+    }
+  };
 
   // =====================================================
   // FORMAT DATE
@@ -315,52 +289,66 @@ function DetailEvent() {
   };
 
   // =====================================================
+  // HANDLE APPROVE/REJECT/DELETE
+  // =====================================================
+
+  const handleApprove = async () => {
+    setApproving(true);
+    try {
+      await updateAdminEventStatus(eventId, "PUBLISHED");
+      setEvent((prev) => ({
+        ...prev,
+        status: "PUBLISHED",
+      }));
+      alert("Event disetujui & dipublikasikan!");
+      setApproving(false);
+    } catch (err) {
+      console.error("Gagal menyetujui event:", err);
+      alert("Gagal menyetujui event: " + (err?.data?.msg || err?.message));
+      setApproving(false);
+    }
+  };
+
+  const handleReject = async () => {
+    setRejecting(true);
+    try {
+      await updateAdminEventStatus(eventId, "REJECTED", "Ditolak oleh admin");
+      setEvent((prev) => ({
+        ...prev,
+        status: "REJECTED",
+      }));
+      alert("Event ditolak!");
+      setRejecting(false);
+    } catch (err) {
+      console.error("Gagal menolak event:", err);
+      alert("Gagal menolak event: " + (err?.data?.msg || err?.message));
+      setRejecting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await deleteAdminEvent(eventId);
+      setEvent(null);
+      navigate("/event-management");
+      alert("Event dihapus (soft delete).");
+      setDeleting(false);
+    } catch (err) {
+      console.error("Gagal menghapus event:", err);
+      alert("Gagal menghapus event: " + (err?.data?.msg || err?.message));
+      setDeleting(false);
+    }
+  };
+
+  // =====================================================
   // BANNER URL
   // =====================================================
 
-  const getBannerUrl = (bannerUrl) => {
-    if (!bannerUrl) {
-      return null;
-    }
-
-    /*
-     * Kalau backend mengembalikan URL lengkap:
-     *
-     * https://domain.com/uploads/banner.jpg
-     *
-     * langsung digunakan.
-     */
-
-    if (
-      bannerUrl.startsWith("http://") ||
-      bannerUrl.startsWith("https://")
-    ) {
-      return bannerUrl;
-    }
-
-    /*
-     * Kalau backend mengembalikan:
-     *
-     * /uploads/banner.jpg
-     *
-     * atau:
-     *
-     * uploads/banner.jpg
-     *
-     * kita gunakan origin dari API.
-     */
-
-    const apiUrl = (
-      import.meta.env.VITE_NGROK_URL ||
-      ""
-    ).replace(/\/$/, "");
-
-    if (bannerUrl.startsWith("/")) {
-      return `${apiUrl}${bannerUrl}`;
-    }
-
-    return `${apiUrl}/${bannerUrl}`;
-  };
+  const bannerUrl = resolveBannerUrl(
+    event?.banner_url ||
+      event?.bannerUrl
+  );
 
   // =====================================================
   // GET EVENT VALUES
@@ -408,11 +396,6 @@ function DetailEvent() {
     event?.organizer?.name ||
     event?.organizer ||
     "-";
-
-  const bannerUrl = getBannerUrl(
-    event?.banner_url ||
-      event?.bannerUrl
-  );
 
   // =====================================================
   // TICKET DATA
@@ -494,6 +477,15 @@ function DetailEvent() {
 
   const isDraft =
     normalizedStatus === "DRAFT";
+
+  // Kelas warna badge status: draft=kuning, selesai=merah, lainnya=hijau
+  const statusClass =
+    normalizedStatus === "DRAFT"
+      ? "draft"
+      : normalizedStatus === "COMPLETED" ||
+          normalizedStatus === "FINISHED"
+        ? "finished"
+        : "";
 
   // =====================================================
   // LOADING
@@ -641,6 +633,8 @@ function DetailEvent() {
                 bannerUrl
                   ? {
                       backgroundImage: `url("${bannerUrl}")`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
                     }
                   : undefined
               }
@@ -1040,12 +1034,7 @@ function DetailEvent() {
                 <button
                   type="button"
                   className="delete-button"
-                  onClick={() =>
-                    console.log(
-                      "Hapus event:",
-                      eventId
-                    )
-                  }
+                  onClick={handleDelete}
                 >
                   {deleting ? "Menghapus..." : "Hapus Event"}
                 </button>

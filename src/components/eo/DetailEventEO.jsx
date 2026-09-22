@@ -11,6 +11,8 @@ import {
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
 
+import { resolveBannerUrl } from "../../utils/bannerUrl";
+
 import {
   getOrganizerEventSalesSummary,
   getPublicEventDetail,
@@ -342,54 +344,7 @@ function DetailEventEO() {
 
   const getImageUrl = (
     image
-  ) => {
-    if (!image) {
-      return "";
-    }
-
-    const imageString =
-      String(image).trim();
-
-    if (!imageString) {
-      return "";
-    }
-
-    // URL lengkap
-    if (
-      imageString.startsWith(
-        "http://"
-      ) ||
-      imageString.startsWith(
-        "https://"
-      ) ||
-      imageString.startsWith(
-        "data:"
-      )
-    ) {
-      return imageString;
-    }
-
-    const baseUrl = (
-      import.meta.env
-        .VITE_NGROK_URL ||
-      ""
-    ).replace(/\/$/, "");
-
-    // Kalau backend mengirim
-    // relative path dan VITE_NGROK_URL
-    // belum tersedia
-    if (!baseUrl) {
-      return imageString;
-    }
-
-    if (
-      imageString.startsWith("/")
-    ) {
-      return `${baseUrl}${imageString}`;
-    }
-
-    return `${baseUrl}/${imageString}`;
-  };
+  ) => resolveBannerUrl(image) || "";
 
   // =====================================================
   // GET BANNER
