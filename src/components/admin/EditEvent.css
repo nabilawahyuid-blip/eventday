@@ -308,3 +308,91 @@ label {
     margin-left: 0;
   }
 }
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.edit-event-page .edit-content {
+  padding: 24px;
+}
+
+.edit-event-page .edit-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.edit-event-page .edit-page-header h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.edit-event-page .breadcrumb-event {
+  font-size: 13px;
+  color: #6f7482;
+}
+
+.edit-event-page .btn-primary {
+  min-height: 42px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.edit-event-page .form-card {
+  padding: 26px;
+  border-radius: 12px;
+}
+
+.edit-event-page .form-card h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #242331;
+}
+
+.edit-event-page label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.edit-event-page .form-control {
+  padding: 12px 14px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.edit-event-page .badge-tag {
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .edit-event-page .edit-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .edit-event-page .edit-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+}

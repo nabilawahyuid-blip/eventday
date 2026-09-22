@@ -227,3 +227,101 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.platform-container .platform-content {
+  padding: 24px;
+}
+
+.platform-container .platform-header {
+  margin-bottom: 22px;
+}
+
+.platform-container .platform-header h2 {
+  margin: 0 0 6px;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.platform-container .platform-header p {
+  margin: 0;
+  font-size: 14px;
+  color: #6f7482;
+}
+
+.platform-container .settings-card {
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.platform-container .tab-item {
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.platform-container .form-group label,
+.platform-container .settings-right-column > label {
+  font-size: 12px;
+  letter-spacing: 0.4px;
+}
+
+.platform-container .form-control {
+  padding: 12px 14px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.platform-container .form-hint,
+.platform-container .form-hint-title {
+  font-size: 12px;
+}
+
+.platform-container .btn-cancel,
+.platform-container .btn-save {
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.platform-container .logo-badge {
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+.platform-container .upload-box p {
+  font-size: 13px;
+}
+
+.platform-container .upload-box span {
+  font-size: 12px;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .platform-container .platform-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .platform-container .platform-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+}

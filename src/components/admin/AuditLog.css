@@ -1235,3 +1235,151 @@
     max-width: 100%;
   }
 }
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.audit-log-page .audit-log-content {
+  padding: 24px;
+}
+
+.audit-log-page .audit-log-header {
+  margin-bottom: 22px;
+}
+
+.audit-log-page .audit-log-header h1 {
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.audit-log-page .audit-log-header p {
+  font-size: 14px;
+  color: #6f7482;
+}
+
+.audit-log-page .audit-filter-row {
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.audit-log-page .audit-search-box {
+  height: 42px;
+  border-radius: 9px;
+}
+
+.audit-log-page .audit-search-box input {
+  font-size: 14px;
+}
+
+.audit-log-page .audit-date-box,
+.audit-log-page .audit-category-box {
+  height: 42px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.audit-log-page .audit-date-box input,
+.audit-log-page .audit-category-box input {
+  font-size: 13px;
+}
+
+.audit-log-page .audit-export-button {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.audit-log-page .audit-table-card {
+  border-radius: 12px;
+}
+
+.audit-log-page .audit-table th {
+  font-size: 13px;
+  color: #34394b;
+  letter-spacing: 0.2px;
+}
+
+.audit-log-page .audit-table td {
+  font-size: 13px;
+  color: #44495a;
+}
+
+.audit-log-page .audit-time strong {
+  font-size: 13px;
+}
+
+.audit-log-page .audit-time span {
+  font-size: 12px;
+}
+
+.audit-log-page .audit-actor {
+  font-size: 13px;
+}
+
+.audit-log-page .audit-detail {
+  font-size: 13px;
+}
+
+.audit-log-page .audit-status {
+  min-height: 26px;
+  padding: 0 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.audit-log-page .audit-view-button {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+}
+
+.audit-log-page .audit-result-info {
+  font-size: 13px;
+}
+
+.audit-log-page .audit-pagination {
+  gap: 6px;
+}
+
+.audit-log-page .audit-pagination button {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .audit-log-page .audit-log-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .audit-log-page .audit-log-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+
+  .audit-log-page .audit-table th {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  .audit-log-page .audit-table td {
+    font-size: 14px;
+  }
+}

@@ -1,6 +1,4 @@
-@import url(
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-);
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 
 /* =====
@@ -26,9 +24,9 @@ body,
 }
 
 body {
-  font-family: "Inter", sans-serif;
+  font-family: "Poppins", sans-serif;
 
-  background: #f7f6fc;
+  background: #f8f7fc;
 
   color: #29263a;
 }
@@ -1322,4 +1320,118 @@ body {
     font-size: 9px;
   }
 
+}
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.user-management-page .user-content {
+  padding: 24px;
+}
+
+.user-management-page .user-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.user-management-page .user-heading h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.user-management-page .user-heading p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6f7482;
+}
+
+.user-management-page .add-user-button {
+  height: 42px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 9px;
+}
+
+.user-management-page .user-search {
+  height: 42px;
+  border-radius: 9px;
+}
+
+.user-management-page .user-search input {
+  font-size: 14px;
+}
+
+.user-management-page .filter-tab {
+  font-size: 13px;
+}
+
+.user-management-page .user-table th {
+  height: 44px;
+  font-size: 13px;
+  color: #555060;
+  letter-spacing: 0.2px;
+}
+
+.user-management-page .user-table td {
+  font-size: 14px;
+  color: #393445;
+}
+
+.user-management-page .user-status {
+  gap: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.user-management-page .user-count {
+  font-size: 12px;
+}
+
+.user-management-page .page-arrow,
+.user-management-page .page-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .user-management-page .user-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .user-management-page .user-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+
+  .user-management-page .user-table th {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  .user-management-page .user-table td {
+    font-size: 14px;
+  }
 }

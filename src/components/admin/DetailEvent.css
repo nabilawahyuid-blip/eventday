@@ -1,6 +1,4 @@
-@import url(
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-);
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 
 /* =====
@@ -28,9 +26,9 @@ body,
 body {
   margin: 0;
 
-  font-family: "Inter", sans-serif;
+  font-family: "Poppins", sans-serif;
 
-  background: #f7f6fc;
+  background: #f8f7fc;
 
   color: #29263a;
 }
@@ -1075,5 +1073,147 @@ body {
 
   .extra-item {
     padding: 12px;
+  }
+}
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.detail-event-page .detail-content {
+  padding: 24px;
+}
+
+.detail-event-page .detail-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.detail-event-page .detail-page-header h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.detail-event-page .back-button {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-event-page .detail-card {
+  border-radius: 16px;
+}
+
+.detail-event-page .detail-body {
+  padding: 26px 28px 30px;
+}
+
+.detail-event-page .event-title-section h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.detail-event-page .event-status {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.detail-event-page .hero-category {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-event-page .meta-item {
+  font-size: 13px;
+  gap: 8px;
+}
+
+.detail-event-page .meta-icon {
+  font-size: 14px;
+}
+
+.detail-event-page .description-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.detail-event-page .description-section p {
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.detail-event-page .ticket-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.detail-event-page .ticket-header p {
+  font-size: 12px;
+}
+
+.detail-event-page .ticket-count strong {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.detail-event-page .ticket-count span {
+  font-size: 12px;
+}
+
+.detail-event-page .extra-item {
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.detail-event-page .extra-item span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.detail-event-page .extra-item strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.detail-event-page .edit-button,
+.detail-event-page .delete-button {
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .detail-event-page .detail-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .detail-event-page .detail-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
   }
 }

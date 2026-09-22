@@ -299,3 +299,132 @@
   font-size: 11px;
   color: #302b45;
 }
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.admin-dashboard .form-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.admin-dashboard .form-title {
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.admin-dashboard .breadcrumb-sub {
+  font-size: 13px;
+}
+
+.admin-dashboard .form-subtitle {
+  font-size: 14px;
+  color: #6f7482;
+}
+
+.admin-dashboard .btn-simpan-draft,
+.admin-dashboard .btn-buat-event {
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.admin-dashboard .tambah-event-form {
+  gap: 20px;
+}
+
+.admin-dashboard .form-section-card {
+  padding: 24px;
+  border-radius: 12px;
+}
+
+.admin-dashboard .section-card-header h3,
+.admin-dashboard .form-section-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #302b45;
+}
+
+.admin-dashboard .form-group label {
+  font-size: 12px;
+  letter-spacing: 0.4px;
+}
+
+.admin-dashboard .form-group input,
+.admin-dashboard .form-group select,
+.admin-dashboard .form-group textarea {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.admin-dashboard .form-group textarea {
+  padding: 10px 14px;
+}
+
+.admin-dashboard .btn-add-item {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-dashboard .btn-change-file,
+.admin-dashboard .btn-remove-file,
+.admin-dashboard .btn-delete-row {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-dashboard .total-kuota-box {
+  font-size: 13px;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .admin-dashboard .dashboard-wrapper {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    width: auto;
+    margin-left: 220px;
+    box-sizing: border-box;
+  }
+
+  .admin-dashboard .dashboard-wrapper .dashboard-main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    min-width: 0;
+    margin-left: 0;
+    background: transparent;
+  }
+
+  .admin-dashboard .dashboard-wrapper .dashboard-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+}
