@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
   ArrowLeft,
@@ -8,7 +8,6 @@ import {
   Building2,
   Check,
   FileText,
-  Image as ImageIcon,
 } from "lucide-react";
 
 import Sidebar from "../shared/Sidebar";
@@ -16,32 +15,201 @@ import Navbar from "../shared/Navbar";
 
 import "./DetailPengajuanPayout.css";
 
+import {
+  getAdminPayoutDetail,
+  updateAdminPayoutStatus,
+  getPayoutReconciliation,
+} from "../../services/adminPayoutService";
+
+const STATUS_MAP = {
+  PENDING: "PENDING",
+  PROCESSING: "DIPROSES",
+  APPROVED: "DISETUJUI",
+  REJECTED: "DITOLAK",
+};
+
+const formatRupiah = (value) => {
+  const num = Number(value);
+  if (Number.isNaN(num) || value === null || value === undefined) return "-";
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(num);
+};
+
+const formatDate = (iso) => {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 function DetailPengajuanPayout() {
   const navigate = useNavigate();
+  const { id } = useParams();
+
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const [decision, setDecision] = useState("");
   const [note, setNote] = useState("");
+
+  const loadDetail = async () => {
+    try {
+      setLoading(true);
+      const res = await getAdminPayoutDetail(id);
+      setData(res?.data || res);
+      setError("");
+    } catch (err) {
+      console.error("Gagal memuat detail payout:", err);
+      setError(
+        err?.data?.msg || err?.message || "Gagal memuat detail payout."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) loadDetail();
+  }, [id]);
 
   const handleBack = () => {
     navigate("/admin/pengajuan-payout");
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
+    if (!id) return;
     if (!decision) {
       alert("Silakan pilih keputusan terlebih dahulu.");
       return;
     }
 
-    if (decision === "approved") {
-      alert("Pengajuan payout disetujui.");
-    } else {
-      alert("Pengajuan payout ditolak.");
+    try {
+      setSubmitting(true);
+      const status = decision === "approved" ? "APPROVED" : "REJECTED";
+      await updateAdminPayoutStatus(id, status, note || null);
+      alert(
+        decision === "approved"
+          ? "Pengajuan payout disetujui."
+          : "Pengajuan payout ditolak."
+      );
+      navigate("/admin/pengajuan-payout");
+    } catch (err) {
+      console.error("Gagal mengubah status payout:", err);
+      alert(
+        err?.data?.msg || err?.message || "Gagal mengubah status payout."
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleViewDocument = (documentName) => {
-    alert(`Membuka dokumen: ${documentName}`);
+  const handleViewDocument = async () => {
+    if (!id) return;
+    try {
+      const res = await getPayoutReconciliation(id);
+      const url =
+        res?.data?.reconciliationDocumentUrl ||
+        res?.reconciliationDocumentUrl ||
+        res?.data?.url ||
+        res?.url ||
+        res?.data?.fileUrl;
+      if (url) {
+        window.open(url, "_blank");
+      } else {
+        alert("URL dokumen rekonsiliasi tidak tersedia di respons.");
+      }
+    } catch (err) {
+      console.error("Gagal mengambil dokumen rekonsiliasi:", err);
+      alert(
+        err?.data?.msg ||
+          err?.message ||
+          "Gagal mengambil dokumen rekonsiliasi."
+      );
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="detail-payout-page">
+        <Sidebar />
+        <main className="detail-payout-main">
+          <Navbar />
+          <div className="detail-payout-content detail-payout-empty">
+            Memuat detail payout...
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="detail-payout-page">
+        <Sidebar />
+        <main className="detail-payout-main">
+          <Navbar />
+          <div className="detail-payout-content detail-payout-empty">
+            {error || "Payout tidak ditemukan."}
+            <button
+              type="button"
+              className="decision-button reject"
+              onClick={() => navigate("/admin/pengajuan-payout")}
+            >
+              Kembali
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const rawStatus = String(data.status || "PENDING").toUpperCase();
+  const statusLabel = STATUS_MAP[rawStatus] || data.status;
+
+  const eventName =
+    data.event?.title ||
+    data.eventTitle ||
+    data.eventName ||
+    "-";
+
+  const organizerName =
+    data.organizerName ||
+    data.organizer?.name ||
+    data.user?.name ||
+    data.userName ||
+    "-";
+
+  const gross = Number(
+    data.amount ?? data.grossAmount ?? data.totalAmount ?? 0
+  );
+
+  const fee = Number(
+    data.platformFee ?? (Number.isNaN(gross) ? 0 : gross * 0.05)
+  );
+
+  const net = Number.isNaN(gross) ? 0 : Math.max(gross - fee, 0);
+
+  const totalSold = data.totalTicketsSold ?? data.ticketsSold ?? "-";
+  const quota = data.ticketQuota ?? data.quota ?? "-";
+
+  const bankName = data.bankName || "-";
+  const accountNumber = data.accountNumber || data.bankAccountNumber || "-";
+  const accountName = data.accountName || data.bankAccountName || "-";
+  const bankVerified = data.bankVerified ?? data.isBankVerified ?? false;
+
+  const requestDate =
+    data.createdAt || data.requestDate || data.submittedAt;
 
   return (
     <div className="detail-payout-page">
@@ -87,17 +255,17 @@ function DetailPengajuanPayout() {
               </h1>
 
               <span className="detail-payout-status">
-                PENDING
+                {statusLabel}
               </span>
 
               <span className="detail-payout-id">
-                #PO-20241025-089
+                #{data.id || "-"}
               </span>
 
             </div>
 
             <span className="detail-payout-request-date">
-              Diajukan pada 25 Okt 2024, 14:30 WIB
+              Diajukan pada {formatDate(requestDate)}
             </span>
 
           </div>
@@ -148,7 +316,22 @@ function DetailPengajuanPayout() {
                     </span>
 
                     <strong>
-                      Jakarta Music Festival 2024
+                      {eventName}
+                    </strong>
+
+                  </div>
+
+
+                  {/* ORGANIZER */}
+
+                  <div className="detail-field">
+
+                    <span className="detail-field-label">
+                      EVENT ORGANIZER
+                    </span>
+
+                    <strong>
+                      {organizerName}
                     </strong>
 
                   </div>
@@ -163,8 +346,9 @@ function DetailPengajuanPayout() {
                     </span>
 
                     <strong>
-                      1.450 / 1.500{" "}
-                      <small>(96.6%)</small>
+                      {totalSold !== "-" && quota !== "-"
+                        ? `${totalSold} / ${quota}`
+                        : totalSold}
                     </strong>
 
                   </div>
@@ -175,11 +359,11 @@ function DetailPengajuanPayout() {
                   <div className="detail-field">
 
                     <span className="detail-field-label">
-                      TOTAL PENDAPATAN KOTOR
+                      TOTAL DANA DIAJUKAN
                     </span>
 
                     <strong>
-                      Rp 725.000.000
+                      {formatRupiah(gross)}
                     </strong>
 
                   </div>
@@ -190,11 +374,11 @@ function DetailPengajuanPayout() {
                   <div className="detail-field">
 
                     <span className="detail-field-label">
-                      BIAYA LAYANAN / PLATFORM FEE (5%)
+                      BIAYA LAYANAN / PLATFORM FEE
                     </span>
 
                     <strong className="fee-value">
-                      -Rp 36.250.000
+                      -{formatRupiah(fee)}
                     </strong>
 
                   </div>
@@ -209,7 +393,7 @@ function DetailPengajuanPayout() {
                   <div className="net-payout-info">
 
                     <span>
-                      TOTAL DANA DIAJUKAN (NET PAYOUT)
+                      TOTAL DANA BERSIH (NET PAYOUT)
                     </span>
 
                     <small>
@@ -219,7 +403,7 @@ function DetailPengajuanPayout() {
                   </div>
 
                   <strong>
-                    Rp 688.750.000
+                    {formatRupiah(net)}
                   </strong>
 
                 </div>
@@ -257,11 +441,11 @@ function DetailPengajuanPayout() {
                     <div className="bank-name">
 
                       <span className="bank-logo">
-                        BCA
+                        {bankName.slice(0, 3).toUpperCase()}
                       </span>
 
                       <strong>
-                        Bank Central Asia (BCA)
+                        {bankName}
                       </strong>
 
                     </div>
@@ -278,7 +462,7 @@ function DetailPengajuanPayout() {
                     </span>
 
                     <strong className="normal-value">
-                      8927 1638 29
+                      {accountNumber}
                     </strong>
 
                   </div>
@@ -293,7 +477,7 @@ function DetailPengajuanPayout() {
                     </span>
 
                     <strong>
-                      PT HARMONI MUSIK INDONESIA
+                      {accountName}
                     </strong>
 
                   </div>
@@ -307,14 +491,22 @@ function DetailPengajuanPayout() {
                       STATUS VALIDASI REKENING
                     </span>
 
-                    <span className="verified-badge">
+                    <span
+                      className={
+                        bankVerified
+                          ? "verified-badge"
+                          : "unverified-badge"
+                      }
+                    >
 
                       <Check
                         size={14}
                         strokeWidth={2}
                       />
 
-                      Terverifikasi Otomatis
+                      {bankVerified
+                        ? "Terverifikasi Otomatis"
+                        : "Belum Terverifikasi"}
 
                     </span>
 
@@ -344,7 +536,7 @@ function DetailPengajuanPayout() {
 
                 <div className="document-list">
 
-                  {/* DOCUMENT 1 */}
+                  {/* DOCUMENT REKONSILIASI */}
 
                   <div className="document-item">
 
@@ -362,11 +554,11 @@ function DetailPengajuanPayout() {
                       <div className="document-info">
 
                         <strong>
-                          Laporan Rekonsiliasi Penjualan Tiket.pdf
+                          Laporan Rekonsiliasi Penjualan Tiket
                         </strong>
 
                         <span>
-                          PDF • 3.2 MB
+                          Dokumen resmi payout
                         </span>
 
                       </div>
@@ -375,97 +567,7 @@ function DetailPengajuanPayout() {
 
                     <button
                       type="button"
-                      onClick={() =>
-                        handleViewDocument(
-                          "Laporan Rekonsiliasi Penjualan Tiket.pdf"
-                        )
-                      }
-                    >
-                      Lihat Dokumen
-                    </button>
-
-                  </div>
-
-
-                  {/* DOCUMENT 2 */}
-
-                  <div className="document-item">
-
-                    <div className="document-item-left">
-
-                      <div className="document-icon pdf-icon">
-
-                        <FileText
-                          size={17}
-                          strokeWidth={1.8}
-                        />
-
-                      </div>
-
-                      <div className="document-info">
-
-                        <strong>
-                          Surat Permohonan Pencairan Dana Resmi.pdf
-                        </strong>
-
-                        <span>
-                          PDF • 1.1 MB
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleViewDocument(
-                          "Surat Permohonan Pencairan Dana Resmi.pdf"
-                        )
-                      }
-                    >
-                      Lihat Dokumen
-                    </button>
-
-                  </div>
-
-
-                  {/* DOCUMENT 3 */}
-
-                  <div className="document-item">
-
-                    <div className="document-item-left">
-
-                      <div className="document-icon image-icon">
-
-                        <ImageIcon
-                          size={17}
-                          strokeWidth={1.8}
-                        />
-
-                      </div>
-
-                      <div className="document-info">
-
-                        <strong>
-                          Buku Rekening Perusahaan (Validasi).png
-                        </strong>
-
-                        <span>
-                          PNG • 850 KB
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleViewDocument(
-                          "Buku Rekening Perusahaan (Validasi).png"
-                        )
-                      }
+                      onClick={handleViewDocument}
                     >
                       Lihat Dokumen
                     </button>
@@ -563,9 +665,12 @@ function DetailPengajuanPayout() {
                 type="button"
                 className="confirm-decision-button"
                 onClick={handleConfirm}
+                disabled={submitting}
               >
                 <span>
-                  Konfirmasi Keputusan
+                  {submitting
+                    ? "Memproses..."
+                    : "Konfirmasi Keputusan"}
                 </span>
 
                 <ArrowRight

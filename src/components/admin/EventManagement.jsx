@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Search, Calendar, Clock, MapPin } from "lucide-react";
 
 import { getAdminEvents } from "../../services/adminEventService";
 import { getAdminRecentEvents } from "../../services/adminDashboardService";
@@ -350,7 +351,7 @@ export default function EventManagement() {
               <div className="event-search">
 
                 <span>
-                  ⌕
+                  <Search size={15} strokeWidth={2} />
                 </span>
 
                 <input
@@ -546,7 +547,7 @@ export default function EventManagement() {
                           <div className="event-detail">
 
                             <span>
-                              ▣
+                              <Calendar size={13} strokeWidth={2} />
                             </span>
 
                             {date}
@@ -557,7 +558,7 @@ export default function EventManagement() {
                           <div className="event-detail">
 
                             <span>
-                              ◷
+                              <Clock size={13} strokeWidth={2} />
                             </span>
 
                             {time}
@@ -568,7 +569,7 @@ export default function EventManagement() {
                           <div className="event-detail">
 
                             <span>
-                              ◉
+                              <MapPin size={13} strokeWidth={2} />
                             </span>
 
                             {location}

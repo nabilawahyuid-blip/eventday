@@ -4,6 +4,7 @@
 // Response dibungkus ApiResponse {msg, status, data}
 // List/detail: data = Page {content, page, size, totalElements, totalPages} / AdminEventResponse
 import { apiFetch, toQueryString } from "./api";
+import { downloadFromEndpoint } from "./downloadExport";
 
 // ==========================================
 // LIST EVENTS (paginated + filter)
@@ -112,7 +113,32 @@ export const updateAdminEvent = async (id, payload, file = null) => {
 };
 
 // ==========================================
-// UPDATE STATUS EVENT
+// APPROVE EVENT
+// PATCH /api/admin/events/{id}/approve
+// Transisi: PENDING_APPROVAL → PUBLISHED
+// ==========================================
+export const approveAdminEvent = async (id) => {
+  if (!id) throw new Error("ID event wajib diisi.");
+  return apiFetch(`/api/admin/events/${encodeURIComponent(id)}/approve`, {
+    method: "PATCH",
+  });
+};
+
+// ==========================================
+// REJECT EVENT (dengan alasan opsional)
+// PATCH /api/admin/events/{id}/reject
+// Transisi: PENDING_APPROVAL → REJECTED
+// ==========================================
+export const rejectAdminEvent = async (id, rejectionReason = null) => {
+  if (!id) throw new Error("ID event wajib diisi.");
+  return apiFetch(`/api/admin/events/${encodeURIComponent(id)}/reject`, {
+    method: "PATCH",
+    body: JSON.stringify({ rejectionReason }),
+  });
+};
+
+// ==========================================
+// UPDATE STATUS EVENT (legacy — rev.14 memakai approve/reject)
 // PATCH /api/admin/events/{id}/status
 // Body: {status: DRAFT/PUBLISHED/CANCELLED/DELETED, rejectionReason?}
 // ==========================================
@@ -153,24 +179,11 @@ export const getAdminEventSales = async (id) => {
 // Wajib pakai blob — apiFetch (JSON) tidak cocok, jadi fetch manual.
 // ==========================================
 export const exportAdminEvents = async (params = {}) => {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`/api/admin/events/export${toQueryString(params)}`, {
-    credentials: "include",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `Export gagal (${res.status})`);
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "events.csv";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  return downloadFromEndpoint(
+    "/api/admin/events/export",
+    params,
+    "events.csv"
+  );
 };
 
 export const adminEventService = {
@@ -179,6 +192,8 @@ export const adminEventService = {
   createAdminEvent,
   updateAdminEvent,
   updateAdminEventStatus,
+  approveAdminEvent,
+  rejectAdminEvent,
   deleteAdminEvent,
   getAdminEventSales,
   exportAdminEvents,
