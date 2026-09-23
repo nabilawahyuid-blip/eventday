@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
 import {
   getTransactionHistory,
   getMyTicketsAuth,
 } from "../../services/ticketService";
+import { getEvents } from "../../services/eventService";
 import "./MyTicket.css";
 
 const ORDER_STATUS_LABEL = {
@@ -31,6 +33,7 @@ const ORDER_STATUS_TYPE = {
 const FILTER_OPTIONS = [
   { key: "all", label: "Semua" },
   { key: "PAID", label: "Terbayar" },
+  { key: "PENDING", label: "Menunggu Pembayaran" },
   { key: "REFUND_REQUESTED", label: "Refund Diajukan" },
   { key: "REFUNDED", label: "Refund Disetujui" },
   { key: "EXPIRED", label: "Kedaluwarsa" },
@@ -54,6 +57,8 @@ function formatDate(dateStr) {
     return dateStr;
   }
 }
+
+const PENDING_STATUSES = ["PENDING", "WAITING_PAYMENT"];
 
 function MyTicket() {
   const navigate = useNavigate();
@@ -115,6 +120,8 @@ function MyTicket() {
     fetchOrders();
   }, []);
 
+  const isPendingOrder = (order) => PENDING_STATUSES.includes(order?.status);
+
   const filteredOrders = (filter === "all"
     ? orders
     : orders.filter((o) => o.status === filter)
@@ -124,8 +131,38 @@ function MyTicket() {
     return db - da;
   });
 
-  const handleOrderClick = (order) => {
-    navigate(`/customer/orders/${order.orderId}`);
+  const handleOrderClick = async (order) => {
+    if (isPendingOrder(order)) {
+      // Cari eventId berdasarkan eventTitle
+      try {
+        const res = await getEvents({ search: order.eventTitle, limit: 1 });
+        // Handle berbagai struktur response: array langsung, pagination wrapper {data: [], items: [], content: []}
+        const rawData = res?.data;
+        const eventsArray = Array.isArray(rawData)
+          ? rawData
+          : (rawData?.data || rawData?.items || rawData?.content || []);
+        const foundEvent = eventsArray[0];
+        if (!foundEvent?.id) throw new Error("Event tidak ditemukan");
+
+        navigate(`/checkout/${foundEvent.id}`, {
+          state: { 
+            orderId: order.orderId, 
+            resume: true,
+            ticketTierName: order.ticketTierName  // kirim tier yang dipilih
+          },
+        });
+      } catch (err) {
+        console.error("[MyTicket] Gagal cari eventId:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Lanjut Bayar",
+          text: "Tidak dapat menemukan event yang sesuai. Hubungi support.",
+          confirmButtonColor: "#5548dc",
+        });
+      }
+    } else {
+      navigate(`/customer/orders/${order.orderId}`);
+    }
   };
 
   return (
@@ -201,12 +238,13 @@ function OrderCard({ order, onClick }) {
   const statusKey = order.status || "PENDING";
   const label = ORDER_STATUS_LABEL[statusKey] || statusKey;
   const type = ORDER_STATUS_TYPE[statusKey] || "pending";
+  const isPending = PENDING_STATUSES.includes(statusKey);
 
   return (
     <article
       className="my-ticket-card"
-      onClick={() => onClick(order)}
-      style={{ cursor: "pointer" }}
+      onClick={() => !isPending && onClick(order)}
+      style={{ cursor: isPending ? "default" : "pointer" }}
     >
       <div className="ticket-image-section">
         <div className="ticket-image-placeholder" />
@@ -253,7 +291,13 @@ function OrderCard({ order, onClick }) {
         <div className="ticket-card-divider"></div>
 
         <div className="ticket-card-action">
-          <button>Lihat Detail</button>
+          {isPending ? (
+            <button className="resume-payment-btn" onClick={(e) => { e.stopPropagation(); onClick(order); }}>
+              Lanjut Bayar
+            </button>
+          ) : (
+            <button onClick={(e) => { e.stopPropagation(); onClick(order); }}>Lihat Detail</button>
+          )}
         </div>
       </div>
     </article>
