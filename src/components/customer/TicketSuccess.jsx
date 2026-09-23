@@ -46,8 +46,8 @@ function TicketSuccess() {
         const allTickets = res?.data || [];
 
         const filtered = orderId
-          ? allTickets.filter((t) => t.orderId === orderId)
-          : allTickets;
+          ? allTickets.filter((t) => String(t.orderId) === String(orderId))
+          : [];
 
         if (filtered.length > 0) {
           setTickets(filtered);
@@ -69,21 +69,23 @@ function TicketSuccess() {
   const displayTickets = fromMyTicket && singleTicket
     ? [singleTicket]
     : usedFallback
-    ? stateBuyers.map((b, i) => ({
-        ticketCode: `TK-${String(i + 1).padStart(3, "0")}`,
-        attendeeName: b.name || b.fullName || "-",
-        categoryName: stateEvent?.ticketName || stateEvent?.category || "-",
-        checkInStatus: "UNREDEEMED",
-        eventTitle: stateEvent?.title || "Event",
-        eventDate: stateEvent?.date || "-",
-        venueName: stateEvent?.location || stateEvent?.venue || "-",
-        orderId: orderId || null,
-        eventImageUrl: stateEvent?.image || null,
-      }))
+    ? orderId
+      ? stateBuyers.map((b, i) => ({
+          ticketCode: `TK-${String(i + 1).padStart(3, "0")}`,
+          attendeeName: b.name || b.fullName || "-",
+          categoryName: stateEvent?.ticketName || stateEvent?.category || "-",
+          checkInStatus: "UNREDEEMED",
+          eventTitle: stateEvent?.title || "Event",
+          eventDate: stateEvent?.date || "-",
+          venueName: stateEvent?.location || stateEvent?.venue || "-",
+          orderId: orderId || null,
+          eventImageUrl: stateEvent?.image || null,
+        }))
+      : []
     : tickets;
 
   useEffect(() => {
-    if (fromMyTicket || displayTickets.length === 0) return;
+    if (fromMyTicket || usedFallback || displayTickets.length === 0) return;
 
     const stored = JSON.parse(localStorage.getItem("issued_tickets") || "[]");
     const existingCodes = new Set(stored.map((t) => t.ticketCode || t.ticketItemId));
@@ -96,7 +98,7 @@ function TicketSuccess() {
         JSON.stringify([...stored, ...newTickets])
       );
     }
-  }, [displayTickets, fromMyTicket]);
+  }, [displayTickets, fromMyTicket, usedFallback]);
 
   const downloadQR = (ticketCode) => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(

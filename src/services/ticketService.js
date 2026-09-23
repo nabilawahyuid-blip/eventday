@@ -10,10 +10,14 @@ export const getMyTickets = (userEmail) =>
     `/api/tickets/my-tickets?userEmail=${encodeURIComponent(userEmail)}`,
   );
 
+// Daftar tiket saya (auth-based, tanpa param) → data: [TicketItem...]
+// GET /api/tickets/my-tickets
+export const getMyTicketsAuth = () =>
+  apiFetch("/api/tickets/my-tickets");
+
 // Detail E-Ticket → data: TicketDetailResponse
 // GET /api/tickets/issued-detail?ticketCode=<uuid>&userEmail=<email>
 export const getTicketDetail = (ticketCode, userEmail) => {
-  // Ambil email dari parameter, atau otomatis ambil dari localStorage sebagai fallback
   const email =
     userEmail ||
     localStorage.getItem("email") ||
@@ -27,6 +31,11 @@ export const getTicketDetail = (ticketCode, userEmail) => {
   return apiFetch(`/api/tickets/issued-detail?${queryParams.toString()}`);
 };
 
+// Riwayat transaksi → data: [{orderId,orderNumber,eventTitle,ticketTierName,quantity,totalAmount,status,createdAt,expiredAt}]
+// GET /api/transactions/history
+export const getTransactionHistory = () =>
+  apiFetch("/api/transactions/history");
+
 // Scan tiket (untuk admin/EO) → data: {status: "TIKET_VALID"|"TIKET_SUDAH_DIPAKAI", message}
 // POST /api/tickets/scan  body: { ticketCode: "<uuid>" }
 export const scanTicket = (ticketCode) =>
@@ -37,6 +46,8 @@ export const scanTicket = (ticketCode) =>
 
 export const ticketService = {
   getMyTickets,
+  getMyTicketsAuth,
   getTicketDetail,
+  getTransactionHistory,
   scanTicket,
 };

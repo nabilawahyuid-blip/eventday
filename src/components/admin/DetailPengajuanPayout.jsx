@@ -194,6 +194,7 @@ function DetailPengajuanPayout() {
     "-";
 
   const organizerName =
+    data.nameOrganizer ||
     data.organizerName ||
     data.organizer?.name ||
     data.user?.name ||
@@ -627,7 +628,9 @@ function DetailPengajuanPayout() {
                   className={`decision-button reject ${
                     decision === "rejected"
                       ? "selected"
-                      : ""
+                      : decision === "approved"
+                        ? "deselected"
+                        : ""
                   }`}
                   onClick={() =>
                     setDecision("rejected")
@@ -641,7 +644,9 @@ function DetailPengajuanPayout() {
                   className={`decision-button approve ${
                     decision === "approved"
                       ? "selected"
-                      : ""
+                      : decision === "rejected"
+                        ? "deselected"
+                        : ""
                   }`}
                   onClick={() =>
                     setDecision("approved")

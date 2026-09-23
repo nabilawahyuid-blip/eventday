@@ -55,6 +55,7 @@ const getItem = (item) => {
       item.event?.name ||
       "-",
     organizer:
+      item.nameOrganizer ||
       item.organizerName ||
       item.companyName ||
       item.organizer?.name ||
@@ -80,9 +81,20 @@ function PengajuanPayout() {
       setLoading(true);
       const res = await getAdminPayouts("");
       const data = res?.data || res;
-      setPayoutData(
-        Array.isArray(data) ? data : data?.content || []
+      const list = Array.isArray(data) ? data : data?.content || [];
+
+      // Hanya tampilkan pengajuan PAYOUT EO.
+      // Backend masih men-sharing tabel refund_requests sehingga record refund
+      // customer ikut masuk (organizerId null + nameOrganizer "-").
+      // Baris tanpa organizer = refund → dibuang dari list payout.
+      const payoutsOnly = list.filter(
+        (item) =>
+          item.organizerId != null &&
+          item.nameOrganizer &&
+          item.nameOrganizer !== "-"
       );
+
+      setPayoutData(payoutsOnly);
       setError("");
     } catch (err) {
       console.error("Gagal memuat payout:", err);
