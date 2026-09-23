@@ -796,11 +796,46 @@
   color: #ee4141;
 }
 
-.decision-button.reject:hover,
-.decision-button.reject.selected {
+.decision-button.reject:hover {
   background: #fff2f2;
 
   border-color: #ef5555;
+}
+
+/* Tolak terpilih → merah full + teks putih */
+.decision-button.reject.selected {
+  background: #ee4141;
+
+  border-color: #ee4141;
+
+  color: #ffffff;
+
+  box-shadow: 0 4px 9px rgba(238, 65, 65, 0.22);
+}
+
+.decision-button.reject.selected:hover {
+  background: #df3636;
+
+  border-color: #df3636;
+}
+
+/* Tolak TIDAK terpilih (Setujui aktif) → putih saja */
+.decision-button.reject.deselected {
+  background: #ffffff;
+
+  border-color: #e4e7ee;
+
+  color: #a0a6b5;
+
+  box-shadow: none;
+}
+
+.decision-button.reject.deselected:hover {
+  background: #f6f7f9;
+
+  border-color: #d5d8e0;
+
+  color: #8b92a5;
 }
 
 
@@ -817,11 +852,33 @@
     0 4px 9px rgba(91, 82, 239, 0.18);
 }
 
-.decision-button.approve:hover,
+.decision-button.approve:hover {
+  background: #4d44df;
+
+  border-color: #4d44df;
+}
+
 .decision-button.approve.selected {
   background: #4d44df;
 
   border-color: #4d44df;
+}
+
+/* Setujui TIDAK terpilih (Tolak aktif) → putih saja */
+.decision-button.approve.deselected {
+  background: #ffffff;
+
+  border-color: #d5d8e0;
+
+  color: #7a8194;
+
+  box-shadow: none;
+}
+
+.decision-button.approve.deselected:hover {
+  background: #f6f7f9;
+
+  border-color: #c9cdd8;
 }
 
 

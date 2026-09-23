@@ -12,7 +12,19 @@ import {
 
 import { resolveBannerUrl } from "../../utils/bannerUrl";
 
-import { Calendar, Clock, MapPin } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Tag,
+  Building2,
+  Hash,
+  Info,
+  Check,
+  X,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -372,6 +384,13 @@ function DetailEvent() {
     event?.category ||
     "Event";
 
+  // "MUSIC_FESTIVAL" → "Music Festival" untuk tampilan
+  const categoryLabel = String(category)
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) =>
+      c.toUpperCase()
+    );
+
   const description =
     event?.description ||
     "Belum ada deskripsi event.";
@@ -479,15 +498,45 @@ function DetailEvent() {
   const normalizedStatus =
     String(status).toUpperCase();
 
-  const isDraft =
-    normalizedStatus === "DRAFT";
+  // Status yang masih bisa disetujui/ditolak admin:
+  // - DRAFT            (draft lokal, belum diajukan)
+  // - PENDING_APPROVAL (diajukan EO, menunggu persetujuan)
+  // - REJECTED         (bisa diajukan ulang oleh admin)
+  const showApprovalActions = [
+    "DRAFT",
+    "PENDING_APPROVAL",
+    "REJECTED",
+  ].includes(normalizedStatus);
 
-  // Kelas warna badge status: draft=kuning, selesai=merah, lainnya=hijau
+  // Label ramah untuk badge "Status Event"
+  const statusLabel =
+    normalizedStatus === "PUBLISHED"
+      ? "Aktif"
+      : normalizedStatus === "DRAFT"
+        ? "Draft"
+        : normalizedStatus === "PENDING_APPROVAL"
+          ? "Menunggu Persetujuan"
+          : normalizedStatus === "REJECTED"
+            ? "Ditolak"
+            : normalizedStatus === "COMPLETED" ||
+                normalizedStatus === "FINISHED"
+              ? "Selesai"
+              : normalizedStatus === "CANCELLED"
+                ? "Dibatalkan"
+                : normalizedStatus === "DELETED"
+                  ? "Dihapus"
+                  : normalizedStatus || "-";
+
+  // Kelas warna badge status: draft/kuning (belum tayang),
+  // finished/merah (selesai/ditolak/dibatalkan), lainnya hijau
   const statusClass =
-    normalizedStatus === "DRAFT"
+    normalizedStatus === "DRAFT" ||
+    normalizedStatus === "PENDING_APPROVAL"
       ? "draft"
       : normalizedStatus === "COMPLETED" ||
-          normalizedStatus === "FINISHED"
+          normalizedStatus === "FINISHED" ||
+          normalizedStatus === "REJECTED" ||
+          normalizedStatus === "CANCELLED"
         ? "finished"
         : "";
 
@@ -597,10 +646,15 @@ function DetailEvent() {
 
           <div className="detail-page-header">
 
-            <div>
+            <div className="detail-page-title-wrap">
               <h2>
                 Detail Event
               </h2>
+
+              <p className="detail-page-subtitle">
+                Informasi lengkap event beserta
+                data penjualan tiket.
+              </p>
             </div>
 
             <button
@@ -654,13 +708,13 @@ function DetailEvent() {
               <span
                 className={`event-status ${statusClass}`}
               >
-                ● {normalizedStatus}
+                ● {statusLabel}
               </span>
 
               {/* CATEGORY */}
 
               <span className="hero-category">
-                {category}
+                {categoryLabel}
               </span>
 
               {/* FALLBACK VISUAL */}
@@ -764,6 +818,34 @@ function DetailEvent() {
               </div>
 
               {/* =================================================
+                  STATUS NOTICE
+              ================================================= */}
+
+              {showApprovalActions && (
+                <div
+                  className={`status-notice ${
+                    normalizedStatus ===
+                    "REJECTED"
+                      ? "notice-rejected"
+                      : "notice-waiting"
+                  }`}
+                >
+                  <Info size={16} strokeWidth={2} />
+
+                  <span>
+                    {normalizedStatus ===
+                    "REJECTED"
+                      ? "Event ini ditolak dan tidak tampil di publik. Setujui untuk mempublikasikannya kembali."
+                      : normalizedStatus ===
+                        "PENDING_APPROVAL"
+                        ? "Event ini diajukan dan sedang menunggu persetujuan. Setujui agar tampil di halaman pembeli."
+                        : "Event ini masih berupa draf dan belum tampil untuk pembeli."}
+                  </span>
+
+                </div>
+              )}
+
+              {/* =================================================
                   DIVIDER
               ================================================= */}
 
@@ -819,7 +901,8 @@ function DetailEvent() {
                         </strong>
 
                         <span>
-                          / {totalTickets}
+                          dari {totalTickets}{" "}
+                          tiket
                         </span>
                       </>
                     )}
@@ -851,7 +934,7 @@ function DetailEvent() {
                     {Math.round(
                       percentage
                     )}
-                    % Terjual
+                    % dari kuota terjual
                   </span>
 
                 </div>
@@ -959,37 +1042,57 @@ function DetailEvent() {
 
                 <div className="extra-item">
 
-                  <span>
-                    Penyelenggara
+                  <span className="extra-icon">
+                    <Building2 size={15} strokeWidth={2} />
                   </span>
 
-                  <strong>
-                    {organizer}
-                  </strong>
+                  <div>
+                    <span>Penyelenggara</span>
+
+                    <strong>{organizer}</strong>
+                  </div>
 
                 </div>
 
                 <div className="extra-item">
 
-                  <span>
-                    Status Event
+                  <span className="extra-icon">
+                    <Tag size={15} strokeWidth={2} />
                   </span>
 
-                  <strong>
-                    {normalizedStatus}
-                  </strong>
+                  <div>
+                    <span>Kategori</span>
+
+                    <strong>{categoryLabel}</strong>
+                  </div>
 
                 </div>
 
                 <div className="extra-item">
 
-                  <span>
-                    Event ID
+                  <span className="extra-icon">
+                    <Info size={15} strokeWidth={2} />
                   </span>
 
-                  <strong>
-                    {eventId}
-                  </strong>
+                  <div>
+                    <span>Status Event</span>
+
+                    <strong>{statusLabel}</strong>
+                  </div>
+
+                </div>
+
+                <div className="extra-item">
+
+                  <span className="extra-icon">
+                    <Hash size={15} strokeWidth={2} />
+                  </span>
+
+                  <div>
+                    <span>Event ID</span>
+
+                    <strong>{eventId}</strong>
+                  </div>
 
                 </div>
 
@@ -1001,47 +1104,65 @@ function DetailEvent() {
 
               <div className="detail-actions">
 
-                {isDraft && (
-                  <>
+                {showApprovalActions && (
+                  <div className="approval-group">
+
                     <button
                       type="button"
-                      className="edit-button"
+                      className="approve-button"
                       onClick={handleApprove}
                       disabled={approving || rejecting}
                     >
-                      {approving ? "Menyetujui..." : "Setujui"}
+                      <Check size={16} strokeWidth={2.5} />
+                      {approving
+                        ? "Menyetujui..."
+                        : "Setujui"}
                     </button>
 
                     <button
                       type="button"
-                      className="delete-button"
+                      className="reject-button"
                       onClick={handleReject}
                       disabled={approving || rejecting}
                     >
-                      {rejecting ? "Menolak..." : "Tolak"}
+                      <X size={16} strokeWidth={2.5} />
+                      {rejecting
+                        ? "Menolak..."
+                        : "Tolak"}
                     </button>
-                  </>
+
+                  </div>
                 )}
 
-                <button
-                  type="button"
-                  className="edit-button"
-                  onClick={() =>
-                    navigate(
-                      `/admin/event/edit/${eventId}`
-                    )
-                  }
-                >
-                  Edit Event
-                </button>
+                <div className="manage-group">
 
-                <button
-                  type="button"
-                  className="delete-button"
-                  onClick={handleDelete}
-                >
-                  {deleting ? "Menghapus..." : "Hapus Event"}
-                </button>
+                  <button
+                    type="button"
+                    className="edit-button"
+                    onClick={() =>
+                      navigate(
+                        `/admin/event/edit/${eventId}`
+                      )
+                    }
+                    disabled={approving || rejecting}
+                  >
+                    <Pencil size={15} strokeWidth={2} />
+                    Edit Event
+                  </button>
+
+                  <button
+                    type="button"
+                    className="delete-button"
+                    onClick={handleDelete}
+                    disabled={deleting}
+                  >
+                    <Trash2 size={15} strokeWidth={2} />
+                    {deleting
+                      ? "Menghapus..."
+                      : "Hapus Event"}
+                  </button>
+
+                </div>
 
               </div>
 

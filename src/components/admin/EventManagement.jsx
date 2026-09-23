@@ -48,18 +48,24 @@ export default function EventManagement() {
         ? "Aktif"
         : rawStatus === "DRAFT"
           ? "Draft"
-          : rawStatus === "CANCELLED"
-            ? "Dibatalkan"
-            : rawStatus === "DELETED"
-              ? "Dihapus"
-              : rawStatus === "COMPLETED"
-                ? "Selesai"
-                : item?.status || "Aktif";
+          : rawStatus === "PENDING_APPROVAL"
+            ? "Menunggu"
+            : rawStatus === "REJECTED"
+              ? "Ditolak"
+              : rawStatus === "CANCELLED"
+                ? "Dibatalkan"
+                : rawStatus === "DELETED"
+                  ? "Dihapus"
+                  : rawStatus === "COMPLETED"
+                    ? "Selesai"
+                    : item?.status || "Aktif";
 
     const statusClass =
-      rawStatus === "DRAFT"
+      rawStatus === "DRAFT" || rawStatus === "PENDING_APPROVAL"
         ? "draft"
-        : rawStatus === "COMPLETED" || rawStatus === "CANCELLED"
+        : rawStatus === "COMPLETED" ||
+            rawStatus === "CANCELLED" ||
+            rawStatus === "REJECTED"
           ? "finished"
           : "active";
 
@@ -389,6 +395,14 @@ export default function EventManagement() {
                   Draft
                 </option>
 
+                <option value="Menunggu">
+                  Menunggu
+                </option>
+
+                <option value="Ditolak">
+                  Ditolak
+                </option>
+
                 <option value="Selesai">
                   Selesai
                 </option>
@@ -413,20 +427,32 @@ export default function EventManagement() {
                   Music Festival
                 </option>
 
+                <option value="Conference">
+                  Conference
+                </option>
+
+                <option value="Exhibition">
+                  Exhibition
+                </option>
+
+                <option value="Culinary">
+                  Culinary
+                </option>
+
+                <option value="Konser">
+                  Konser
+                </option>
+
+                <option value="Seminar">
+                  Seminar
+                </option>
+
+                <option value="Workshop">
+                  Workshop
+                </option>
+
                 <option value="Technology">
                   Technology
-                </option>
-
-                <option value="Entertainment">
-                  Entertainment
-                </option>
-
-                <option value="Community">
-                  Community
-                </option>
-
-                <option value="Art & Culture">
-                  Art & Culture
                 </option>
 
               </select>

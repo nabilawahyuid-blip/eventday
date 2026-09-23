@@ -14,10 +14,10 @@ import {
   FiSearch, FiUploadCloud, FiTrash2, FiPlus, FiX
 } from "react-icons/fi";
 
-const toBackendCategory = (label) => {
-  if (!label) return "MUSIC_FESTIVAL";
-  return String(label).trim().toUpperCase().replace(/[\s-]+/g, "_");
-};
+// Kategori event diambil dari data backend (GET /api/events):
+// MUSIC_FESTIVAL / CONFERENCE / EXHIBITION / CULINARY / Konser / Seminar /
+// Workshop / TECHNOLOGY. Nilai dikirim apa adanya (exact) agar tersimpan
+// identik dengan yang sudah ada di backend.
 
 function EditEvent() {
   const navigate = useNavigate();
@@ -51,7 +51,10 @@ function EditEvent() {
       setNamaEvent(ev.title || "");
       setDeskripsi(ev.description || "");
       setLokasi(ev.venueName || "");
-      setKategori(String(ev.category || "MUSIC_FESTIVAL").replace(/_/g, " "));
+      // Nilai kategori dikirim apa adanya dari backend (bisa "MUSIC_FESTIVAL"
+      // atau "Seminar"/"Konser"/dst) — jangan ganti _ jadi spasi agar tetap
+      // cocok dengan <option> di bawah.
+      setKategori(String(ev.category || "MUSIC_FESTIVAL"));
       setBannerUrl(ev.bannerUrl || "");
       if (ev.startDate) {
         const d = new Date(ev.startDate);
@@ -131,7 +134,7 @@ function EditEvent() {
       const payload = {
         title: namaEvent.trim(),
         description: deskripsi.trim() || namaEvent.trim(),
-        category: toBackendCategory(kategori),
+        category: kategori.trim() || "MUSIC_FESTIVAL",
         location: lokasi.trim(),
         venueName: lokasi.trim(),
         eventDate,
@@ -229,11 +232,14 @@ function EditEvent() {
                     value={kategori}
                     onChange={(e) => setKategori(e.target.value)}
                   >
-                    <option value="MUSIC FESTIVAL">Music Festival</option>
+                    <option value="MUSIC_FESTIVAL">Music Festival</option>
                     <option value="CONFERENCE">Conference</option>
                     <option value="EXHIBITION">Exhibition</option>
                     <option value="CULINARY">Culinary</option>
-                    <option value="SEMINAR">Seminar</option>
+                    <option value="Konser">Konser</option>
+                    <option value="Seminar">Seminar</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="TECHNOLOGY">Technology</option>
                   </select>
                 </div>
               </div>
