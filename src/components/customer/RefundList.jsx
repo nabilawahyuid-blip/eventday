@@ -1,86 +1,90 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
+import { getRefundHistory, getRefundOrderSummary } from "../../services/refundService";
 import "./RefundList.css";
+
+const STATUS_LABEL = {
+  PENDING: "Menunggu",
+  APPROVED: "Disetujui",
+  REJECTED: "Ditolak",
+};
+
+const STATUS_TYPE = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+};
 
 function RefundList() {
   const navigate = useNavigate();
+  const [refunds, setRefunds] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("all");
 
-  const refunds = [
-    {
-      id: 1,
-      title: "Judul Event",
-      date: "15 Aug 2024 • 19:00 (Waktu Pengajuan)",
-      status: "Disetujui",
-      statusType: "approved",
-    },
-    {
-      id: 2,
-      title: "Judul Event",
-      date: "16 Aug 2024 • 19:00 (Waktu Pengajuan)",
-      status: "Pending",
-      statusType: "pending",
-    },
-    {
-      id: 3,
-      title: "Judul Event",
-      date: "17 Aug 2024 • 19:00 (Waktu Pengajuan)",
-      status: "Ditolak",
-      statusType: "rejected",
-    },
-    {
-      id: 4,
-      title: "Judul Event",
-      date: "16 Aug 2024 • 19:00 (Waktu Pengajuan)",
-      status: "Pending",
-      statusType: "pending",
-    },
-  ];
+  useEffect(() => {
+    const fetchRefunds = async () => {
+      try {
+        const res = await getRefundHistory();
+        const data = res?.data || [];
+
+        const enriched = await Promise.all(
+          data.map(async (refund) => {
+            if (!refund.orderId) return refund;
+            try {
+              const summaryRes = await getRefundOrderSummary(refund.orderId);
+              return { ...refund, orderSummary: summaryRes?.data || null };
+            } catch {
+              return refund;
+            }
+          }),
+        );
+
+        setRefunds(enriched);
+      } catch (err) {
+        console.error("[RefundList] Error:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRefunds();
+  }, []);
 
   const handleDetailRefund = (refund) => {
-    navigate(`/customer/refund/${refund.id}`);
+    navigate(`/customer/refund/${refund.refundId}`);
   };
 
   const handleNavigation = (path) => {
     navigate(path);
   };
 
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "-";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const filteredRefunds =
+    filter === "all"
+      ? refunds
+      : refunds.filter(
+          (r) => (r.status || "PENDING") === filter,
+        );
+
   return (
     <div className="refund-list-page">
       <NavbarCustomer />
-
-      <header className="refund-list-mobile-header">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          aria-label="Kembali"
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-
-        <div className="refund-list-mobile-logo">
-          EVENT<span>DAY</span>
-        </div>
-
-        <div className="refund-list-mobile-actions">
-          <button type="button" aria-label="Cari">
-            <svg viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="6.5" />
-              <path d="m16 16 5 5" />
-            </svg>
-          </button>
-
-          <button type="button" aria-label="Menu">
-            <svg viewBox="0 0 24 24">
-              <path d="M4 7h16" />
-              <path d="M4 12h16" />
-              <path d="M4 17h16" />
-            </svg>
-          </button>
-        </div>
-      </header>
 
       <main className="refund-list-container">
         <section className="refund-list-heading">
@@ -95,17 +99,59 @@ function RefundList() {
           <p className="desktop-refund-list-description">
             Berikut List Refund Anda
           </p>
+
+          <div className="refund-list-filters">
+            {[
+              { key: "all", label: "Semua" },
+              { key: "APPROVED", label: "Disetujui" },
+              { key: "PENDING", label: "Pending" },
+              { key: "REJECTED", label: "Ditolak" },
+            ].map((f) => (
+              <button
+                key={f.key}
+                className={`refund-filter-btn ${filter === f.key ? "active" : ""}`}
+                onClick={() => setFilter(f.key)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </section>
 
-        <section className="refund-list-grid">
-          {refunds.map((refund) => (
-            <RefundCard
-              key={refund.id}
-              refund={refund}
-              onDetail={handleDetailRefund}
-            />
-          ))}
-        </section>
+        {loading ? (
+          <div className="refund-list-loading">
+            <div className="refund-list-spinner" />
+            <span>Memuat riwayat refund...</span>
+          </div>
+        ) : refunds.length === 0 ? (
+          <div className="refund-list-empty">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M4 12a8 8 0 1 0 2.35-5.65" />
+              <path d="M4 5v5h5" />
+              <path d="M12 8v4l3 2" />
+            </svg>
+            <p>Belum ada riwayat refund</p>
+            <button onClick={() => navigate("/customer/dashboard")}>
+              Kembali ke Beranda
+            </button>
+          </div>
+        ) : (
+          <section className="refund-list-grid">
+            {filteredRefunds.map((refund) => (
+              <RefundCard
+                key={refund.refundId}
+                refund={refund}
+                onDetail={handleDetailRefund}
+                formatDate={formatDate}
+              />
+            ))}
+          </section>
+        )}
       </main>
 
       <nav className="refund-list-mobile-bottom-nav">
@@ -182,37 +228,34 @@ function RefundList() {
   );
 }
 
-function RefundCard({ refund, onDetail }) {
+function RefundCard({ refund, onDetail, formatDate }) {
+  const eventTitle = refund.orderSummary?.eventTitle || "Event";
+
   return (
-    <article className="refund-card">
-      <div className="refund-card-top">
-        <h2>{refund.title}</h2>
+    <article className="rl-card">
+      <div className="rl-card-header">
+        <div className="rl-card-header-top">
+          <h2>{eventTitle}</h2>
 
-        <span
-          className={`refund-status ${refund.statusType}`}
-        >
-          {refund.status}
-        </span>
+          <span
+            className={`rl-status-badge ${STATUS_TYPE[refund.status] || "pending"}`}
+          >
+            {STATUS_LABEL[refund.status] || refund.status}
+          </span>
+        </div>
+
+        <div className="rl-card-date">
+          <svg viewBox="0 0 24 24">
+            <rect x="4" y="5" width="16" height="15" rx="2" />
+            <path d="M8 3v4M16 3v4M4 10h16" />
+          </svg>
+          <span>{formatDate(refund.createdAt)}</span>
+        </div>
       </div>
 
-      <div className="refund-date">
-        <svg viewBox="0 0 24 24">
-          <rect
-            x="4"
-            y="5"
-            width="16"
-            height="15"
-            rx="2"
-          />
-          <path d="M8 3v4M16 3v4M4 10h16" />
-        </svg>
+      <div className="rl-card-divider"></div>
 
-        <span>{refund.date}</span>
-      </div>
-
-      <div className="refund-card-divider"></div>
-
-      <div className="refund-card-action">
+      <div className="rl-card-action">
         <button onClick={() => onDetail(refund)}>
           Detail Refund
         </button>

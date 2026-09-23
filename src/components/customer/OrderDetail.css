@@ -1,0 +1,579 @@
+.order-detail-page {
+  min-height: 100vh;
+  background: #f8f9fc;
+  color: #17233c;
+  display: flex;
+  flex-direction: column;
+}
+
+.order-detail-container {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+/* Loading & Empty */
+.order-detail-loading,
+.order-detail-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 20px;
+  color: #5c6475;
+  font-size: 15px;
+}
+
+.order-detail-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e5ec;
+  border-top-color: #5146e5;
+  border-radius: 50%;
+  animation: orderSpin 0.8s linear infinite;
+}
+
+@keyframes orderSpin {
+  to { transform: rotate(360deg); }
+}
+
+.order-detail-empty svg {
+  width: 56px;
+  height: 56px;
+  color: #c0c7d6;
+}
+
+.order-detail-empty button {
+  margin-top: 8px;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #5a55ed;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.order-detail-empty button:hover {
+  background: #4944d8;
+}
+
+/* Header */
+.order-detail-header {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #d7e3fa;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 7px 18px rgba(29, 52, 91, 0.1);
+  margin-bottom: 28px;
+}
+
+.order-header-info {
+  padding: 22px 24px 16px;
+  background: #eff4ff;
+  border-bottom: 1px solid #d7e3fa;
+}
+
+.order-header-info h1 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: #17233c;
+}
+
+.order-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.order-status-badge {
+  min-height: 28px;
+  padding: 4px 14px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.order-status-badge.paid {
+  background: #b8f4d0;
+  border: 1px solid #73dca0;
+  color: #17683f;
+}
+
+.order-status-badge.pending {
+  background: #ffe57a;
+  border: 1px solid #f1c934;
+  color: #8b5b00;
+}
+
+.order-status-badge.refund-requested {
+  background: #ffe57a;
+  border: 1px solid #f1c934;
+  color: #8b5b00;
+}
+
+.order-status-badge.refunded {
+  background: #b8f4d0;
+  border: 1px solid #73dca0;
+  color: #17683f;
+}
+
+.order-status-badge.rejected {
+  background: #ffb1b7;
+  border: 1px solid #f07882;
+  color: #a31e28;
+}
+
+.order-status-badge.expired {
+  background: #e2e5ec;
+  border: 1px solid #c0c7d6;
+  color: #5c6475;
+}
+
+.order-status-badge.cancelled {
+  background: #e2e5ec;
+  border: 1px solid #c0c7d6;
+  color: #5c6475;
+}
+
+.order-number-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #657493;
+}
+
+.order-header-details {
+  padding: 16px 24px 18px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.order-detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #657493;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.order-detail-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #17233c;
+}
+
+.order-detail-value.order-total {
+  color: #5146e5;
+  font-size: 17px;
+}
+
+/* Tickets section */
+.order-tickets-section {
+  margin-bottom: 28px;
+}
+
+.order-tickets-section h2 {
+  margin: 0 0 18px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #17233c;
+}
+
+.order-no-tickets {
+  padding: 40px 20px;
+  text-align: center;
+  color: #657493;
+  font-size: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e5ec;
+  border-radius: 12px;
+}
+
+.order-tickets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Ticket result cards — reuse TicketSuccess styles */
+.order-tickets-list .ticket-result-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #d7e3fa;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 7px 18px rgba(29, 52, 91, 0.1);
+}
+
+.order-tickets-list .ticket-event-header {
+  min-height: 128px;
+  padding: 22px 24px;
+  background: #eff4ff;
+  border-bottom: 1px solid #d7e3fa;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-sizing: border-box;
+}
+
+.order-tickets-list .ticket-event-info h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.3;
+  font-weight: 700;
+  color: #17233c;
+}
+
+.order-tickets-list .ticket-info-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 7px;
+  color: #5c6475;
+  font-size: 14px;
+}
+
+.order-tickets-list .ticket-info-row svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: #4e5362;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.order-tickets-list .ticket-usage-badge {
+  display: none;
+}
+
+.order-tickets-list .ticket-qr-section {
+  min-height: 345px;
+  padding: 24px 20px 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.order-tickets-list .qr-wrapper {
+  width: 192px;
+  height: 192px;
+  padding: 5px;
+  border: 2px dashed #cbd5ee;
+  border-radius: 7px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.order-tickets-list .qr-wrapper img {
+  width: 178px;
+  height: 178px;
+  object-fit: contain;
+  display: block;
+}
+
+.order-tickets-list .qr-instruction {
+  margin: 10px 0 8px;
+  color: #5f6575;
+  font-size: 13px;
+  text-align: center;
+}
+
+.order-tickets-list .ticket-code {
+  min-width: 148px;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 7px;
+  background: #eff4ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #17233c;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  box-sizing: border-box;
+}
+
+.order-tickets-list .download-qr-button {
+  margin-top: 10px;
+  height: 34px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 6px;
+  background: #5146e5;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.order-tickets-list .download-qr-button:hover {
+  background: #4338ca;
+}
+
+.order-tickets-list .download-qr-button svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.order-tickets-list .ticket-detail-section {
+  border-top: 1px solid #d7e3fa;
+  padding: 17px 24px 18px;
+  box-sizing: border-box;
+}
+
+.order-tickets-list .ticket-detail-row {
+  min-height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 14px;
+  color: #5c6475;
+}
+
+.order-tickets-list .ticket-detail-row strong {
+  color: #344054;
+  font-weight: 600;
+  text-align: right;
+}
+
+.order-tickets-list .ticket-detail-row .payment-status {
+  color: #249456;
+}
+
+.order-tickets-list .ticket-detail-row .payment-status.used {
+  color: #249456;
+}
+
+.order-tickets-list .ticket-detail-row .payment-status.unused {
+  color: #8b5b00;
+}
+
+.order-tickets-list .ticket-detail-row .payment-status.expired {
+  color: #a31e28;
+}
+
+.order-tickets-list .ticket-placeholder-section {
+  padding: 32px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #d7e3fa;
+}
+
+.order-tickets-list .ticket-placeholder-section p {
+  margin: 0;
+  color: #657493;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* Actions */
+.order-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.order-actions button {
+  flex: 1;
+  height: 50px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.order-btn-back {
+  border: 1px solid #d7e3fa;
+  background: #ffffff;
+  color: #5146e5;
+}
+
+.order-btn-back:hover {
+  background: #f2f1ff;
+}
+
+.order-btn-refund {
+  border: 1px solid #f04444;
+  background: #ffffff;
+  color: #e32f2f;
+}
+
+.order-btn-refund:hover {
+  background: #fff5f5;
+}
+
+/* Footer */
+.order-detail-footer {
+  margin-top: auto;
+  min-height: 72px;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  color: #969cab;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 768px) {
+  .order-detail-container {
+    max-width: 100%;
+    padding: 28px 25px 110px;
+  }
+
+  .order-header-info h1 {
+    font-size: 20px;
+  }
+
+  .order-header-details {
+    gap: 20px;
+    padding: 14px 20px 16px;
+  }
+
+  .order-detail-label {
+    font-size: 11px;
+  }
+
+  .order-detail-value {
+    font-size: 14px;
+  }
+
+  .order-detail-value.order-total {
+    font-size: 16px;
+  }
+
+  .order-tickets-list .ticket-result-card {
+    border-radius: 11px;
+  }
+
+  .order-tickets-list .ticket-event-header {
+    min-height: 110px;
+    padding: 18px 20px;
+  }
+
+  .order-tickets-list .ticket-event-info h2 {
+    font-size: 18px;
+  }
+
+  .order-tickets-list .ticket-info-row {
+    font-size: 13px;
+    margin-top: 5px;
+  }
+
+  .order-tickets-list .ticket-qr-section {
+    min-height: 300px;
+    padding: 20px 16px 22px;
+  }
+
+  .order-tickets-list .qr-wrapper {
+    width: 170px;
+    height: 170px;
+  }
+
+  .order-tickets-list .qr-wrapper img {
+    width: 156px;
+    height: 156px;
+  }
+
+  .order-tickets-list .ticket-code {
+    min-width: 130px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .order-tickets-list .download-qr-button {
+    height: 32px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  .order-tickets-list .ticket-detail-section {
+    padding: 14px 20px;
+  }
+
+  .order-tickets-list .ticket-detail-row {
+    min-height: 26px;
+    font-size: 13px;
+  }
+
+  .order-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .order-actions button {
+    height: 48px;
+  }
+
+  .order-detail-footer {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .order-detail-container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .order-header-info {
+    padding: 18px 18px 14px;
+  }
+
+  .order-header-details {
+    padding: 12px 18px 14px;
+  }
+
+  .order-tickets-list .ticket-event-header {
+    padding: 16px 18px;
+  }
+
+  .order-tickets-list .ticket-detail-section {
+    padding: 12px 18px;
+  }
+}
