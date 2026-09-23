@@ -40,7 +40,7 @@ export const getAdminTicketDetail = async (id) => {
 // ==========================================
 export const generateAdminTickets = async (orderId) => {
   if (!orderId) throw new Error("orderId wajib diisi.");
-  return apiFetch("/api/admin/tickets", {
+  return apiFetch("/api/admin/tickets/generate", {
     method: "POST",
     body: JSON.stringify({ orderId }),
   });

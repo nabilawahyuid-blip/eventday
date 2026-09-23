@@ -66,6 +66,16 @@ function DetailPengajuanPayout() {
   const loadDetail = async () => {
     try {
       setLoading(true);
+
+      // ID wajib ada & tidak boleh "undefined"
+      // (bug id dari daftar payout yang sebelumnya
+      // mengirim "undefined" ke URL → backend 400 "Invalid UUID").
+      if (!id || String(id).toLowerCase() === "undefined") {
+        throw new Error(
+          "ID payout tidak valid pada URL."
+        );
+      }
+
       const res = await getAdminPayoutDetail(id);
       setData(res?.data || res);
       setError("");
@@ -259,7 +269,12 @@ function DetailPengajuanPayout() {
               </span>
 
               <span className="detail-payout-id">
-                #{data.id || "-"}
+                #
+                {data.id ||
+                  data.payout_id ||
+                  data.request_id ||
+                  data.payoutId ||
+                  "-"}
               </span>
 
             </div>

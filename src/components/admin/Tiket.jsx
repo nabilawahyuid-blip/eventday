@@ -6,6 +6,7 @@ import "./Tiket.css";
 import {
   getAdminTickets,
   exportAdminTickets,
+  generateAdminTickets,
   checkinAdminTicket,
   revokeAdminTicket,
 } from "../../services/adminTicketService";
@@ -138,8 +139,26 @@ function Tiket() {
     }
   };
 
-  const handleAddTicketType = () => {
-    alert("Generate tiket membutuhkan orderId. Gunakan endpoint POST /api/admin/tickets (body: orderId).");
+  const handleGenerateTickets = async () => {
+    // Meminta orderId dari pengguna
+    const orderId = prompt(
+      "Masukkan Order ID (UUID) untuk generate tiket:\n\nContoh: 123e4567-e89b-12d3-a456-426614174000"
+    );
+
+    // Guard: jika user Batal (cancel) atau tidak menginput apa-apa
+    if (!orderId || orderId.trim() === "") {
+      alert("Generate dibatalkan — Order ID tidak valid atau belum dipilih.");
+      return;
+    }
+
+    try {
+      await generateAdminTickets(orderId.trim());
+      alert("Generate tiket berhasil! Order ID: " + orderId.trim());
+      // Refresh daftar tiket agar tampil yang baru
+      await loadTickets();
+    } catch (err) {
+      alert("Gagal generate tiket: " + (err?.data?.msg || err?.message || "Unknown error"));
+    }
   };
 
   const handleDetail = (ticket) => {
@@ -209,10 +228,10 @@ function Tiket() {
               <button
                 type="button"
                 className="add-ticket-button"
-                onClick={handleAddTicketType}
+                onClick={handleGenerateTickets}
               >
                 <span>+</span>
-                New Ticket Type
+                Generate Tiket dari Order
               </button>
 
             </div>

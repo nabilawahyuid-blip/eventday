@@ -43,7 +43,11 @@ const getItem = (item) => {
   };
 
   return {
-    id: item.id,
+    id:
+      item.id ||
+      item.payout_id ||
+      item.request_id ||
+      item.payoutId,
     event:
       item.event?.title ||
       item.eventTitle ||
@@ -107,7 +111,17 @@ function PengajuanPayout() {
   );
 
   const handleDetail = (item) => {
-    navigate(`/admin/pengajuan-payout/${item.id}`);
+    if (!item?.id) {
+      alert(
+        "ID payout tidak ditemukan pada data."
+      );
+
+      return;
+    }
+
+    navigate(
+      `/admin/pengajuan-payout/${item.id}`
+    );
   };
 
   return (
