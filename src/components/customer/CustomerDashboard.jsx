@@ -1,10 +1,21 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+
 import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
-import { getEvents, getFeaturedEvents } from "../../services/eventService";
+
+import {
+  getEvents,
+  getFeaturedEvents,
+} from "../../services/eventService";
+
 import { resolveBannerUrl } from "../../utils/bannerUrl";
+
 import "./CustomerDashboard.css";
+
+// =====================================================
+// CATEGORY PARAMETER
+// =====================================================
 
 const CATEGORY_PARAMS = {
   Semua: "",
@@ -13,6 +24,10 @@ const CATEGORY_PARAMS = {
   Pameran: "EXHIBITION",
   Kuliner: "CULINARY",
 };
+
+// =====================================================
+// FALLBACK HERO
+// =====================================================
 
 const FALLBACK_HERO = [
   {
@@ -37,6 +52,10 @@ const FALLBACK_HERO = [
       "https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?auto=format&fit=crop&w=1600&q=80",
   },
 ];
+
+// =====================================================
+// FALLBACK EVENTS
+// =====================================================
 
 const FALLBACK_EVENTS = [
   {
@@ -107,9 +126,16 @@ const FALLBACK_EVENTS = [
   },
 ];
 
+// =====================================================
+// FORMAT PRICE
+// =====================================================
+
 const formatPrice = (price) => {
   const value = Number(price);
-  if (!value) return "Rp 0";
+
+  if (!value) {
+    return "Rp 0";
+  }
 
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -118,155 +144,404 @@ const formatPrice = (price) => {
   }).format(value);
 };
 
+// =====================================================
+// DASHBOARD CUSTOMER
+// =====================================================
+
 function DashboardCustomer() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
+  // =====================================================
+  // SEARCH
+  // =====================================================
+
   const urlSearch = searchParams.get("search") || "";
 
-  const [activeCategory, setActiveCategory] = useState("Semua");
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [search, setSearch] = useState(urlSearch);
-  const [debouncedSearch, setDebouncedSearch] = useState(urlSearch);
+  // =====================================================
+  // STATE
+  // =====================================================
 
-  const [heroSlides, setHeroSlides] = useState(FALLBACK_HERO);
-  const [events, setEvents] = useState(FALLBACK_EVENTS);
-  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] =
+    useState("Semua");
+
+  const [currentSlide, setCurrentSlide] =
+    useState(0);
+
+  const [search, setSearch] =
+    useState(urlSearch);
+
+  const [debouncedSearch, setDebouncedSearch] =
+    useState(urlSearch);
+
+  // =====================================================
+  // DATA
+  // =====================================================
+
+  const [heroSlides, setHeroSlides] =
+    useState(FALLBACK_HERO);
+
+  const [events, setEvents] =
+    useState(FALLBACK_EVENTS);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  // =====================================================
+  // SYNC URL SEARCH
+  // =====================================================
 
   useEffect(() => {
     setSearch(urlSearch);
     setDebouncedSearch(urlSearch);
   }, [urlSearch]);
 
+  // =====================================================
+  // DEBOUNCE SEARCH
+  // =====================================================
+
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search.trim()), 400);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(
+      () => {
+        setDebouncedSearch(
+          search.trim()
+        );
+      },
+      400
+    );
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [search]);
+
+  // =====================================================
+  // LOAD HERO
+  // =====================================================
 
   const loadHero = useCallback(async () => {
     try {
-      const res = await getFeaturedEvents();
-      console.log("HERO RESPONSE:", JSON.stringify(res, null, 2));
-      const list = res?.data?.content || res?.data || [];
+      const res =
+        await getFeaturedEvents();
 
-      if (Array.isArray(list) && list.length) {
+      console.log(
+        "HERO RESPONSE:",
+        JSON.stringify(
+          res,
+          null,
+          2
+        )
+      );
+
+      const list =
+        res?.data?.content ||
+        res?.data ||
+        [];
+
+      if (
+        Array.isArray(list) &&
+        list.length
+      ) {
         setHeroSlides(
           list.map((ev) => ({
             id: ev.id,
             title: ev.title,
-            location: ev.location || ev.dateDisplay || "",
+            location:
+              ev.location ||
+              ev.dateDisplay ||
+              "",
             image:
-              resolveBannerUrl(ev.bannerUrl || ev.image) ||
+              resolveBannerUrl(
+                ev.bannerUrl ||
+                ev.image
+              ) ||
               FALLBACK_HERO[0].image,
-          })),
+          }))
         );
       }
     } catch (err) {
-      console.error("Gagal memuat hero:", err);
+      console.error(
+        "Gagal memuat hero:",
+        err
+      );
     }
   }, []);
 
-  const loadEvents = useCallback(async () => {
-    setLoading(true);
+  // =====================================================
+  // LOAD EVENTS
+  // =====================================================
 
-    try {
-      const params = {};
+  const loadEvents = useCallback(
+    async () => {
+      setLoading(true);
 
-      if (CATEGORY_PARAMS[activeCategory]) {
-        params.category = CATEGORY_PARAMS[activeCategory];
+      try {
+        // =================================================
+        // PAGINATION
+        //
+        // Backend saat ini:
+        // size = 12
+        // totalElements = 23
+        // totalPages = 2
+        //
+        // Kita naikkan size supaya "Semua"
+        // mengambil seluruh event.
+        // =================================================
+
+        const params = {
+          page: 0,
+          size: 100,
+        };
+
+        // =================================================
+        // CATEGORY FILTER
+        // =================================================
+
+        if (
+          CATEGORY_PARAMS[
+            activeCategory
+          ]
+        ) {
+          params.category =
+            CATEGORY_PARAMS[
+              activeCategory
+            ];
+        }
+
+        // =================================================
+        // SEARCH FILTER
+        // =================================================
+
+        if (debouncedSearch) {
+          params.search =
+            debouncedSearch;
+        }
+
+        console.log(
+          "EVENT PARAMS:",
+          params
+        );
+
+        const res =
+          await getEvents(params);
+
+        console.log(
+          "EVENTS RESPONSE:",
+          JSON.stringify(
+            res,
+            null,
+            2
+          )
+        );
+
+        // =================================================
+        // GET CONTENT
+        // =================================================
+
+        const list =
+          res?.data?.content ||
+          res?.data ||
+          [];
+
+        // =================================================
+        // SET EVENTS
+        // =================================================
+
+        setEvents(
+          Array.isArray(list)
+            ? list.map((ev) => ({
+                ...ev,
+
+                image:
+                  resolveBannerUrl(
+                    ev.bannerUrl ||
+                    ev.image
+                  ) ||
+                  ev.image,
+              }))
+            : []
+        );
+      } catch (err) {
+        console.error(
+          "Gagal memuat event:",
+          err
+        );
+
+        setEvents(
+          FALLBACK_EVENTS
+        );
+      } finally {
+        setLoading(false);
       }
+    },
+    [
+      activeCategory,
+      debouncedSearch,
+    ]
+  );
 
-      if (debouncedSearch) {
-        params.search = debouncedSearch;
-      }
-
-      const res = await getEvents(params);
-      console.log("EVENTS RESPONSE:", JSON.stringify(res, null, 2));
-      const list = res?.data?.content || res?.data || [];
-
-      setEvents(
-        Array.isArray(list)
-          ? list.map((ev) => ({
-              ...ev,
-              image:
-                resolveBannerUrl(ev.bannerUrl || ev.image) || ev.image,
-            }))
-          : []
-      );
-    } catch (err) {
-      console.error("Gagal memuat event:", err);
-      setEvents(FALLBACK_EVENTS);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeCategory, debouncedSearch]);
+  // =====================================================
+  // LOAD HERO
+  // =====================================================
 
   useEffect(() => {
     loadHero();
   }, [loadHero]);
 
+  // =====================================================
+  // LOAD EVENT
+  // =====================================================
+
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
 
-  const categories = ["Semua", "Musik", "Konferensi", "Pameran", "Kuliner"];
+  // =====================================================
+  // CATEGORY LIST
+  // =====================================================
+
+  const categories = [
+    "Semua",
+    "Musik",
+    "Konferensi",
+    "Pameran",
+    "Kuliner",
+  ];
+
+  // =====================================================
+  // NEXT SLIDE
+  // =====================================================
 
   const nextSlide = (e) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev === heroSlides.length - 1 ? 0 : prev + 1));
+
+    setCurrentSlide(
+      (prev) =>
+        prev ===
+        heroSlides.length - 1
+          ? 0
+          : prev + 1
+    );
   };
+
+  // =====================================================
+  // PREVIOUS SLIDE
+  // =====================================================
 
   const previousSlide = (e) => {
     e.stopPropagation();
-    setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1));
+
+    setCurrentSlide(
+      (prev) =>
+        prev === 0
+          ? heroSlides.length - 1
+          : prev - 1
+    );
   };
 
-  const handleGoToDetail = (eventId) => {
+  // =====================================================
+  // GO TO DETAIL
+  // =====================================================
+
+  const handleGoToDetail = (
+    eventId
+  ) => {
     if (eventId) {
-      navigate(`/customer/event/${eventId}`);
+      navigate(
+        `/customer/event/${eventId}`
+      );
     }
   };
 
-  const handleBuyTicket = (e, event) => {
+  // =====================================================
+  // BUY TICKET
+  // =====================================================
+
+  const handleBuyTicket = (
+    e,
+    event
+  ) => {
     e.stopPropagation();
-    handleGoToDetail(event.id);
+
+    handleGoToDetail(
+      event.id
+    );
   };
 
-  const currentHero = heroSlides[currentSlide];
+  // =====================================================
+  // CURRENT HERO
+  // =====================================================
+
+  const currentHero =
+    heroSlides[currentSlide];
+
+  // =====================================================
+  // RENDER
+  // =====================================================
 
   return (
     <div className="customer-dashboard">
+
       <NavbarCustomer />
 
       <main className="customer-content">
+
+        {/* =================================================
+            MOBILE LOCATION
+        ================================================= */}
+
         <div className="mobile-location">
+
           <button className="location-button">
+
             <svg viewBox="0 0 24 24">
+
               <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-              <circle cx="12" cy="10" r="2.5" />
+
+              <circle
+                cx="12"
+                cy="10"
+                r="2.5"
+              />
+
             </svg>
 
-            <span>Lokasi</span>
+            <span>
+              Lokasi
+            </span>
+
           </button>
+
         </div>
 
-        {/* HERO SECTION - Klukable ke Event Detail */}
+        {/* =================================================
+            HERO SECTION
+        ================================================= */}
+
         <section className="hero-section">
+
           <div
             className="hero-slider"
             style={{
               backgroundImage: `url(${currentHero?.image})`,
               cursor: "pointer",
             }}
-            onClick={() => handleGoToDetail(currentHero?.id)}
+            onClick={() =>
+              handleGoToDetail(
+                currentHero?.id
+              )
+            }
           >
+
             <div className="hero-overlay"></div>
 
             {heroSlides.length > 1 && (
               <>
                 <button
                   className="hero-arrow hero-arrow-left"
-                  onClick={previousSlide}
+                  onClick={
+                    previousSlide
+                  }
                   aria-label="Previous"
                 >
                   ‹
@@ -283,146 +558,343 @@ function DashboardCustomer() {
             )}
 
             <div className="hero-content">
-              <span className="hero-badge">SOROTAN UTAMA</span>
 
-              <h1>{currentHero?.title}</h1>
+              <span className="hero-badge">
+                SOROTAN UTAMA
+              </span>
+
+              <h1>
+                {currentHero?.title}
+              </h1>
 
               <div className="hero-location">
+
                 <svg viewBox="0 0 24 24">
+
                   <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                  <circle cx="12" cy="10" r="2.5" />
+
+                  <circle
+                    cx="12"
+                    cy="10"
+                    r="2.5"
+                  />
+
                 </svg>
 
-                <span>{currentHero?.location}</span>
+                <span>
+                  {currentHero?.location}
+                </span>
+
               </div>
+
             </div>
 
             <div className="hero-dots">
-              {heroSlides.map((_, index) => (
-                <button
-                  key={index}
-                  className={index === currentSlide ? "active" : ""}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setCurrentSlide(index);
-                  }}
-                  aria-label={`Slide ${index + 1}`}
-                />
-              ))}
+
+              {heroSlides.map(
+                (_, index) => (
+                  <button
+                    key={index}
+                    className={
+                      index ===
+                      currentSlide
+                        ? "active"
+                        : ""
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setCurrentSlide(
+                        index
+                      );
+                    }}
+                    aria-label={`Slide ${
+                      index + 1
+                    }`}
+                  />
+                )
+              )}
+
             </div>
+
           </div>
+
         </section>
+
+        {/* =================================================
+            LATEST EVENTS
+        ================================================= */}
 
         <section className="latest-section">
+
           <div className="latest-header">
+
             <div>
-              <h2>Terkini</h2>
+
+              <h2>
+                Terkini
+              </h2>
 
               <p>
-                Jelajahi konser, festival musik, pameran, dan konferensi paling
+                Jelajahi konser,
+                festival musik,
+                pameran, dan
+                konferensi paling
                 seru.
               </p>
+
             </div>
+
+            {/* =================================================
+                CATEGORY FILTER
+            ================================================= */}
 
             <div className="category-filter">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  className={activeCategory === category ? "active" : ""}
-                  onClick={() => setActiveCategory(category)}
-                >
-                  {category}
-                </button>
-              ))}
+
+              {categories.map(
+                (category) => (
+
+                  <button
+                    key={category}
+                    className={
+                      activeCategory ===
+                      category
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setActiveCategory(
+                        category
+                      )
+                    }
+                  >
+                    {category}
+                  </button>
+
+                )
+              )}
+
             </div>
+
           </div>
+
+          {/* =================================================
+              MOBILE SECTION TITLE
+          ================================================= */}
 
           <div className="mobile-section-title">
-            <h2>Terkini</h2>
+
+            <h2>
+              Terkini
+            </h2>
+
           </div>
 
-          {loading && <div className="dashboard-loading">Memuat event...</div>}
+          {/* =================================================
+              LOADING
+          ================================================= */}
+
+          {loading && (
+            <div className="dashboard-loading">
+              Memuat event...
+            </div>
+          )}
+
+          {/* =================================================
+              EVENT GRID
+          ================================================= */}
 
           {!loading && (
+
             <div className="event-grid">
-              {events.map((event) => (
-                <article
-                  className="event-card"
-                  key={event.id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleGoToDetail(event.id)}
-                >
-                  <div className="event-image-wrapper">
-                    <img src={event.image} alt={event.title} />
 
-                    <div className="event-image-overlay"></div>
+              {events.map(
+                (event) => (
 
-                    <div className="event-image-content">
-                      <span>
-                        {event.categoryLabel ||
-                          (event.category || "").replace(/_/g, " ")}
-                      </span>
+                  <article
+                    className="event-card"
+                    key={event.id}
+                    style={{
+                      cursor:
+                        "pointer",
+                    }}
+                    onClick={() =>
+                      handleGoToDetail(
+                        event.id
+                      )
+                    }
+                  >
 
-                      <h3>{event.title}</h3>
-                    </div>
-                  </div>
+                    {/* =================================
+                        EVENT IMAGE
+                    ================================= */}
 
-                  <div className="event-card-content">
-                    <div className="event-info">
-                      <div className="event-info-row">
-                        <svg viewBox="0 0 24 24">
-                          <rect x="4" y="5" width="16" height="15" rx="2" />
-                          <path d="M8 3v4M16 3v4M4 10h16" />
-                        </svg>
+                    <div className="event-image-wrapper">
+
+                      <img
+                        src={event.image}
+                        alt={
+                          event.title
+                        }
+                      />
+
+                      <div className="event-image-overlay"></div>
+
+                      <div className="event-image-content">
 
                         <span>
-                          {event.dateDisplay || event.date}
-                          {event.time ? ` • ${event.time}` : ""}
+                          {event.categoryLabel ||
+                            (
+                              event.category ||
+                              ""
+                            ).replace(
+                              /_/g,
+                              " "
+                            )}
                         </span>
+
+                        <h3>
+                          {event.title}
+                        </h3>
+
                       </div>
 
-                      <div className="event-info-row">
-                        <svg viewBox="0 0 24 24">
-                          <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-                          <circle cx="12" cy="10" r="2.5" />
-                        </svg>
+                    </div>
 
-                        <span>{event.location}</span>
+                    {/* =================================
+                        EVENT CONTENT
+                    ================================= */}
+
+                    <div className="event-card-content">
+
+                      <div className="event-info">
+
+                        {/* DATE */}
+
+                        <div className="event-info-row">
+
+                          <svg viewBox="0 0 24 24">
+
+                            <rect
+                              x="4"
+                              y="5"
+                              width="16"
+                              height="15"
+                              rx="2"
+                            />
+
+                            <path d="M8 3v4M16 3v4M4 10h16" />
+
+                          </svg>
+
+                          <span>
+
+                            {event.dateDisplay ||
+                              event.date}
+
+                            {event.time
+                              ? ` • ${event.time}`
+                              : ""}
+
+                          </span>
+
+                        </div>
+
+                        {/* LOCATION */}
+
+                        <div className="event-info-row">
+
+                          <svg viewBox="0 0 24 24">
+
+                            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
+
+                            <circle
+                              cx="12"
+                              cy="10"
+                              r="2.5"
+                            />
+
+                          </svg>
+
+                          <span>
+                            {event.location}
+                          </span>
+
+                        </div>
+
                       </div>
+
+                      {/* =================================
+                          BOTTOM
+                      ================================= */}
+
+                      <div className="event-card-bottom">
+
+                        <span className="event-price">
+
+                          {event.priceDisplay ||
+                            formatPrice(
+                              event.price
+                            )}
+
+                        </span>
+
+                        <button
+                          className="buy-ticket-button"
+                          onClick={(e) =>
+                            handleBuyTicket(
+                              e,
+                              event
+                            )
+                          }
+                        >
+                          Beli Tiket
+                        </button>
+
+                      </div>
+
                     </div>
 
-                    <div className="event-card-bottom">
-                      <span className="event-price">
-                        {event.priceDisplay || formatPrice(event.price)}
-                      </span>
+                  </article>
 
-                      <button
-                        className="buy-ticket-button"
-                        onClick={(e) => handleBuyTicket(e, event)}
-                      >
-                        Beli Tiket
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              ))}
+                )
+              )}
+
             </div>
+
           )}
 
-          {!loading && events.length === 0 && (
-            <div className="empty-events">
-              <h3>Belum ada event</h3>
+          {/* =================================================
+              EMPTY
+          ================================================= */}
 
-              <p>
-                Tidak ada event yang sesuai dengan pencarian atau kategori yang
-                kamu pilih.
-              </p>
-            </div>
-          )}
+          {!loading &&
+            events.length === 0 && (
+
+              <div className="empty-events">
+
+                <h3>
+                  Belum ada event
+                </h3>
+
+                <p>
+                  Tidak ada event yang
+                  sesuai dengan
+                  pencarian atau
+                  kategori yang kamu
+                  pilih.
+                </p>
+
+              </div>
+
+            )}
+
         </section>
+
       </main>
 
       <FooterCustomer />
+
     </div>
   );
 }

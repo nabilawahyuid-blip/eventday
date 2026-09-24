@@ -774,6 +774,9 @@ function AddEvent() {
                   <option value="Konser">
                     Konser
                   </option>
+                  <option value="Musik">
+                    Musik
+                  </option>
 
                   <option value="Seminar">
                     Seminar

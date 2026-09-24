@@ -49,6 +49,34 @@ function EventEO() {
   const [salesSummary, setSalesSummary] = useState({});
 
   // =====================================================
+  // EXTRACT RESPONSE DATA
+  // =====================================================
+
+  const extractEventArray = (response) => {
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    if (Array.isArray(response?.data)) {
+      return response.data;
+    }
+
+    if (Array.isArray(response?.data?.data)) {
+      return response.data.data;
+    }
+
+    if (Array.isArray(response?.content)) {
+      return response.content;
+    }
+
+    if (Array.isArray(response?.data?.content)) {
+      return response.data.content;
+    }
+
+    return [];
+  };
+
+  // =====================================================
   // LOAD DATA
   // =====================================================
 
@@ -68,11 +96,28 @@ function EventEO() {
 
       const response = await getOrganizerEvents();
 
+      console.log("====================================");
       console.log("ORGANIZER EVENTS RESPONSE:", response);
+      console.log("====================================");
 
-      const eventData = Array.isArray(response?.data)
-        ? response.data
-        : [];
+      const eventData = extractEventArray(response);
+
+      console.log("ORGANIZER EVENTS DATA:", eventData);
+
+      /*
+       * PENTING:
+       *
+       * Endpoint /api/organizer/events harus sudah melakukan
+       * filter berdasarkan organizer yang sedang login.
+       *
+       * React TIDAK melakukan filter berdasarkan:
+       * - title
+       * - category
+       * - status
+       * - event yang terlihat seperti Admin
+       *
+       * Karena ownership adalah tanggung jawab backend.
+       */
 
       setEvents(eventData);
 
@@ -106,11 +151,19 @@ function EventEO() {
 
       const response = await getOrganizerDraftEvents();
 
+      console.log("====================================");
       console.log("DRAFT EVENTS RESPONSE:", response);
+      console.log("====================================");
 
-      const draftData = Array.isArray(response?.data)
-        ? response.data
-        : [];
+      const draftData = extractEventArray(response);
+
+      console.log("DRAFT EVENTS DATA:", draftData);
+
+      /*
+       * Sama seperti event utama:
+       * backend harus memastikan draft hanya milik
+       * organizer yang sedang login.
+       */
 
       setDraftEvents(draftData);
     } catch (error) {
@@ -276,6 +329,10 @@ function EventEO() {
       normalized === "FINISHED"
     ) {
       return "Event Berakhir";
+    }
+
+    if (normalized === "DELETED") {
+      return "Deleted";
     }
 
     return status || "-";
