@@ -14,6 +14,36 @@
 }
 
 
+/* LEFT: brand + title */
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+}
+
+.navbar-brand {
+  padding-right: 18px;
+
+  border-right: 1px solid #e9e6f1;
+
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+
+  line-height: 1;
+}
+
+.navbar-brand span {
+  color: #574bd7;
+}
+
+.navbar-brand {
+  color: #242331;
+}
+
+
 .navbar-title h1 {
   color: #302d3e;
 

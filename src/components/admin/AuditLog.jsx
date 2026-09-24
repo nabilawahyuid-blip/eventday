@@ -1,5 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
+
+import {
+  getAdminAuditLogs,
+  exportAdminAuditLogsCSV,
+} from "../../services/adminAuditService";
 
 import {
   Search,
@@ -27,14 +32,169 @@ function AuditLog() {
   const [date, setDate] = useState("");
   const [category, setCategory] = useState("Semua Kategori");
   const [currentPage, setCurrentPage] = useState(1);
+  const [auditData, setAuditData] = useState([]);
+  const [totalEntries, setTotalEntries] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const itemsPerPage = 5;
+
+  /* =========================================================
+     NORMALISASI LOG BE → shape UI
+  ========================================================= */
+
+  const normalizeLog = (item) => {
+    const ts =
+      item.timestamp ||
+      item.createdAt ||
+      item.logDate;
+
+    const d = ts ? new Date(ts) : null;
+
+    const date =
+      d && !Number.isNaN(d.getTime())
+        ? d.toLocaleDateString("id-ID", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : item.date || "-";
+
+    const time =
+      d && !Number.isNaN(d.getTime())
+        ? `${d.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })} WIB`
+        : item.time || "-";
+
+    const rawAction = String(
+      item.action ||
+        item.activity ||
+        item.event ||
+        "Aktivitas"
+    ).toUpperCase();
+
+    let activityType = "approval";
+
+    if (rawAction.includes("TICKET")) {
+      activityType = "ticket";
+    } else if (rawAction.includes("EVENT")) {
+      activityType = "event";
+    } else if (
+      rawAction.includes("APPROV") ||
+      rawAction.includes("VERIF") ||
+      rawAction.includes("EO")
+    ) {
+      activityType = "approval";
+    } else if (
+      rawAction.includes("LOGIN") ||
+      rawAction.includes("AUTH")
+    ) {
+      activityType = "login";
+    } else if (
+      rawAction.includes("REFUND") ||
+      rawAction.includes("PAYOUT")
+    ) {
+      activityType = "refund";
+    }
+
+    const rawStatus = String(
+      item.status || "SUCCESS"
+    ).toUpperCase();
+
+    const isSuccess =
+      rawStatus === "SUCCESS" ||
+      rawStatus === "BERHASIL";
+
+    const actorType =
+      item.actorType ||
+      item.role ||
+      item.actorRole ||
+      "User";
+
+    const avatarUpper = String(actorType).toUpperCase();
+
+    return {
+      id: item.id || item.logId || "-",
+      timestamp: ts || "-",
+      date,
+      time,
+      actor:
+        item.actor ||
+        item.actorName ||
+        item.userName ||
+        "-",
+      actorId: item.actorId || item.userId || "-",
+      actorType,
+      avatar:
+        avatarUpper === "EO"
+          ? "EO"
+          : avatarUpper === "UNKNOWN"
+          ? "unknown"
+          : "photo",
+      ipAddress: item.ipAddress || "-",
+      activity:
+        item.action ||
+        item.activity ||
+        item.description ||
+        "Aktivitas",
+      activityType,
+      detail:
+        item.description ||
+        item.detail ||
+        item.message ||
+        "-",
+      status: isSuccess ? "Berhasil" : "Gagal",
+      statusType: isSuccess ? "success" : "failed",
+      targetId: item.targetId || "-",
+      targetType: item.targetType || "-",
+      amount: item.amount ?? "-",
+      currency: item.currency || "IDR",
+      paymentMethod: item.paymentMethod || "-",
+      userAgent: item.userAgent || "-",
+    };
+  };
+
+  /* =========================================================
+     LOAD DARI BACKEND (fallback ke mock bila BE mati)
+  ========================================================= */
+
+  const loadAuditLogs = async () => {
+    try {
+      setLoading(true);
+      const res = await getAdminAuditLogs(0, 100);
+      const data = res?.data || res;
+      const list = Array.isArray(data)
+        ? data
+        : data?.content || [];
+
+      setAuditData(list);
+      setTotalEntries(data?.totalElements ?? list.length);
+      setLoadError("");
+    } catch (err) {
+      console.error("Gagal memuat audit log:", err);
+      setLoadError(
+        err?.data?.msg ||
+          err?.message ||
+          "Gagal memuat audit log."
+      );
+      setAuditData(mockAuditData);
+      setTotalEntries(mockAuditData.length);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAuditLogs();
+  }, []);
 
   /* =========================================================
      DATA AUDIT LOG
   ========================================================= */
 
-  const auditData = [
+  const mockAuditData = [
     {
       id: "aud_8f9a2b1c",
       timestamp: "2023-10-24T14:30:15Z",
@@ -347,7 +507,7 @@ function AuditLog() {
   ========================================================= */
 
   const filteredData = useMemo(() => {
-    return auditData.filter((item) => {
+    return auditData.map(normalizeLog).filter((item) => {
       const searchValue = search.toLowerCase().trim();
 
       const matchesSearch =
@@ -357,9 +517,35 @@ function AuditLog() {
         item.detail.toLowerCase().includes(searchValue) ||
         item.actorId.toLowerCase().includes(searchValue);
 
+      const categoryKey = {
+        "Pembelian Tiket": ["TICKET", "PEMBELIAN"],
+        "Tambah Event": ["EVENT", "TAMBAH"],
+        "Persetujuan EO": [
+          "APPROV",
+          "VERIF",
+          "PERSETUJUAN",
+          "EO",
+        ],
+        "Percobaan Login Gagal": [
+          "LOGIN",
+          "AUTH",
+          "PERCOBAAN",
+        ],
+        "Proses Refund": [
+          "REFUND",
+          "PAYOUT",
+          "PROSES",
+        ],
+      }[category];
+
       const matchesCategory =
         category === "Semua Kategori" ||
-        item.activity === category;
+        !categoryKey ||
+        categoryKey.some((k) =>
+          `${item.activity} ${item.activityType}`
+            .toUpperCase()
+            .includes(k)
+        );
 
       let matchesDate = true;
 
@@ -389,7 +575,7 @@ function AuditLog() {
         matchesDate
       );
     });
-  }, [search, category, date]);
+  }, [search, category, date, auditData]);
 
   /* =========================================================
      PAGINATION
@@ -417,7 +603,7 @@ function AuditLog() {
      EXPORT CSV
   ========================================================= */
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (filteredData.length === 0) {
       Swal.fire({
         icon: "info",
@@ -427,6 +613,27 @@ function AuditLog() {
       });
 
       return;
+    }
+
+    // Utamakan export dari backend (GET /api/admin/audit-logs/export/csv)
+    try {
+      await exportAdminAuditLogsCSV();
+
+      Swal.fire({
+        icon: "success",
+        title: "CSV berhasil diekspor",
+        text: "Audit log diekspor dari server.",
+        confirmButtonColor: "#5546df",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      return;
+    } catch (err) {
+      console.warn(
+        "Export server gagal — fallback ke export client:",
+        err
+      );
     }
 
     const headers = [
@@ -911,7 +1118,25 @@ function AuditLog() {
 
                 <tbody>
 
-                  {displayedData.length > 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="audit-empty"
+                      >
+                        Memuat audit log...
+                      </td>
+                    </tr>
+                  ) : loadError ? (
+                    <tr>
+                      <td
+                        colSpan="6"
+                        className="audit-empty"
+                      >
+                        {loadError} — menampilkan data contoh.
+                      </td>
+                    </tr>
+                  ) : displayedData.length > 0 ? (
 
                     displayedData.map((item) => (
 
@@ -1067,7 +1292,7 @@ function AuditLog() {
                   filteredData.length
                 )}
 
-                {" "}dari 1.240 entri
+                {" "}dari {totalEntries} entri
 
               </span>
 
@@ -1091,54 +1316,32 @@ function AuditLog() {
                   />
                 </button>
 
-                {/* PAGE 1 */}
-                <button
-                  type="button"
-                  className={
-                    safeCurrentPage === 1
-                      ? "active"
-                      : ""
-                  }
-                  onClick={() =>
-                    setCurrentPage(1)
-                  }
-                >
-                  1
-                </button>
+                {/* PAGE NUMBERS (DINAMIS) */}
+                {Array.from(
+                  { length: Math.min(totalPages, 5) },
+                  (_, i) => i + 1
+                ).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={
+                      safeCurrentPage === p
+                        ? "active"
+                        : ""
+                    }
+                    onClick={() =>
+                      setCurrentPage(p)
+                    }
+                  >
+                    {p}
+                  </button>
+                ))}
 
-                {/* PAGE 2 */}
-                <button
-                  type="button"
-                  className={
-                    safeCurrentPage === 2
-                      ? "active"
-                      : ""
-                  }
-                  onClick={() =>
-                    setCurrentPage(2)
-                  }
-                >
-                  2
-                </button>
-
-                {/* PAGE 3 */}
-                <button
-                  type="button"
-                  className={
-                    safeCurrentPage === 3
-                      ? "active"
-                      : ""
-                  }
-                  onClick={() =>
-                    setCurrentPage(3)
-                  }
-                >
-                  3
-                </button>
-
-                <span className="pagination-dots">
-                  ...
-                </span>
+                {totalPages > 5 && (
+                  <span className="pagination-dots">
+                    ...
+                  </span>
+                )}
 
                 {/* NEXT */}
                 <button

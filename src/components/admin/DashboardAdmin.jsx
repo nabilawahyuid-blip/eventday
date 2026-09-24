@@ -113,9 +113,13 @@ export default function DashboardAdmin() {
                   <div className="stat-icon orange">Rp</div>
                 </div>
                 <h2>
-                  Rp {Number(metrics.totalRevenue || 0).toLocaleString('id-ID')}
+                  Rp {Number(metrics.totalPlatformRevenue ?? metrics.totalRevenue ?? 0).toLocaleString('id-ID')}
                 </h2>
-                <p className="stat-positive">Akumulasi penjualan</p>
+                <p className="stat-positive">
+                  {metrics.totalTicketsSold
+                    ? `${metrics.totalTicketsSold} tiket terjual`
+                    : "Akumulasi penjualan"}
+                </p>
               </div>
             </section>
 

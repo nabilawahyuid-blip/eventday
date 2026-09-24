@@ -3,6 +3,7 @@
 // Auth: ADMIN. Response ApiResponse {msg, status, data}.
 // List: data = Page {content, page, size, totalElements, totalPages}
 import { apiFetch, toQueryString } from "./api";
+import { downloadFromEndpoint } from "./downloadExport";
 
 // ==========================================
 // LIST TRANSACTIONS (paginated + filter)
@@ -59,24 +60,11 @@ export const updateAdminTransactionStatus = async (id, status, adminNote = null)
 // GET /api/admin/transactions/export?status=&eventId=&userId=&...
 // ==========================================
 export const exportAdminTransactions = async (params = {}) => {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`/api/admin/transactions/export${toQueryString(params)}`, {
-    credentials: "include",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `Export gagal (${res.status})`);
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "transactions.csv";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  return downloadFromEndpoint(
+    "/api/admin/transactions/export",
+    params,
+    "transactions.csv"
+  );
 };
 
 export const adminTransactionService = {

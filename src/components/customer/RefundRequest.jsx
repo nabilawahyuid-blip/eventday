@@ -1,27 +1,55 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
+import {
+  submitRefund,
+  getRefundBanks,
+  getRefundOrderSummary,
+} from "../../services/refundService";
 import "./RefundRequest.css";
 
 function RefundRequest() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const orderId = location.state?.orderId || null;
 
   const [formData, setFormData] = useState({
-    name: "",
-    bankAccountName: "",
+    accountHolderName: "",
     accountNumber: "",
-    bankName: "",
+    bankCode: "",
     reason: "",
   });
 
-  const event = {
-    orderCode: "#ORD-987654",
-    title: "Judul Event",
-    ticketType: "2x Early Bird",
-    name: "Adit Ramadhan",
-    ticketName: "2x Tiket Early Bird",
-    total: 400000,
-  };
+  const [banks, setBanks] = useState([]);
+  const [orderSummary, setOrderSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const bankRes = await getRefundBanks();
+        setBanks(bankRes?.data || []);
+      } catch (err) {
+        console.error("[RefundRequest] Banks error:", err.message);
+      }
+
+      if (orderId) {
+        try {
+          const summaryRes = await getRefundOrderSummary(orderId);
+          setOrderSummary(summaryRes?.data || null);
+        } catch (err) {
+          console.error("[RefundRequest] Order summary error:", err.message);
+        }
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [orderId]);
 
   const handleChange = (field, value) => {
     setFormData((previous) => ({
@@ -30,16 +58,16 @@ function RefundRequest() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name.trim()) {
-      alert("Nama pemesan wajib diisi.");
+    if (!orderId) {
+      alert("Order ID tidak ditemukan. Silakan kembali dan coba lagi.");
       return;
     }
 
-    if (!formData.bankAccountName.trim()) {
-      alert("Nama akun bank wajib diisi.");
+    if (!formData.accountHolderName.trim()) {
+      alert("Nama pemilik rekening wajib diisi.");
       return;
     }
 
@@ -48,8 +76,8 @@ function RefundRequest() {
       return;
     }
 
-    if (!formData.bankName) {
-      alert("Nama bank wajib dipilih.");
+    if (!formData.bankCode) {
+      alert("Bank wajib dipilih.");
       return;
     }
 
@@ -58,8 +86,47 @@ function RefundRequest() {
       return;
     }
 
-    alert("Pengajuan refund berhasil dikirim.");
+    setSubmitting(true);
+    try {
+      await submitRefund({
+        orderId,
+        reason: formData.reason,
+        bankCode: formData.bankCode,
+        accountNumber: formData.accountNumber,
+        accountHolderName: formData.accountHolderName,
+      });
+      alert("Pengajuan refund berhasil dikirim.");
+      navigate("/customer/refund-list");
+    } catch (err) {
+      console.error("[RefundRequest] Submit error:", err.message);
+      alert(err.message || "Gagal mengajukan refund. Silakan coba lagi.");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const formatCurrency = (amount) => {
+    return `Rp ${Number(amount || 0).toLocaleString("id-ID")}`;
+  };
+
+  const formatOrderId = (id) => {
+    if (!id) return "-";
+    return `#${id.slice(0, 8)}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="refund-request-page">
+        <NavbarCustomer />
+        <main className="refund-container">
+          <div className="refund-detail-loading">
+            <div className="refund-detail-spinner" />
+            <span>Memuat data refund...</span>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="refund-request-page">
@@ -93,21 +160,17 @@ function RefundRequest() {
               Lengkapi informasi untuk mengajukan refund.
             </p>
           </div>
-
-          <div className="refund-timer">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="13" r="7" />
-              <path d="M12 9v4l2.5 1.5" />
-              <path d="M9 3h6" />
-              <path d="M12 3v3" />
-            </svg>
-
-            <span>Selesaikan dalam 14:57</span>
-          </div>
         </section>
 
         <div className="mobile-refund-ticket">
-          <RefundTicket event={event} />
+          <RefundTicket
+            orderCode={formatOrderId(orderId)}
+            title={orderSummary?.eventTitle || "Event"}
+            ticketType={orderSummary?.ticketTierName || "-"}
+            quantity={orderSummary?.ticketQuantity || 0}
+            refundableAmount={orderSummary?.refundableAmount}
+            grossAmount={orderSummary?.grossAmount}
+          />
         </div>
 
         <div className="refund-content">
@@ -125,33 +188,15 @@ function RefundRequest() {
               <div className="refund-form-body">
                 <div className="refund-input-group">
                   <label>
-                    Nama Pemesan<span>*</span>
+                    Nama Pemilik Rekening<span>*</span>
                   </label>
 
                   <input
                     type="text"
-                    placeholder="Masukan Nama Pemesan"
-                    value={formData.name}
+                    placeholder="Masukan Nama Pemilik Rekening"
+                    value={formData.accountHolderName}
                     onChange={(e) =>
-                      handleChange("name", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="refund-input-group">
-                  <label>
-                    Nama Akun Bank<span>*</span>
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="Masukan Nama Akun Bank"
-                    value={formData.bankAccountName}
-                    onChange={(e) =>
-                      handleChange(
-                        "bankAccountName",
-                        e.target.value
-                      )
+                      handleChange("accountHolderName", e.target.value)
                     }
                   />
                 </div>
@@ -182,27 +227,19 @@ function RefundRequest() {
 
                   <div className="refund-select-wrapper">
                     <select
-                      value={formData.bankName}
+                      value={formData.bankCode}
                       onChange={(e) =>
-                        handleChange(
-                          "bankName",
-                          e.target.value
-                        )
+                        handleChange("bankCode", e.target.value)
                       }
                     >
                       <option value="" disabled>
                         Pilih Bank
                       </option>
-                      <option value="BCA">BCA</option>
-                      <option value="BRI">BRI</option>
-                      <option value="BNI">BNI</option>
-                      <option value="Mandiri">
-                        Mandiri
-                      </option>
-                      <option value="CIMB">
-                        CIMB Niaga
-                      </option>
-                      <option value="BSI">BSI</option>
+                      {banks.map((bank) => (
+                        <option key={bank.bankCode} value={bank.bankCode}>
+                          {bank.bankName}
+                        </option>
+                      ))}
                     </select>
 
                     <svg viewBox="0 0 24 24">
@@ -220,10 +257,7 @@ function RefundRequest() {
                     placeholder="Tulis Alasan"
                     value={formData.reason}
                     onChange={(e) =>
-                      handleChange(
-                        "reason",
-                        e.target.value
-                      )
+                      handleChange("reason", e.target.value)
                     }
                   ></textarea>
                 </div>
@@ -255,14 +289,22 @@ function RefundRequest() {
           </section>
 
           <aside className="refund-sidebar">
-            <RefundTicket event={event} />
+            <RefundTicket
+              orderCode={formatOrderId(orderId)}
+              title={orderSummary?.eventTitle || "Event"}
+              ticketType={orderSummary?.ticketTierName || "-"}
+              quantity={orderSummary?.ticketQuantity || 0}
+              refundableAmount={orderSummary?.refundableAmount}
+              grossAmount={orderSummary?.grossAmount}
+            />
 
             <div className="desktop-refund-submit">
               <button
                 type="button"
                 onClick={handleSubmit}
+                disabled={submitting}
               >
-                Ajukan
+                {submitting ? "Mengirim..." : "Ajukan"}
               </button>
             </div>
           </aside>
@@ -273,8 +315,9 @@ function RefundRequest() {
         <button
           type="button"
           onClick={handleSubmit}
+          disabled={submitting}
         >
-          Ajukan
+          {submitting ? "Mengirim..." : "Ajukan"}
         </button>
       </div>
 
@@ -285,37 +328,53 @@ function RefundRequest() {
   );
 }
 
-function RefundTicket({ event }) {
+function RefundTicket({
+  orderCode,
+  title,
+  ticketType,
+  quantity,
+  refundableAmount,
+  grossAmount,
+}) {
+  const displayAmount = refundableAmount || grossAmount || 0;
+  const qtyLabel = quantity > 0 ? `${quantity}x` : "";
+
   return (
     <div className="refund-ticket-card">
       <div className="refund-order-code">
-        {event.orderCode}
+        {orderCode}
       </div>
 
       <div className="refund-ticket-divider"></div>
 
-      <h3>{event.title}</h3>
+      <h3>{title}</h3>
 
       <div className="refund-ticket-row">
         <span>Jenis Tiket</span>
-        <strong>{event.ticketType}</strong>
+        <strong>{ticketType}</strong>
       </div>
 
-      <div className="refund-ticket-row">
-        <span>Nama</span>
-        <strong>{event.name}</strong>
-      </div>
+      {quantity > 0 && (
+        <div className="refund-ticket-row">
+          <span>Jumlah</span>
+          <strong>{qtyLabel}</strong>
+        </div>
+      )}
 
       <div className="refund-ticket-divider bottom-divider"></div>
 
       <div className="refund-ticket-total">
-        <span>{event.ticketName}</span>
+        <span>Yang Dikembalikan</span>
         <strong>
-          Rp. {event.total.toLocaleString("id-ID")}
+          {formatCurrency(displayAmount)}
         </strong>
       </div>
     </div>
   );
+}
+
+function formatCurrency(amount) {
+  return `Rp ${Number(amount || 0).toLocaleString("id-ID")}`;
 }
 
 export default RefundRequest;

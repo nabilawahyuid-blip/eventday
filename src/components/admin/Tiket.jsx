@@ -1,74 +1,191 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 import "./Tiket.css";
+import {
+  getAdminTickets,
+  exportAdminTickets,
+  generateAdminTickets,
+  checkinAdminTicket,
+  revokeAdminTicket,
+} from "../../services/adminTicketService";
+
+// Status tiket BE (UNREDEEMED/USED/EXPIRED/REFUNDED/REVOKED)
+// → label + class CSS yang tersedia (issued/pending).
+const STATUS_MAP = {
+  UNREDEEMED: { label: "Issued", cls: "issued" },
+  USED: { label: "Used", cls: "issued" },
+  EXPIRED: { label: "Expired", cls: "pending" },
+  REFUNDED: { label: "Refunded", cls: "pending" },
+  REVOKED: { label: "Revoked", cls: "pending" },
+};
+
+const ICON_CLASSES = ["purple", "blue", "orange", "green"];
+
+const formatRupiah = (value) => {
+  const num = Number(value);
+  if (Number.isNaN(num)) return String(value ?? "-");
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(num);
+};
 
 function Tiket() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const tickets = [
-    {
-      id: "#TKT-8921",
-      name: "Summer Music Fest 2024",
-      type: "VIP Pass",
-      price: "$150.00",
-      quantity: 2,
-      status: "Issued",
-      icon: "▣",
-      iconClass: "purple",
-    },
-    {
-      id: "#TKT-8920",
-      name: "Tech Conference Q3",
-      type: "General Admission",
-      price: "$45.00",
-      quantity: 1,
-      status: "Pending",
-      icon: "▣",
-      iconClass: "orange",
-    },
-    {
-      id: "#TKT-8919",
-      name: "Jakarta Tech Week",
-      type: "Regular Pass",
-      price: "$75.00",
-      quantity: 3,
-      status: "Issued",
-      icon: "▣",
-      iconClass: "blue",
-    },
-    {
-      id: "#TKT-8918",
-      name: "Annual Gala Dinner",
-      type: "VIP Table",
-      price: "$250.00",
-      quantity: 2,
-      status: "Pending",
-      icon: "▣",
-      iconClass: "green",
-    },
-  ];
+  const perPage = 8;
 
-  const filteredTickets = tickets.filter((ticket) => {
-    const keyword = search.toLowerCase();
+  const loadTickets = async () => {
+    try {
+      setLoading(true);
+      const res = await getAdminTickets({ page: 0, size: 100 });
+      const data = res?.data || res;
+      setTickets(
+        Array.isArray(data) ? data : data?.content || []
+      );
+      setError("");
+    } catch (err) {
+      console.error("Gagal memuat tiket:", err);
+      setError(
+        err?.data?.msg || err?.message || "Gagal memuat tiket."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-      ticket.id.toLowerCase().includes(keyword) ||
-      ticket.name.toLowerCase().includes(keyword) ||
-      ticket.type.toLowerCase().includes(keyword)
+  useEffect(() => {
+    loadTickets();
+  }, []);
+
+  const filtered = useMemo(() => {
+    const kw = search.trim().toLowerCase();
+    return tickets.filter((t) => {
+      const ctx = [
+        t.id,
+        t.ticketCode,
+        t.eventTitle,
+        t.event?.title,
+        t.tierName,
+        t.ticketType,
+        t.type,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return !kw || ctx.includes(kw);
+    });
+  }, [tickets, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const pageItems = filtered.slice(
+    (safePage - 1) * perPage,
+    safePage * perPage
+  );
+
+  // Statistik turunan dari snapshot tiket yang dimuat
+  const stats = useMemo(() => {
+    const count = (pred) => tickets.filter(pred).length;
+    const sold = count(
+      (t) => String(t.status || "").toUpperCase() === "USED"
     );
-  });
+    const available = count(
+      (t) => String(t.status || "").toUpperCase() === "UNREDEEMED"
+    );
+    const expired = count(
+      (t) => String(t.status || "").toUpperCase() === "EXPIRED"
+    );
+    const total = tickets.length || 1;
+    const revenue = tickets.reduce((sum, t) => {
+      const v = Number(t.price ?? t.tierPrice ?? t.amount ?? 0);
+      return sum + (Number.isNaN(v) ? 0 : v);
+    }, 0);
+    const activeEvents = new Set(
+      tickets
+        .map((t) => t.eventId ?? t.event?.id)
+        .filter(Boolean)
+    ).size;
+    return {
+      total: tickets.length,
+      sold,
+      available,
+      expired,
+      revenue,
+      activeEvents,
+      availabilityPct: Math.round((available / total) * 100),
+    };
+  }, [tickets]);
 
-  const handleExport = () => {
-    console.log("Export ticket report");
+  const renderStatus = (raw) => {
+    const st = String(raw || "").toUpperCase();
+    return STATUS_MAP[st] || { label: raw || "-", cls: "pending" };
   };
 
-  const handleAddTicketType = () => {
-    console.log("Tambah tipe tiket");
+  const handleExport = async () => {
+    try {
+      await exportAdminTickets();
+      alert("Export tiket berhasil diunduh.");
+    } catch (err) {
+      alert(err?.message || "Gagal export tiket.");
+    }
   };
 
-  const handleViewAll = () => {
-    console.log("Lihat semua tiket");
+  const handleGenerateTickets = async () => {
+    // Meminta orderId dari pengguna
+    const orderId = prompt(
+      "Masukkan Order ID (UUID) untuk generate tiket:\n\nContoh: 123e4567-e89b-12d3-a456-426614174000"
+    );
+
+    // Guard: jika user Batal (cancel) atau tidak menginput apa-apa
+    if (!orderId || orderId.trim() === "") {
+      alert("Generate dibatalkan — Order ID tidak valid atau belum dipilih.");
+      return;
+    }
+
+    try {
+      await generateAdminTickets(orderId.trim());
+      alert("Generate tiket berhasil! Order ID: " + orderId.trim());
+      // Refresh daftar tiket agar tampil yang baru
+      await loadTickets();
+    } catch (err) {
+      alert("Gagal generate tiket: " + (err?.data?.msg || err?.message || "Unknown error"));
+    }
+  };
+
+  const handleDetail = (ticket) => {
+    const detailId = ticket.id ?? ticket.ticketCode;
+    if (detailId) {
+      navigate(`/admin/tiket/${encodeURIComponent(detailId)}`);
+    } else {
+      alert("ID tiket tidak tersedia.");
+    }
+  };
+
+  const handleTicketAction = async (ticket) => {
+    const st = String(ticket.status || "").toUpperCase();
+    const action = st === "UNREDEEMED" ? "checkin" : "revoke";
+    const label = st === "UNREDEEMED" ? "check-in (gunakan)" : "revoke (cabut)";
+    if (!window.confirm(`${action === "checkin" ? "Check-in" : "Revoke"} tiket ${ticket.id ?? ticket.ticketCode}?`)) return;
+    try {
+      if (action === "checkin") {
+        await checkinAdminTicket(ticket.id);
+      } else {
+        await revokeAdminTicket(ticket.id);
+      }
+      alert(`Tiket berhasil di-${label}!`);
+      await loadTickets();
+    } catch (err) {
+      alert(err?.data?.msg || err?.message || "Gagal memproses tiket.");
+    }
   };
 
   return (
@@ -111,10 +228,10 @@ function Tiket() {
               <button
                 type="button"
                 className="add-ticket-button"
-                onClick={handleAddTicketType}
+                onClick={handleGenerateTickets}
               >
                 <span>+</span>
-                New Ticket Type
+                Generate Tiket dari Order
               </button>
 
             </div>
@@ -135,17 +252,17 @@ function Tiket() {
 
                 <div className="ticket-stat-number-row">
 
-                  <h2>1.2M</h2>
+                  <h2>{stats.total}</h2>
 
                   <span className="ticket-growth">
-                    ↗ +15%
+                    ↗ {stats.available} tersedia
                   </span>
 
                 </div>
 
                 <div className="ticket-stat-footer">
-                  Active Events: 145
-                  <span>Avg. Price: $45</span>
+                  Active Events: {stats.activeEvents}
+                  <span>Expired: {stats.expired}</span>
                 </div>
 
               </div>
@@ -167,9 +284,9 @@ function Tiket() {
 
                 <div className="availability-row">
 
-                  <h2>68%</h2>
+                  <h2>{stats.availabilityPct}%</h2>
 
-                  <span>Sold Out</span>
+                  <span>{stats.available} Belum digunakan</span>
 
                 </div>
 
@@ -181,9 +298,9 @@ function Tiket() {
 
                 <div className="availability-footer">
 
-                  <span>Sold: 818K</span>
+                  <span>Digunakan: {stats.sold}</span>
 
-                  <span>Remaining: 384K</span>
+                  <span>Tersedia: {stats.available}</span>
 
                 </div>
 
@@ -205,17 +322,17 @@ function Tiket() {
                 </span>
 
                 <h2 className="revenue-number">
-                  $54M
+                  {formatRupiah(stats.revenue)}
                 </h2>
 
                 <div className="revenue-tags">
 
                   <span>
-                    VIP: $10M
+                    Digunakan: {stats.sold}
                   </span>
 
                   <span>
-                    GA: $24M
+                    Tersedia: {stats.available}
                   </span>
 
                 </div>
@@ -223,7 +340,7 @@ function Tiket() {
               </div>
 
               <div className="ticket-stat-icon revenue-icon">
-                $
+                Rp
               </div>
 
             </div>
@@ -240,13 +357,9 @@ function Tiket() {
                 Recent Ticket Issuances
               </h2>
 
-              <button
-                type="button"
-                className="view-all-button"
-                onClick={handleViewAll}
-              >
-                View All
-              </button>
+              <span className="view-all-button">
+                {filtered.length} tiket
+              </span>
 
             </div>
 
@@ -263,7 +376,10 @@ function Tiket() {
                   type="text"
                   placeholder="Search tickets..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
 
               </div>
@@ -273,85 +389,107 @@ function Tiket() {
             {/* TICKET LIST */}
             <div className="ticket-list">
 
-              {filteredTickets.length > 0 ? (
+              {loading ? (
+                <div className="ticket-empty">Memuat tiket...</div>
+              ) : error ? (
+                <div className="ticket-empty">{error}</div>
+              ) : pageItems.length > 0 ? (
 
-                filteredTickets.map((ticket) => (
+                pageItems.map((ticket, idx) => {
+                  const st = renderStatus(ticket.status);
+                  const id = ticket.id ?? ticket.ticketCode ?? "-";
+                  const name =
+                    ticket.eventTitle ||
+                    ticket.event?.title ||
+                    "-";
+                  const type =
+                    ticket.tierName ||
+                    ticket.ticketType ||
+                    ticket.type ||
+                    "Tiket";
+                  const price = formatRupiah(
+                    ticket.price ?? ticket.tierPrice ?? ticket.amount
+                  );
+                  const qty = ticket.quantity ?? 1;
+                  const iconClass =
+                    ICON_CLASSES[idx % ICON_CLASSES.length];
 
-                  <div
-                    className="ticket-item"
-                    key={ticket.id}
-                  >
-
-                    {/* ICON */}
+                  return (
                     <div
-                      className={`ticket-item-icon ${ticket.iconClass}`}
+                      className="ticket-item"
+                      key={id}
                     >
-                      {ticket.icon}
-                    </div>
 
-                    {/* INFORMATION */}
-                    <div className="ticket-item-info">
+                      {/* ICON */}
+                      <div
+                        className={`ticket-item-icon ${iconClass}`}
+                      >
+                        ▣
+                      </div>
 
-                      <h3>
-                        {ticket.name}
-                      </h3>
+                      {/* INFORMATION */}
+                      <div
+                        className="ticket-item-info"
+                        onClick={() => handleDetail(ticket)}
+                        title={`Lihat detail ${name}`}
+                      >
 
-                      <div className="ticket-item-meta">
+                        <h3>
+                          {name}
+                        </h3>
+
+                        <div className="ticket-item-meta">
+
+                          <span>
+                            ID: {id}
+                          </span>
+
+                          <span className="meta-separator">
+                            •
+                          </span>
+
+                          <span>
+                            {type}
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                      {/* PRICE */}
+                      <div className="ticket-price">
+
+                        <strong>
+                          {price}
+                        </strong>
 
                         <span>
-                          ID: {ticket.id}
-                        </span>
-
-                        <span className="meta-separator">
-                          •
-                        </span>
-
-                        <span>
-                          {ticket.type}
+                          Qty: {qty}
                         </span>
 
                       </div>
 
+                      {/* STATUS */}
+                      <div
+                        className={`ticket-status ${st.cls}`}
+                      >
+                        <span>●</span>
+                        {st.label}
+                      </div>
+
+                      {/* ACTION */}
+                      <button
+                        type="button"
+                        className="ticket-more-button"
+                        onClick={() => handleTicketAction(ticket)}
+                        title="Check-in / Revoke"
+                      >
+                        ⋮
+                      </button>
+
                     </div>
-
-                    {/* PRICE */}
-                    <div className="ticket-price">
-
-                      <strong>
-                        {ticket.price}
-                      </strong>
-
-                      <span>
-                        Qty: {ticket.quantity}
-                      </span>
-
-                    </div>
-
-                    {/* STATUS */}
-                    <div
-                      className={`ticket-status ${ticket.status.toLowerCase()}`}
-                    >
-                      <span>●</span>
-                      {ticket.status}
-                    </div>
-
-                    {/* ACTION */}
-                    <button
-                      type="button"
-                      className="ticket-more-button"
-                      onClick={() =>
-                        console.log(
-                          "Ticket:",
-                          ticket.id
-                        )
-                      }
-                    >
-                      ⋮
-                    </button>
-
-                  </div>
-
-                ))
+                  );
+                })
 
               ) : (
 
@@ -367,39 +505,40 @@ function Tiket() {
             <div className="ticket-panel-footer">
 
               <span>
-                Showing {filteredTickets.length} recent tickets
+                Showing {pageItems.length} of {filtered.length} tickets
               </span>
 
               <div className="ticket-pagination">
 
                 <button
                   type="button"
-                  className="ticket-page-button active"
+                  className="ticket-page-arrow"
+                  disabled={safePage === 1}
+                  onClick={() => setCurrentPage(safePage - 1)}
                 >
-                  1
+                  ‹
                 </button>
 
-                <button
-                  type="button"
-                  className="ticket-page-button"
-                >
-                  2
-                </button>
-
-                <button
-                  type="button"
-                  className="ticket-page-button"
-                >
-                  3
-                </button>
-
-                <span>
-                  ...
-                </span>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    className={
+                      p === safePage
+                        ? "ticket-page-button active"
+                        : "ticket-page-button"
+                    }
+                    onClick={() => setCurrentPage(p)}
+                  >
+                    {p}
+                  </button>
+                ))}
 
                 <button
                   type="button"
                   className="ticket-page-arrow"
+                  disabled={safePage === totalPages}
+                  onClick={() => setCurrentPage(safePage + 1)}
                 >
                   ›
                 </button>

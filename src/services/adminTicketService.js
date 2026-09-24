@@ -3,6 +3,7 @@
 // Auth: ADMIN. Response ApiResponse {msg, status, data}.
 // List: data = Page {content, page, size, totalElements, totalPages}
 import { apiFetch, toQueryString } from "./api";
+import { downloadFromEndpoint } from "./downloadExport";
 
 // ==========================================
 // LIST TICKETS (paginated + filter)
@@ -33,8 +34,8 @@ export const getAdminTicketDetail = async (id) => {
 };
 
 // ==========================================
-// GENERATE TICKETS DARI ORDER
-// POST /api/admin/tickets/generate → 201 List<AdminTicketResponse> + audit
+// GENERATE TIKETS DARI ORDER
+// POST /api/admin/tickets → 201 List<AdminTicketResponse> + audit
 // Body: {orderId: uuid} — generate dari order_attendees terkait
 // ==========================================
 export const generateAdminTickets = async (orderId) => {
@@ -46,7 +47,7 @@ export const generateAdminTickets = async (orderId) => {
 };
 
 // ==========================================
-// REVOKE TICKET (status → CANCELLED)
+// REVOKE TICKET (status → REVOKED)
 // PATCH /api/admin/tickets/{id}/revoke + audit REVOKE_TICKET
 // ==========================================
 export const revokeAdminTicket = async (id) => {
@@ -69,12 +70,15 @@ export const checkinAdminTicket = async (id) => {
 
 // ==========================================
 // INVENTORY PER EVENT (ringkasan kapasitas per tier)
-// GET /api/admin/tickets/inventory/{eventId}
+// GET /api/admin/tickets/inventory?eventId= → daftar stok per event/tipe
+// (rev.14: tanpa path param; filter eventId opsional via query)
 // → {eventId, eventTitle, tiers:[{tierId,tierName,totalQuota,availableQuota,soldCount}], totalCapacity, totalSold}
 // ==========================================
-export const getAdminTicketInventory = async (eventId) => {
-  if (!eventId) throw new Error("ID event wajib diisi.");
-  return apiFetch(`/api/admin/tickets/inventory/${encodeURIComponent(eventId)}`);
+export const getAdminTicketInventory = async (eventId = "") => {
+  const query = eventId
+    ? toQueryString({ eventId })
+    : "";
+  return apiFetch(`/api/admin/tickets/inventory${query}`);
 };
 
 // ==========================================
@@ -82,24 +86,11 @@ export const getAdminTicketInventory = async (eventId) => {
 // GET /api/admin/tickets/export?eventId=&status=&dateFrom=&dateTo=
 // ==========================================
 export const exportAdminTickets = async (params = {}) => {
-  const token = localStorage.getItem("token");
-  const res = await fetch(`/api/admin/tickets/export${toQueryString(params)}`, {
-    credentials: "include",
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `Export gagal (${res.status})`);
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "tickets.csv";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  return downloadFromEndpoint(
+    "/api/admin/tickets/export",
+    params,
+    "tickets.csv"
+  );
 };
 
 export const adminTicketService = {

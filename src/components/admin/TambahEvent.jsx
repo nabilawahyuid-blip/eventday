@@ -9,11 +9,10 @@ import Navbar from "../shared/Navbar";
 
 import "./TambahEvent.css";
 
-// "Music Festival" (label UI) → "MUSIC_FESTIVAL" (enum BE)
-const toBackendCategory = (label) => {
-  if (!label) return "MUSIC_FESTIVAL";
-  return String(label).trim().toUpperCase().replace(/[\s-]+/g, "_");
-};
+// Kategori event diambil dari data backend (GET /api/events):
+// MUSIC_FESTIVAL / CONFERENCE / EXHIBITION / CULINARY / Konser / Seminar /
+// Workshop / TECHNOLOGY. Nilai dikirim apa adanya (exact) agar tersimpan
+// identik dengan yang sudah ada di backend.
 
 function TambahEvent() {
   const navigate = useNavigate();
@@ -109,13 +108,20 @@ function TambahEvent() {
     // BE minta ISO datetime: "2026-12-01T10:00:00"
     const eventDate = `${tanggal}T${jam.length === 5 ? jam + ":00" : jam}`;
 
+    // Jam selesai optional — dikirim best-effort (backend rev.14 baru
+    // mendukung eventDate; endDate aman diabaikan bila DTO belum ada).
+    const endDate = jadwal.jamSelesai
+      ? `${tanggal}T${jadwal.jamSelesai.length === 5 ? jadwal.jamSelesai + ":00" : jadwal.jamSelesai}`
+      : null;
+
     const payload = {
       title: namaEvent.trim(),
       description: deskripsi.trim() || namaEvent.trim(),
-      category: toBackendCategory(kategoriEvent),
+      category: kategoriEvent.trim() || "MUSIC_FESTIVAL",
       location: lokasi.trim() || "Lokasi Belum Ditentukan",
       venueName: lokasi.trim() || "Lokasi Belum Ditentukan",
       eventDate,
+      endDate,
       bannerUrl: banner.url || null,
       facilities: [],
       ticketTiers: tiketList
@@ -138,24 +144,44 @@ function TambahEvent() {
       // Per rev.14, create admin langsung menghasilkan status PUBLISHED.
       // Auto-publish hanya bila backend lama membuat event sebagai DRAFT —
       // supaya tidak error "Transisi PUBLISHED → PUBLISHED tidak diizinkan".
-      if (newId && createdStatus !== "PUBLISHED") {
+      let published = createdStatus === "PUBLISHED";
+      let publishWarning = null;
+
+      if (newId && !published) {
         try {
           await updateAdminEventStatus(newId, "PUBLISHED");
+          published = true;
         } catch (pubErr) {
-          // Jika backend langsung PUBLISHED tapi response tak menyertakan
-          // status, error 400 transisi di sini tidak fatal — abaikan saja.
-          console.warn("Auto-publish tidak diperlukan / gagal:", pubErr);
+          // Error transisi (mis. "Transisi PUBLISHED → PUBLISHED tidak
+          // diizinkan") berarti backend SUDAH mem-publish event langsung
+          // meski response tak menyertakan status → bukan error.
+          // Error jenis lain (network/500/dll) berarti status akhir tak
+          // bisa dipastikan → user perlu peringatan, bukan alert bohongan.
+          const errMsg = String(pubErr?.data?.msg || pubErr?.message || "");
+          if (/transisi.*tidak diizinkan|transition.*not allowed/i.test(errMsg)) {
+            published = true;
+          } else {
+            publishWarning = errMsg || "gagal mengubah status event";
+            console.warn("Auto-publish gagal:", pubErr);
+          }
         }
       }
 
-      if (res?._bannerSkipped) {
-        alert(
-          "Event berhasil dibuat, TAPI file banner tidak tersimpan " +
+      let pesan = res?._bannerSkipped
+        ? "Event berhasil dibuat, TAPI file banner tidak tersimpan " +
           "(backend belum mendukung upload file). Pakai tempel URL bila perlu banner."
-        );
+        : "Event berhasil dibuat.";
+
+      if (published) {
+        pesan += "\nStatus event: PUBLISHED — sudah tampil di halaman customer.";
       } else {
-        alert("Event berhasil dibuat & dipublish!");
+        pesan +=
+          `\n\nStatus event BELUM PUBLISHED sehingga belum tampil di halaman customer` +
+          (publishWarning ? ` (${publishWarning})` : "") +
+          ".\nBuka Detail Event lalu klik 'Setujui' untuk mempublish.";
       }
+
+      alert(pesan);
       navigate("/admin/event-management");
     } catch (err) {
       console.error("Gagal membuat event:", err);
@@ -233,11 +259,14 @@ function TambahEvent() {
                     <label>KATEGORI EVENT</label>
                     <select value={kategoriEvent} onChange={(e) => setKategoriEvent(e.target.value)}>
                       <option value="">Pilih Kategori...</option>
-                      <option value="Music Festival">Music Festival</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Entertainment">Entertainment</option>
-                      <option value="Community">Community</option>
-                      <option value="Art & Culture">Art & Culture</option>
+                      <option value="MUSIC_FESTIVAL">Music Festival</option>
+                      <option value="CONFERENCE">Conference</option>
+                      <option value="EXHIBITION">Exhibition</option>
+                      <option value="CULINARY">Culinary</option>
+                      <option value="Konser">Konser</option>
+                      <option value="Seminar">Seminar</option>
+                      <option value="Workshop">Workshop</option>
+                      <option value="TECHNOLOGY">Technology</option>
                     </select>
                   </div>
                 </div>

@@ -14,10 +14,10 @@ import {
   FiSearch, FiUploadCloud, FiTrash2, FiPlus, FiX
 } from "react-icons/fi";
 
-const toBackendCategory = (label) => {
-  if (!label) return "MUSIC_FESTIVAL";
-  return String(label).trim().toUpperCase().replace(/[\s-]+/g, "_");
-};
+// Kategori event diambil dari data backend (GET /api/events):
+// MUSIC_FESTIVAL / CONFERENCE / EXHIBITION / CULINARY / Konser / Seminar /
+// Workshop / TECHNOLOGY. Nilai dikirim apa adanya (exact) agar tersimpan
+// identik dengan yang sudah ada di backend.
 
 function EditEvent() {
   const navigate = useNavigate();
@@ -33,6 +33,7 @@ function EditEvent() {
   const [kategori, setKategori] = useState("MUSIC_FESTIVAL");
   const [tanggal, setTanggal] = useState("");
   const [jamMulai, setJamMulai] = useState("10:00");
+  const [jamSelesai, setJamSelesai] = useState("");
 
   const [tickets, setTickets] = useState([]);
   const [lineups, setLineups] = useState([]);
@@ -50,12 +51,26 @@ function EditEvent() {
       setNamaEvent(ev.title || "");
       setDeskripsi(ev.description || "");
       setLokasi(ev.venueName || "");
-      setKategori(String(ev.category || "MUSIC_FESTIVAL").replace(/_/g, " "));
+      // Nilai kategori dikirim apa adanya dari backend (bisa "MUSIC_FESTIVAL"
+      // atau "Seminar"/"Konser"/dst) — jangan ganti _ jadi spasi agar tetap
+      // cocok dengan <option> di bawah.
+      setKategori(String(ev.category || "MUSIC_FESTIVAL"));
       setBannerUrl(ev.bannerUrl || "");
       if (ev.startDate) {
         const d = new Date(ev.startDate);
         setTanggal(d.toISOString().slice(0, 10));
         setJamMulai(d.toISOString().slice(11, 16));
+      }
+      const endDateRaw = ev.endDate || ev.end_date;
+      if (endDateRaw) {
+        const ed = new Date(endDateRaw);
+        if (!Number.isNaN(ed.getTime())) {
+          setJamSelesai(ed.toISOString().slice(11, 16));
+        } else {
+          setJamSelesai("");
+        }
+      } else {
+        setJamSelesai("");
       }
       setTickets(
         (ev.ticketTiers || []).map((t, i) => ({
@@ -107,13 +122,23 @@ function EditEvent() {
     e.preventDefault();
     try {
       setSaving(true);
+      const eventDate = `${tanggal || new Date().toISOString().slice(0, 10)}T${(jamMulai || "10:00").length === 5 ? jamMulai + ":00" : jamMulai}`;
+
+      // Jam selesai opsional — dikirim best-effort. Backend admin rev.14
+      // (CreateEventRequest) baru mendukung eventDate; field endDate aman
+      // diabaikan bila DTO backend belum memilikinya.
+      const endDate = jamSelesai
+        ? `${tanggal || new Date().toISOString().slice(0, 10)}T${jamSelesai.length === 5 ? jamSelesai + ":00" : jamSelesai}`
+        : null;
+
       const payload = {
         title: namaEvent.trim(),
         description: deskripsi.trim() || namaEvent.trim(),
-        category: toBackendCategory(kategori),
+        category: kategori.trim() || "MUSIC_FESTIVAL",
         location: lokasi.trim(),
         venueName: lokasi.trim(),
-        eventDate: `${tanggal || new Date().toISOString().slice(0, 10)}T${(jamMulai || "10:00").length === 5 ? jamMulai + ":00" : jamMulai}`,
+        eventDate,
+        endDate,
         bannerUrl: bannerUrl.trim() || null,
         ticketTiers: tickets
           .filter((t) => t.name && Number(t.quota) > 0)
@@ -207,11 +232,14 @@ function EditEvent() {
                     value={kategori}
                     onChange={(e) => setKategori(e.target.value)}
                   >
-                    <option value="MUSIC FESTIVAL">Music Festival</option>
+                    <option value="MUSIC_FESTIVAL">Music Festival</option>
                     <option value="CONFERENCE">Conference</option>
                     <option value="EXHIBITION">Exhibition</option>
                     <option value="CULINARY">Culinary</option>
-                    <option value="SEMINAR">Seminar</option>
+                    <option value="Konser">Konser</option>
+                    <option value="Seminar">Seminar</option>
+                    <option value="Workshop">Workshop</option>
+                    <option value="TECHNOLOGY">Technology</option>
                   </select>
                 </div>
               </div>
@@ -275,6 +303,15 @@ function EditEvent() {
                     className="form-control"
                     value={jamMulai}
                     onChange={(e) => setJamMulai(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>JAM SELESAI</label>
+                  <input
+                    type="time"
+                    className="form-control"
+                    value={jamSelesai}
+                    onChange={(e) => setJamSelesai(e.target.value)}
                   />
                 </div>
               </div>

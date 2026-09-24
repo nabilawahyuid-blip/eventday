@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -362,7 +363,7 @@ function UserManagement() {
               <div className="user-search">
 
                 <span className="search-icon">
-                  ⌕
+                  <Search size={15} strokeWidth={2} />
                 </span>
 
                 <input

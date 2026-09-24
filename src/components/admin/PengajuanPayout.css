@@ -641,3 +641,122 @@
   }
 
 }
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.pengajuan-payout-page .pengajuan-payout-content {
+  padding: 24px;
+}
+
+.pengajuan-payout-page .pengajuan-payout-header {
+  margin-bottom: 24px;
+}
+
+.pengajuan-payout-page .pengajuan-payout-header h1 {
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.pengajuan-payout-page .pengajuan-payout-header p {
+  font-size: 14px;
+  color: #6f7482;
+}
+
+.pengajuan-payout-page .payout-statistics {
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pengajuan-payout-page .payout-stat-card {
+  min-height: 130px;
+  padding: 20px 22px;
+  border-radius: 12px;
+}
+
+.pengajuan-payout-page .payout-stat-label {
+  font-size: 13px;
+  letter-spacing: 0.4px;
+}
+
+.pengajuan-payout-page .payout-stat-number {
+  font-size: 32px;
+}
+
+.pengajuan-payout-page .payout-stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.pengajuan-payout-page .payout-list {
+  gap: 16px;
+}
+
+.pengajuan-payout-page .payout-request-card {
+  min-height: 130px;
+  padding: 22px;
+  border-radius: 12px;
+}
+
+.pengajuan-payout-page .payout-event-icon {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 10px;
+  font-size: 20px;
+}
+
+.pengajuan-payout-page .payout-event-info h2 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.pengajuan-payout-page .payout-organizer {
+  font-size: 14px;
+}
+
+.pengajuan-payout-page .payout-date {
+  font-size: 13px;
+}
+
+.pengajuan-payout-page .payout-status {
+  min-width: 76px;
+  height: 28px;
+  padding: 0 13px;
+  border-radius: 16px;
+  font-size: 12px;
+}
+
+.pengajuan-payout-page .payout-detail-button {
+  min-width: 108px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .pengajuan-payout-page .pengajuan-payout-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .pengajuan-payout-page .pengajuan-payout-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+}

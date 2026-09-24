@@ -12,6 +12,15 @@
   box-sizing: border-box;
 }
 
+/* Scrollbar jendela selalu disisakan agar kemunculan/hilangnya scrollbar
+   tidak menggeser layout kiri-kanan (mis. saat filter tabel mengubah
+   tinggi halaman). scrollbar-gutter untuk browser modern, overflow-y
+   sebagai cadangan agar kompatibel ke semua browser. */
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
 html,
 body,
 #root {

@@ -25,6 +25,8 @@ import PengaturanPlatform from "./components/admin/PengaturanPlatform";
 import AuditLog from "./components/admin/AuditLog";
 import PengajuanPayout from "./components/admin/PengajuanPayout";
 import DetailPengajuanPayout from "./components/admin/DetailPengajuanPayout";
+import DetailTransaksi from "./components/admin/DetailTransaksi";
+import DetailTiket from "./components/admin/DetailTiket";
 
 // ==================== CUSTOMER ====================
 import CustomerDashboard from "./components/customer/CustomerDashboard";
@@ -34,6 +36,8 @@ import TicketSuccess from "./components/customer/TicketSuccess";
 import MyTicket from "./components/customer/MyTicket";
 import RefundRequest from "./components/customer/RefundRequest";
 import RefundList from "./components/customer/RefundList";
+import RefundDetail from "./components/customer/RefundDetail";
+import OrderDetail from "./components/customer/OrderDetail";
 import TransaksiCustomer from "./components/customer/TransaksiCustomer";
 import ProfileCustomer from "./components/customer/ProfileCustomer";
 import KebijakanPrivasi from "./components/customer/KebijakanPrivasi";
@@ -136,8 +140,18 @@ function App() {
           />
 
           <Route
+            path="/admin/transaksi/:id"
+            element={<DetailTransaksi />}
+          />
+
+          <Route
             path="/admin/tiket"
             element={<Tiket />}
+          />
+
+          <Route
+            path="/admin/tiket/:id"
+            element={<DetailTiket />}
           />
 
           <Route
@@ -265,6 +279,16 @@ function App() {
           <Route
             path="/customer/refund-list"
             element={<RefundList />}
+          />
+
+          <Route
+            path="/customer/refund/:id"
+            element={<RefundDetail />}
+          />
+
+          <Route
+            path="/customer/orders/:orderId"
+            element={<OrderDetail />}
           />
 
           <Route

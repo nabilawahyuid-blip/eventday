@@ -1,6 +1,4 @@
-@import url(
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-);
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap");
 
 
 /* =====
@@ -28,9 +26,9 @@ body,
 body {
   margin: 0;
 
-  font-family: "Inter", sans-serif;
+  font-family: "Poppins", sans-serif;
 
-  background: #f7f6fc;
+  background: #f8f7fc;
 
   color: #29263a;
 }
@@ -1075,5 +1073,552 @@ body {
 
   .extra-item {
     padding: 12px;
+  }
+}
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.detail-event-page .detail-content {
+  padding: 24px;
+}
+
+.detail-event-page .detail-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.detail-event-page .detail-page-header h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.detail-event-page .back-button {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-event-page .detail-card {
+  border-radius: 16px;
+}
+
+.detail-event-page .detail-body {
+  padding: 26px 28px 30px;
+}
+
+.detail-event-page .event-title-section h1 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.detail-event-page .event-status {
+  padding: 7px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.detail-event-page .hero-category {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-event-page .meta-item {
+  font-size: 13px;
+  gap: 8px;
+}
+
+.detail-event-page .meta-icon {
+  font-size: 14px;
+}
+
+.detail-event-page .description-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.detail-event-page .description-section p {
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.detail-event-page .ticket-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.detail-event-page .ticket-header p {
+  font-size: 12px;
+}
+
+.detail-event-page .ticket-count strong {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.detail-event-page .ticket-count span {
+  font-size: 12px;
+}
+
+.detail-event-page .extra-item {
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.detail-event-page .extra-item span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.detail-event-page .extra-item strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.detail-event-page .edit-button,
+.detail-event-page .delete-button {
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .detail-event-page .detail-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .detail-event-page .detail-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+}
+
+/* =========================================================
+   RAPIKAN DETAIL EVENT — banner, deskripsi, penjualan tiket,
+   & kategori tiket (sebelumnya kategori tiket tidak berstyle)
+   ========================================================= */
+
+/* ---- BANNER ----
+   Sembunyikan lingkaran dekoratif saat pakai banner & beri
+   overlay gradasi agar badge status + kategori terbaca. */
+.detail-event-page .detail-hero.has-banner::before,
+.detail-event-page .detail-hero.has-banner::after {
+  display: none;
+}
+
+.detail-event-page .hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 16, 48, 0.18) 0%,
+    rgba(18, 16, 48, 0.05) 45%,
+    rgba(18, 16, 48, 0.55) 100%
+  );
+}
+
+/* ---- DESKRIPSI ----
+   Pertahankan baris baru dari backend agar paragraf rapi. */
+.detail-event-page .description-section p {
+  white-space: pre-line;
+}
+
+/* ---- META ----
+   Paskan lebar ikon agar sejajar antar item. */
+.detail-event-page .meta-icon {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+/* ---- KARTU PENJUALAN TIKET & KATEGORI TIKET ----
+   Background putih persis sama dengan body kartu (#ffffff),
+   dipisah rapi antar seksi. */
+.detail-event-page .ticket-section,
+.detail-event-page .ticket-tier-section {
+  margin-top: 24px;
+  padding: 18px 20px;
+  border: 1px solid #e7e3f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.detail-event-page .ticket-tier-section .ticket-header {
+  margin-bottom: 2px;
+}
+
+/* ---- DAFTAR KATEGORI TIKET ----
+   Grid kartu rapi: nama + kuota di kiri, harga + tersedia di kanan. */
+.detail-event-page .ticket-tier-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.detail-event-page .ticket-tier-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e9e5f0;
+  border-radius: 10px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.detail-event-page .ticket-tier-item:hover {
+  border-color: #d6cff0;
+  box-shadow: 0 6px 16px rgba(54, 47, 90, 0.06);
+  transform: translateY(-1px);
+}
+
+.detail-event-page .ticket-tier-item > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-event-page .ticket-tier-item > div:last-child {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.detail-event-page .ticket-tier-item strong {
+  color: #3a3547;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail-event-page .ticket-tier-item span {
+  color: #8a8596;
+  font-size: 12px;
+}
+
+.detail-event-page .ticket-tier-item > div:last-child strong {
+  color: #574bdc;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* ---- RESPONSIVE KATEGORI TIKET ---- */
+@media (max-width: 700px) {
+  .detail-event-page .ticket-tier-list {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-event-page .ticket-tier-item {
+    padding: 12px 14px;
+  }
+
+  .detail-event-page .ticket-section,
+  .detail-event-page .ticket-tier-section {
+    padding: 16px;
+  }
+}
+
+/* =========================================================
+   PENYEMPURNAAN DETAIL EVENT — tata letak rapi & modern
+   ========================================================= */
+
+/* ---- SUBTITLE DI PAGE HEADER ---- */
+.detail-event-page .detail-page-subtitle {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6f7482;
+}
+
+/* ---- BANNER NOTIFIKASI STATUS ---- */
+.detail-event-page .status-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 12px 16px;
+  border: 1px solid;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.detail-event-page .status-notice svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.detail-event-page .notice-waiting {
+  background: #fff8e9;
+  border-color: #f0dcae;
+  color: #8a6413;
+}
+
+.detail-event-page .notice-rejected {
+  background: #fdeeee;
+  border-color: #f3c6c6;
+  color: #b13b3b;
+}
+
+/* ---- EXTRA INFO: 4 KARTU + IKON ---- */
+.detail-event-page .event-extra-info {
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(220px, 1fr)
+  );
+  gap: 14px;
+}
+
+.detail-event-page .extra-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.detail-event-page .extra-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f0edfb;
+  color: #574bdc;
+}
+
+.detail-event-page .extra-item > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detail-event-page .extra-item strong {
+  font-size: 13.5px;
+  margin-top: 0;
+  word-break: break-word;
+}
+
+/* ---- KARTU PENJUALAN TIKET ---- */
+.detail-event-page .ticket-count {
+  align-items: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: #f1eefb;
+}
+
+.detail-event-page .ticket-count span {
+  margin-left: 0;
+}
+
+.detail-event-page .progress-track {
+  height: 8px;
+  background: #ece8f5;
+}
+
+.detail-event-page .progress-info span {
+  font-size: 12px;
+  color: #6f7482;
+}
+
+/* ---- TOMBOL AKSI: kelompok persetujuan vs kelola ---- */
+.detail-event-page .detail-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.detail-event-page .approval-group,
+.detail-event-page .manage-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.detail-event-page .approval-group + .manage-group {
+  margin-left: 4px;
+  padding-left: 18px;
+  border-left: 1px solid #ebe7f3;
+}
+
+.detail-event-page .detail-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.detail-event-page .detail-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Setujui — hijau */
+.detail-event-page .approve-button {
+  border: none;
+  background: linear-gradient(
+    135deg,
+    #2fbf7f,
+    #1fa86b
+  );
+  color: #ffffff;
+  box-shadow: 0 7px 16px
+    rgba(47, 191, 127, 0.22);
+}
+
+.detail-event-page .approve-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px
+    rgba(47, 191, 127, 0.3);
+}
+
+/* Tolak — merah outline */
+.detail-event-page .reject-button {
+  border: 1px solid #f0c9cd;
+  background: #fff6f6;
+  color: #c45e68;
+}
+
+.detail-event-page .reject-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: #ffecee;
+  box-shadow: 0 7px 16px
+    rgba(196, 94, 104, 0.1);
+}
+
+/* ---- LOADING & ERROR: jadi kartu rapi ---- */
+.detail-event-page .detail-loading,
+.detail-event-page .detail-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 320px;
+  padding: 30px;
+  background: #ffffff;
+  border: 1px solid #e7e3f0;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.detail-event-page .loading-spinner {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f0edfb;
+  color: #574bdc;
+  font-size: 18px;
+  animation: detail-pulse 1.1s
+    ease-in-out infinite;
+}
+
+@keyframes detail-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.92);
+  }
+}
+
+.detail-event-page .detail-loading p,
+.detail-event-page .detail-error p {
+  font-size: 13px;
+  color: #8a8596;
+}
+
+.detail-event-page .detail-error h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #b13b3b;
+}
+
+/* ---- RESPONSIVE TOMBOL & INFO ---- */
+@media (max-width: 700px) {
+  .detail-event-page .detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .detail-event-page .approval-group,
+  .detail-event-page .manage-group {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .detail-event-page .approval-group + .manage-group {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    border-top: 1px solid #ebe7f3;
+    padding-top: 12px;
+  }
+
+  .detail-event-page .detail-actions button {
+    flex: 1;
+  }
+
+  .detail-event-page .event-extra-info {
+    grid-template-columns: 1fr;
   }
 }

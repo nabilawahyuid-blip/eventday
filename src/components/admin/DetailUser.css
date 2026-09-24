@@ -624,3 +624,133 @@
     border-bottom: none;
   }
 }
+
+/* =========================================================
+   PENYERAGAMAN — judul konsisten & font lebih besar
+   ========================================================= */
+.detail-user-page .detail-user-content {
+  padding: 24px;
+}
+
+.detail-user-page .detail-user-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+
+.detail-user-page .detail-user-heading h1 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: #242331;
+}
+
+.detail-user-page .back-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  font-size: 22px;
+}
+
+.detail-user-page .user-profile-card {
+  min-height: 116px;
+  padding: 20px 22px;
+  border-radius: 12px;
+}
+
+.detail-user-page .user-profile-info h2 {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.detail-user-page .user-profile-info p {
+  font-size: 14px;
+}
+
+.detail-user-page .user-profile-actions button {
+  min-height: 40px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.detail-user-page .information-card {
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.detail-user-page .information-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #292640;
+}
+
+.detail-user-page .information-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  font-size: 13px;
+}
+
+.detail-user-page .information-field label,
+.detail-user-page .verification-status label {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+.detail-user-page .information-value {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.detail-user-page .verified-status,
+.detail-user-page .not-verified-status,
+.detail-user-page .account-status {
+  min-height: 26px;
+  padding: 0 12px;
+  border-radius: 14px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.detail-user-page .verification-date {
+  font-size: 12px;
+}
+
+.detail-user-page .summary-label {
+  font-size: 11px;
+  letter-spacing: 0.3px;
+}
+
+.detail-user-page .account-summary-item strong {
+  font-size: 14px;
+}
+
+/* =========================================================
+   LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
+   antar menu (desktop: Sidebar 220px, konten max 1400px)
+   ========================================================= */
+@media (min-width: 1101px) {
+  .detail-user-page .detail-user-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    max-width: none;
+  }
+
+  .detail-user-page .detail-user-content {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px 28px 40px;
+    box-sizing: border-box;
+  }
+}
