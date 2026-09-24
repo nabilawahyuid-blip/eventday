@@ -1,131 +1,150 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
+import { getTransactionHistory } from "../../services/ticketService";
 import "./TransaksiCustomer.css";
+
+const STATUS_MAP = {
+  PENDING: { label: "Menunggu Pembayaran", type: "waiting" },
+  WAITING_PAYMENT: { label: "Menunggu Pembayaran", type: "waiting" },
+  PAID: { label: "Berhasil", type: "success" },
+  CANCELLED: { label: "Dibatalkan", type: "cancelled" },
+  EXPIRED: { label: "Kedaluwarsa", type: "cancelled" },
+  REFUND_REQUESTED: { label: "Refund Diajukan", type: "refund" },
+  REFUNDED: { label: "Refund Disetujui", type: "refund" },
+  REJECTED: { label: "Refund Ditolak", type: "rejected" },
+};
+
+function formatCurrency(amount) {
+  if (!amount && amount !== 0) return "-";
+  return `Rp${Number(amount).toLocaleString("id-ID")}`;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "-";
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return dateStr;
+  }
+}
 
 function TransaksiCustomer() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("Semua");
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const transactions = [
-    {
-      id: 1,
-      orderNumber: "ORD-20241025-0042",
-      status: "Menunggu Pembayaran",
-      statusType: "waiting",
-      ticketType: "Tiket VIP",
-      ticketCount: "1 Tiket",
-      paymentMethod: "BCA Virtual Account",
-      adminFee: "Rp 4.000",
-      total: "Rp 854.000",
-      eventTitle: "Judul Event",
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-20241024-8921",
-      status: "Berhasil",
-      statusType: "success",
-      ticketType: "Regular",
-      ticketCount: "2 Tiket",
-      paymentMethod: "QRIS",
-      paidAt: "24 Okt 2024, 14:15 WIB",
-      total: "Rp 1.005.000",
-      eventTitle: "Judul Event",
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-20241024-8922",
-      status: "Berhasil",
-      statusType: "success",
-      ticketType: "Regular",
-      ticketCount: "2 Tiket",
-      paymentMethod: "QRIS",
-      paidAt: "24 Okt 2024, 14:15 WIB",
-      total: "Rp 1.005.000",
-      eventTitle: "Judul Event",
-    },
-    {
-      id: 4,
-      orderNumber: "ORD-20241010-3109",
-      status: "Gagal",
-      statusType: "failed",
-      ticketType: "Regular",
-      ticketCount: "1 Tiket",
-      paymentMethod: "Mandiri Bill Payment",
-      expiredAt: "11 Okt 2024, 08:00 WIB",
-      total: "Rp 350.000",
-      eventTitle: "Judul Event",
-    },
-  ];
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      setLoading(true);
+      try {
+        const res = await getTransactionHistory();
+        const data = res?.data || [];
+
+        // Deduplikasi by orderId (backend bisa return duplikat)
+        const seen = new Set();
+        const unique = data.filter((o) => {
+          if (seen.has(o.orderId)) return false;
+          seen.add(o.orderId);
+          return true;
+        });
+
+        const mapped = unique.map((o) => {
+          const statusInfo = STATUS_MAP[o.status] || { label: o.status, type: "unknown" };
+          return {
+            id: o.orderId,
+            orderId: o.orderId,
+            orderNumber: o.orderNumber,
+            status: statusInfo.label,
+            statusType: statusInfo.type,
+            ticketType: o.ticketTierName,
+            ticketCount: `${o.quantity} Tiket`,
+            paymentMethod: o.paymentMethod || "-",
+            adminFee: o.adminFee ? formatCurrency(o.adminFee) : null,
+            total: formatCurrency(o.totalAmount),
+            eventTitle: o.eventTitle,
+            paidAt: o.paidAt ? formatDate(o.paidAt) : null,
+            expiredAt: o.expiredAt ? formatDate(o.expiredAt) : null,
+            createdAt: o.createdAt ? formatDate(o.createdAt) : null,
+          };
+        });
+
+        setTransactions(mapped);
+      } catch (err) {
+        console.error("[TransaksiCustomer] Gagal memuat riwayat:", err);
+        setTransactions([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
 
   const tabs = [
-    {
-      label: "Semua",
-      value: "Semua",
-    },
-    {
-      label: "Menunggu (1)",
-      value: "Menunggu",
-    },
-    {
-      label: "Berhasil (Paid)",
-      value: "Berhasil",
-    },
-    {
-      label: "Dibatalkan",
-      value: "Dibatalkan",
-    },
+    { label: "Semua", value: "Semua" },
+    { label: "Menunggu", value: "Menunggu" },
+    { label: "Berhasil", value: "Berhasil" },
+    { label: "Dibatalkan", value: "Dibatalkan" },
   ];
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    if (activeTab === "Semua") {
-      return true;
-    }
-
-    if (activeTab === "Menunggu") {
-      return transaction.statusType === "waiting";
-    }
-
-    if (activeTab === "Berhasil") {
-      return transaction.statusType === "success";
-    }
-
-    if (activeTab === "Dibatalkan") {
-      return transaction.statusType === "cancelled";
-    }
-
+  const filteredTransactions = transactions.filter((t) => {
+    if (activeTab === "Semua") return true;
+    if (activeTab === "Menunggu") return t.statusType === "waiting";
+    if (activeTab === "Berhasil") return t.statusType === "success";
+    if (activeTab === "Dibatalkan") return t.statusType === "cancelled";
     return true;
   });
 
   const handlePayment = (transaction) => {
-    navigate(`/checkout/${transaction.id}`);
+    navigate(`/checkout/${transaction.orderId}`, {
+      state: { orderId: transaction.orderId, resume: true },
+    });
   };
 
   const handleViewTicket = (transaction) => {
-    navigate(
-      `/customer/ticket-success?transaction=${transaction.id}`
-    );
+    navigate(`/customer/orders/${transaction.orderId}`);
   };
+
+  if (loading) {
+    return (
+      <div className="transaction-page">
+        <NavbarCustomer />
+        <main className="transaction-container">
+          <div className="transaction-loading">
+            <div className="ticket-spinner" />
+            <span>Memuat riwayat transaksi...</span>
+          </div>
+        </main>
+        <FooterCustomer />
+      </div>
+    );
+  }
 
   return (
     <div className="transaction-page">
-      {/* Navbar Customer */}
       <NavbarCustomer />
 
       <main className="transaction-container">
         <section className="transaction-header">
           <h1>Riwayat Transaksi</h1>
-          <p>Berikut List Refund Anda</p>
+          <p>Berikut riwayat transaksi tiket Anda</p>
         </section>
 
         <section className="transaction-tabs">
           {tabs.map((tab) => (
             <button
               key={tab.value}
-              className={
-                activeTab === tab.value ? "active" : ""
-              }
+              className={activeTab === tab.value ? "active" : ""}
               onClick={() => setActiveTab(tab.value)}
             >
               {tab.label}
@@ -136,80 +155,50 @@ function TransaksiCustomer() {
         <section className="transaction-list">
           {filteredTransactions.length > 0 ? (
             filteredTransactions.map((transaction) => (
-              <article
-                className="transaction-card"
-                key={transaction.id}
-              >
+              <article className="transaction-card" key={transaction.id}>
                 <div className="transaction-card-top">
                   <div className="order-info">
-                    <span className="order-label">
-                      Order #
-                    </span>
-
-                    <strong>
-                      {transaction.orderNumber}
-                    </strong>
+                    <span className="order-label">Order #</span>
+                    <strong>{transaction.orderNumber}</strong>
                   </div>
-
-                  <span
-                    className={`transaction-status ${transaction.statusType}`}
-                  >
+                  <span className={`transaction-status ${transaction.statusType}`}>
                     {transaction.status}
                   </span>
                 </div>
 
                 <div className="transaction-event">
                   <h2>{transaction.eventTitle}</h2>
-
                   <div className="ticket-summary">
-                    <span className="ticket-type">
-                      {transaction.ticketType}
-                    </span>
-
+                    <span className="ticket-type">{transaction.ticketType}</span>
                     <span className="ticket-dot">•</span>
-
-                    <span>
-                      {transaction.ticketCount}
-                    </span>
+                    <span>{transaction.ticketCount}</span>
                   </div>
                 </div>
 
                 <div className="transaction-detail">
                   <div className="detail-row">
                     <span>Metode Bayar:</span>
-
-                    <strong>
-                      {transaction.paymentMethod}
-                    </strong>
+                    <strong>{transaction.paymentMethod}</strong>
                   </div>
 
                   {transaction.adminFee && (
                     <div className="detail-row">
                       <span>Biaya Admin:</span>
-
-                      <strong>
-                        {transaction.adminFee}
-                      </strong>
+                      <strong>{transaction.adminFee}</strong>
                     </div>
                   )}
 
                   {transaction.paidAt && (
                     <div className="detail-row">
                       <span>Dibayar pada:</span>
-
-                      <strong>
-                        {transaction.paidAt}
-                      </strong>
+                      <strong>{transaction.paidAt}</strong>
                     </div>
                   )}
 
                   {transaction.expiredAt && (
                     <div className="detail-row">
                       <span>Expired pada:</span>
-
-                      <strong className="expired-date">
-                        {transaction.expiredAt}
-                      </strong>
+                      <strong className="expired-date">{transaction.expiredAt}</strong>
                     </div>
                   )}
 
@@ -217,11 +206,10 @@ function TransaksiCustomer() {
                     <span>
                       {transaction.statusType === "waiting"
                         ? "Total Bayar:"
-                        : transaction.statusType === "failed"
+                        : transaction.statusType === "cancelled"
                         ? "Total Tagihan:"
                         : "Total Transaksi:"}
                     </span>
-
                     <strong>{transaction.total}</strong>
                   </div>
                 </div>
@@ -230,9 +218,7 @@ function TransaksiCustomer() {
                   {transaction.statusType === "waiting" && (
                     <button
                       className="primary-transaction-button"
-                      onClick={() =>
-                        handlePayment(transaction)
-                      }
+                      onClick={() => handlePayment(transaction)}
                     >
                       Bayar Sekarang
                     </button>
@@ -241,9 +227,7 @@ function TransaksiCustomer() {
                   {transaction.statusType === "success" && (
                     <button
                       className="outline-transaction-button"
-                      onClick={() =>
-                        handleViewTicket(transaction)
-                      }
+                      onClick={() => handleViewTicket(transaction)}
                     >
                       Lihat Tiket
                     </button>
@@ -254,10 +238,7 @@ function TransaksiCustomer() {
           ) : (
             <div className="empty-transaction">
               <h3>Tidak ada transaksi</h3>
-
-              <p>
-                Belum ada transaksi pada kategori ini.
-              </p>
+              <p>Belum ada transaksi pada kategori ini.</p>
             </div>
           )}
         </section>
@@ -267,5 +248,12 @@ function TransaksiCustomer() {
     </div>
   );
 }
+
+const tabs = [
+  { label: "Semua", value: "Semua" },
+  { label: "Menunggu", value: "Menunggu" },
+  { label: "Berhasil", value: "Berhasil" },
+  { label: "Dibatalkan", value: "Dibatalkan" },
+];
 
 export default TransaksiCustomer;
