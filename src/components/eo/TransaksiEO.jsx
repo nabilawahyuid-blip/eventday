@@ -2,18 +2,91 @@
 
 import React, { useEffect, useState } from "react";
 import { Search, Receipt } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
-import { getOrganizerRecentTransactions } from "../../services/organizerTransactionService";
+
+// Menggunakan service yang sama dengan DashboardEO
+import { getOrganizerRecentTransactions } from "../../services/organizerDashboardService";
 
 import "./TransaksiEO.css";
 
 function TransaksiEO() {
+  const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // =====================================================
+  // FORMAT HELPER
+  // =====================================================
+
+  const formatCurrency = (value) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(Number(value) || 0);
+  };
+
+  const getTransactionStatusClass = (status) => {
+    const normalized = String(status || "").toUpperCase();
+
+    if (
+      normalized === "SUCCESS" ||
+      normalized === "PAID" ||
+      normalized === "COMPLETED" ||
+      normalized === "LUNAS"
+    ) {
+      return "status-lunas";
+    }
+
+    if (
+      normalized === "PENDING" ||
+      normalized === "WAITING_PAYMENT" ||
+      normalized === "MENUNGGU"
+    ) {
+      return "status-menunggu";
+    }
+
+    if (
+      normalized === "FAILED" ||
+      normalized === "CANCELLED" ||
+      normalized === "DIBATALKAN"
+    ) {
+      return "status-dibatalkan";
+    }
+
+    return "status-menunggu";
+  };
+
+  const getTransactionStatusLabel = (status) => {
+    const normalized = String(status || "").toUpperCase();
+
+    switch (normalized) {
+      case "SUCCESS":
+      case "PAID":
+      case "COMPLETED":
+      case "LUNAS":
+        return "Lunas";
+
+      case "PENDING":
+      case "WAITING_PAYMENT":
+      case "MENUNGGU":
+        return "Menunggu";
+
+      case "FAILED":
+      case "CANCELLED":
+      case "DIBATALKAN":
+        return "Dibatalkan";
+
+      default:
+        return status || "-";
+    }
+  };
 
   // =====================================================
   // GET TRANSAKSI EO
@@ -54,16 +127,16 @@ function TransaksiEO() {
     const keyword = search.toLowerCase();
 
     return (
-      String(item?.id ?? "")
+      String(item?.order_id ?? "")
         .toLowerCase()
         .includes(keyword) ||
-      String(item?.customer ?? "")
-        .toLowerCase()
-        .includes(keyword) ||
-      String(item?.ticket ?? "")
+      String(item?.event_title ?? "")
         .toLowerCase()
         .includes(keyword) ||
       String(item?.status ?? "")
+        .toLowerCase()
+        .includes(keyword) ||
+      String(item?.amount ?? "")
         .toLowerCase()
         .includes(keyword)
     );
@@ -73,11 +146,11 @@ function TransaksiEO() {
   // DETAIL TRANSAKSI
   // =====================================================
 
-  const handleDetailTransaction = (id) => {
-    console.log("Detail transaksi:", id);
-
-    // Nanti kalau endpoint detail sudah tersedia:
-    // navigate(`/eo/transaksi/${id}`);
+  const handleDetailTransaction = (orderId) => {
+    if (!orderId) {
+      return;
+    }
+    navigate(`/eo/transaksi/${orderId}`);
   };
 
   // =====================================================
@@ -89,53 +162,41 @@ function TransaksiEO() {
       {/* =================================================
           SIDEBAR
       ================================================= */}
-
       <SidebarEO />
 
       {/* =================================================
           MAIN
       ================================================= */}
-
       <main className="transaksi-eo-main">
         {/* =================================================
             NAVBAR
         ================================================= */}
-
         <NavbarEO />
 
         {/* =================================================
             CONTENT
         ================================================= */}
-
         <div className="transaksi-eo-content">
           {/* =================================================
               PAGE HEADER
           ================================================= */}
-
           <div className="transaksi-page-header">
             <h1>Transaksi</h1>
           </div>
 
           {/* =================================================
-              LIST HEADER
+              LIST HEADER & SEARCH
           ================================================= */}
-
           <div className="transaksi-list-header">
             <h2>Daftar Transaksi</h2>
 
             <div className="transaksi-search">
-              <Search
-                size={18}
-                strokeWidth={2}
-              />
-
+              <Search size={18} strokeWidth={2} />
               <input
                 type="text"
                 placeholder="Cari transaksi..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                }}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
           </div>
@@ -143,101 +204,60 @@ function TransaksiEO() {
           {/* =================================================
               TRANSACTION LIST
           ================================================= */}
-
           <section className="transaksi-list">
             {/* LOADING */}
-
             {loading ? (
               <div className="empty-transaksi">
                 <span>Memuat data transaksi...</span>
               </div>
             ) : error ? (
               /* ERROR */
-
               <div className="empty-transaksi">
-                <Receipt
-                  size={30}
-                  strokeWidth={1.8}
-                />
-
+                <Receipt size={30} strokeWidth={1.8} />
                 <span>{error}</span>
               </div>
             ) : filteredTransactions.length > 0 ? (
-              /* DATA */
-
+              /* DATA LIST */
               filteredTransactions.map((item, index) => {
-                const status = String(
-                  item?.status ?? ""
-                );
-
-                let statusClass = "status-dibatalkan";
-
-                if (
-                  status.toLowerCase() === "lunas" ||
-                  status.toLowerCase() === "paid" ||
-                  status.toLowerCase() === "success" ||
-                  status.toLowerCase() === "berhasil"
-                ) {
-                  statusClass = "status-lunas";
-                } else if (
-                  status.toLowerCase() === "menunggu" ||
-                  status.toLowerCase() === "pending" ||
-                  status.toLowerCase() === "waiting_payment"
-                ) {
-                  statusClass = "status-menunggu";
-                }
+                const orderId = item?.order_id || item?.id;
 
                 return (
                   <div
                     className="transaksi-card"
-                    key={item?.id ?? index}
+                    key={orderId || index}
                   >
-                    {/* =========================================
-                        LEFT INFORMATION
-                    ========================================= */}
-
+                    {/* LEFT INFORMATION */}
                     <div className="transaksi-card-info">
                       <h3>
-                        {item?.customer ||
-                          "Nama Customer"}
+                        {item?.event_title ||
+                          item?.customer ||
+                          "Event"}
                       </h3>
 
                       <p>
-                        {item?.ticket ||
-                          "Tiket Yang Dipesan"}
+                        {formatCurrency(item?.amount || 0)}
                       </p>
 
                       <strong>
-                        ID TRANSAKSI:{" "}
-                        {item?.id || "-"}
+                        ORDER ID: {orderId || "-"}
                       </strong>
                     </div>
 
-                    {/* =========================================
-                        RIGHT INFORMATION
-                    ========================================= */}
-
+                    {/* RIGHT INFORMATION & ACTIONS */}
                     <div className="transaksi-card-actions">
-                      {/* STATUS */}
-
                       <span
-                        className={`transaksi-status ${statusClass}`}
+                        className={`transaksi-status ${getTransactionStatusClass(
+                          item?.status
+                        )}`}
                       >
-                        <span className="status-dot"></span>
-
-                        {item?.status || "Tidak diketahui"}
+                        <span className="status-dot" />
+                        {getTransactionStatusLabel(item?.status)}
                       </span>
-
-                      {/* DETAIL BUTTON */}
 
                       <button
                         type="button"
                         className="detail-transaksi-button"
-                        onClick={() =>
-                          handleDetailTransaction(
-                            item?.id
-                          )
-                        }
+                        onClick={() => handleDetailTransaction(orderId)}
                       >
                         Detail Transaksi
                       </button>
@@ -247,13 +267,8 @@ function TransaksiEO() {
               })
             ) : (
               /* EMPTY STATE */
-
               <div className="empty-transaksi">
-                <Receipt
-                  size={30}
-                  strokeWidth={1.8}
-                />
-
+                <Receipt size={30} strokeWidth={1.8} />
                 <span>
                   {search
                     ? "Data transaksi tidak ditemukan"

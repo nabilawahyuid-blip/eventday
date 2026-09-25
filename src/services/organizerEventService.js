@@ -31,15 +31,28 @@ export const createOrganizerEvent = async (data) => {
 };
 
 // =====================================================
-// UPDATE EVENT
-// PUT /api/organizer/events/update
+// UPDATE EVENT (PERBAIKAN)
+// PUT /api/organizer/events/update/{eventId}
 // =====================================================
 
-export const updateOrganizerEvent = async (data) => {
-  return apiFetch("/api/organizer/events/update", {
-    method: "PUT",
-    body: JSON.stringify(data),
-  });
+export const updateOrganizerEvent = async (eventId, data) => {
+  if (!eventId) {
+    throw new Error("Event ID wajib diisi untuk memperbarui event");
+  }
+
+  // Menggabungkan eventId ke dalam payload body
+  const payload = {
+    eventId,
+    ...data,
+  };
+
+  return apiFetch(
+    `/api/organizer/events/update/${encodeURIComponent(eventId)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    }
+  );
 };
 
 // =====================================================
@@ -106,7 +119,6 @@ export const getPublicEventDetail = async (eventId) => {
 // =====================================================
 // GET EVENT DETAIL
 // Alias untuk getPublicEventDetail
-// Bisa digunakan di halaman Detail Event Organizer
 // =====================================================
 
 export const getOrganizerEventDetail = async (eventId) => {

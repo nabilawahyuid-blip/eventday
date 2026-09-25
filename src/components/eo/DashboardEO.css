@@ -1805,3 +1805,108 @@
     justify-content: flex-end !important;
   }
 }
+/* =====================================================
+   OVERRIDE UKURAN EVENT CARD & TRANSACTION CARD
+   (Ukuran diperbesar sedikit, tanpa mengubah kode yang ada)
+===================================================== */
+
+/* 1. PERBESAR EVENT CARD */
+.event-dashboard-card {
+  padding: 22px !important;
+  row-gap: 8px;
+}
+
+/* Banner gambar diperbesar */
+.event-dashboard-card > div[style] {
+  height: 195px !important;
+}
+
+/* Judul Event diperbesar */
+.event-dashboard-card .event-card-info h3 {
+  font-size: 18px !important;
+  margin-bottom: 10px !important;
+}
+
+/* Teks meta (Tanggal, Lokasi, Tipe) diperbesar */
+.event-dashboard-card .event-meta {
+  font-size: 11px !important;
+  gap: 10px !important;
+}
+
+/* Status Badge Event diperbesar */
+.event-dashboard-card .event-status {
+  min-width: 95px !important;
+  height: 29px !important;
+  font-size: 10px !important;
+}
+
+/* Progress bar & teks info diperbesar */
+.event-dashboard-card .event-progress-info {
+  font-size: 11px !important;
+}
+
+.event-dashboard-card .event-progress-bar {
+  height: 8px !important;
+}
+
+/* Tombol Detail Event diperbesar */
+.detail-event-button {
+  height: 38px !important;
+  padding: 0 20px !important;
+  font-size: 11px !important;
+}
+
+
+/* 2. PERBESAR TRANSACTION CARD */
+.transaction-card {
+  padding: 20px 24px !important;
+  min-height: 112px !important;
+}
+
+/* Judul transaksi diperbesar */
+.transaction-card .transaction-info h3 {
+  font-size: 16px !important;
+}
+
+/* Teks harga diperbesar */
+.transaction-card .transaction-info p {
+  font-size: 14px !important;
+}
+
+/* Order ID diperbesar */
+.transaction-card .transaction-info strong {
+  font-size: 10px !important;
+}
+
+/* Badge status transaksi diperbesar */
+.transaction-card .transaction-status {
+  min-width: 86px !important;
+  height: 30px !important;
+  font-size: 10px !important;
+}
+
+
+/* 3. PENYESUAIAN KHUSUS DESKTOP LAYOUT (GRID) */
+@media (min-width: 1200px) {
+  .event-dashboard-card {
+    grid-template-columns: 320px minmax(0, 1fr) !important;
+    column-gap: 28px !important;
+  }
+
+  .event-dashboard-card > div[style] {
+    width: 320px !important;
+    height: 200px !important;
+  }
+}
+
+@media (min-width: 851px) and (max-width: 1199px) {
+  .event-dashboard-card {
+    grid-template-columns: 290px minmax(0, 1fr) !important;
+    column-gap: 24px !important;
+  }
+
+  .event-dashboard-card > div[style] {
+    width: 290px !important;
+    height: 190px !important;
+  }
+}
