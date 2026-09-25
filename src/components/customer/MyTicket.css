@@ -197,19 +197,19 @@
   box-sizing: border-box;
 }
 
-.ticket-status-badge.used {
+.ticket-status-badge.paid {
   background: #aaf1c9;
   border: 1px solid #65d99b;
   color: #176b43;
 }
 
-.ticket-status-badge.unused {
+.ticket-status-badge.pending {
   background: #ffe57a;
   border: 1px solid #f1c934;
   color: #8b5b00;
 }
 
-.ticket-status-badge.expired {
+.ticket-status-badge.failed {
   background: #ffb1b7;
   border: 1px solid #f07882;
   color: #a31e28;

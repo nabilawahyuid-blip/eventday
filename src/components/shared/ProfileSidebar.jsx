@@ -76,6 +76,15 @@ function ProfileSidebar({ open, onClose }) {
 
   const handleNavigate = (path) => {
     onClose();
+    // Check if user is trying to access EO dashboard but is not registered as EO
+    if (path === "/eo/dashboard") {
+      const role = localStorage.getItem("role");
+      if (role !== "ORGANIZER") {
+        // Not registered as EO, redirect to registration page
+        navigate("/register-eo");
+        return;
+      }
+    }
     navigate(path);
   };
 

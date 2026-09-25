@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
-import { getMyTickets, getTicketDetail } from "../../services/ticketService";
+import { getMyTickets, getTicketDetail, getTicketsByOrder } from "../../services/ticketService";
 import { apiFetch } from "../../services/api";
 import "./OrderDetail.css";
 
@@ -112,34 +112,72 @@ function OrderDetail() {
           });
         }
 
-        // 2) Ambil tiket — fetch semua, enrich, baru filter by orderId
+// 2) Ambil tiket — pakai endpoint by-order (eliminasi N+1 calls)
         let foundTickets = [];
-        const email = localStorage.getItem("email");
-        if (email) {
-          try {
-            const res = await getMyTickets(email);
-            const allTickets = res?.data || [];
+        try {
+          const res = await getTicketsByOrder(orderId);
+          const tickets = res?.data || [];
+          console.log("[OrderDetail] getTicketsByOrder response:", tickets);
 
-            if (allTickets.length > 0) {
-              // Enrich tiap tiket untuk dapat orderId dari TicketDetailResponse
-              const enriched = await Promise.all(
-                allTickets.map(async (ticket) => {
+          if (tickets.length > 0) {
+            foundTickets = tickets;
+
+            // Get eventImageUrl from first ticket
+            const firstTicket = tickets[0];
+            const imageUrl = firstTicket.eventImageUrl || firstTicket.eventImage;
+            if (imageUrl) {
+              setOrder((prev) => prev ? { ...prev, image: imageUrl } : null);
+            }
+          }
+        } catch (err) {
+          console.error("[OrderDetail] getTicketsByOrder error:", err.message);
+
+          // Fallback to old method if new endpoint fails
+          const email = localStorage.getItem("email");
+          console.log("[OrderDetail] Fallback - Fetching tickets for order:", orderId, "email:", email);
+          if (email) {
+            try {
+              const res = await getMyTickets(email);
+              const allTickets = res?.data || [];
+              console.log("[OrderDetail] allTickets (fallback):", allTickets);
+
+              if (allTickets.length > 0) {
+                const matchingTickets = [];
+
+                for (let i = 0; i < Math.min(allTickets.length, 20); i++) {
+                  const ticket = allTickets[i];
                   const code = ticket.ticketCode || ticket.ticketItemId;
-                  if (!code) return ticket;
+                  if (!code) continue;
+
                   try {
                     const detailRes = await getTicketDetail(code);
-                    return { ...ticket, ...detailRes?.data };
-                  } catch {
-                    return ticket;
+                    console.log("[OrderDetail] issued-detail for", code, ":", detailRes);
+                    const data = detailRes?.data;
+                    if (data?.orderId === orderId) {
+                      matchingTickets.push({
+                        ...ticket,
+                        ...detailRes?.data,
+                      });
+                    }
+                  } catch (e) {
+                    console.warn("[OrderDetail] issued-detail error:", e);
                   }
-                }),
-              );
+                }
 
-              // Filter by orderId setelah enrich
-              foundTickets = enriched.filter((t) => t.orderId === orderId);
+                foundTickets = matchingTickets;
+                console.log("[OrderDetail] Matching tickets for order:", orderId, ":", matchingTickets);
+
+                if (matchingTickets.length > 0) {
+                  const firstMatch = matchingTickets[0];
+                  const imageUrl = firstMatch.eventImageUrl || firstMatch.eventImage;
+                  if (imageUrl) {
+                    setOrder((prev) => prev ? { ...prev, image: imageUrl } : null);
+                  }
+                }
+              }
+            } catch (err) {
+              console.error("[OrderDetail] getMyTickets error (fallback):", err.message);
             }
-          } catch (err) {
-            console.error("[OrderDetail] getMyTickets error:", err.message);
           }
         }
 

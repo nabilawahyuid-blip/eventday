@@ -6,6 +6,8 @@ import FooterCustomer from "../shared/FooterCustomer";
 import {
   getTransactionHistory,
   getMyTicketsAuth,
+  getMyTickets,
+  getTicketDetail,
 } from "../../services/ticketService";
 import { getEvents } from "../../services/eventService";
 import { getRefundHistory } from "../../services/refundService";
@@ -14,10 +16,11 @@ import "./MyTicket.css";
 const ORDER_STATUS_LABEL = {
   PAID: "Terbayar",
   PENDING: "Menunggu",
+  WAITING_PAYMENT: "Menunggu Pembayaran",
   REFUND_REQUESTED: "Refund Diajukan",
   REFUNDED: "Refund Disetujui",
   REJECTED: "Refund Ditolak",
-  EXPIRED: "Kedaluwarsa",
+  EXPIRED: "Gagal Bayar",
   CANCELLED: "Dibatalkan",
   REFUND: "Refund",
 };
@@ -25,10 +28,11 @@ const ORDER_STATUS_LABEL = {
 const ORDER_STATUS_TYPE = {
   PAID: "paid",
   PENDING: "pending",
+  WAITING_PAYMENT: "pending",
   REFUND_REQUESTED: "refund-requested",
   REFUNDED: "refunded",
   REJECTED: "rejected",
-  EXPIRED: "expired",
+  EXPIRED: "failed",
   CANCELLED: "cancelled",
   REFUND: "refund",
 };
@@ -37,7 +41,7 @@ const FILTER_OPTIONS = [
   { key: "all", label: "Semua" },
   { key: "PAID", label: "Terbayar" },
   { key: "PENDING", label: "Menunggu" },
-  { key: "EXPIRED", label: "Kedaluwarsa" },
+  { key: "EXPIRED", label: "Gagal" },
   { key: "REFUND", label: "Refund" },
 ];
 
@@ -159,37 +163,45 @@ function MyTicket() {
         });
 
         // Fetch event images from issued-detail for each order
+        // Strategy: Call issued-detail for first N tickets to build orderId -> imageUrl map
         try {
-          // Get my-tickets to map tickets to orders
-          const myTicketsRes = await getMyTicketsAuth();
+          const email = localStorage.getItem("email") || localStorage.getItem("userEmail");
+          console.log("[MyTicket] Fetching images - email:", email);
+          const myTicketsRes = email ? await getMyTickets(email) : await getMyTicketsAuth();
           const myTickets = myTicketsRes?.data || [];
+          console.log("[MyTicket] myTickets:", myTickets);
 
-          // Group tickets by orderId, take first ticket per order
-          const ticketByOrderId = {};
-          myTickets.forEach((t) => {
-            if (t.orderId && !ticketByOrderId[t.orderId] && (t.ticketCode || t.ticketItemId)) {
-              ticketByOrderId[t.orderId] = t.ticketCode || t.ticketItemId;
-            }
-          });
+          // Call issued-detail for first N tickets to build orderId -> imageUrl map
+          // Tickets have ticketItemId; issued-detail returns orderId + eventImageUrl
+          const MAX_TICKETS = 15;
+          const ticketsToCheck = myTickets.slice(0, MAX_TICKETS);
+          console.log("[MyTicket] Checking tickets:", ticketsToCheck.map(t => t.ticketItemId));
 
-          // Fetch eventImageUrl from issued-detail for each order (parallel, max 10 to avoid overload)
-          const orderIdsWithTickets = Object.keys(ticketByOrderId).slice(0, 10);
-          const imagePromises = orderIdsWithTickets.map(async (orderId) => {
-            const ticketCode = ticketByOrderId[orderId];
+          const imagePromises = ticketsToCheck.map(async (ticket) => {
+            const code = ticket.ticketCode || ticket.ticketItemId;
+            if (!code) return { orderId: null, imageUrl: null };
             try {
-              const detailRes = await getTicketDetail(ticketCode);
-              const imageUrl = detailRes?.data?.eventImageUrl || detailRes?.data?.eventImage || null;
+              const detailRes = await getTicketDetail(code);
+              console.log("[MyTicket] issued-detail for", code, ":", detailRes);
+              const data = detailRes?.data;
+              const orderId = data?.orderId;
+              const imageUrl = data?.eventImageUrl || data?.eventImage;
               return { orderId, imageUrl };
-            } catch {
-              return { orderId, imageUrl: null };
+            } catch (err) {
+              console.warn("[MyTicket] issued-detail error for", code, ":", err);
+              return { orderId: null, imageUrl: null };
             }
           });
 
           const imageResults = await Promise.all(imagePromises);
+          console.log("[MyTicket] imageResults:", imageResults);
+
+          // Build orderId -> imageUrl map
           const imageMap = {};
           imageResults.forEach(({ orderId, imageUrl }) => {
-            if (imageUrl) imageMap[orderId] = imageUrl;
+            if (orderId && imageUrl) imageMap[orderId] = imageUrl;
           });
+          console.log("[MyTicket] imageMap:", imageMap);
 
           // Merge image URLs into merged orders
           const withImages = merged.map((order) => ({
@@ -247,12 +259,29 @@ function MyTicket() {
 
   const NON_REFUND_STATUSES = ["PAID", "PENDING", "WAITING_PAYMENT", "EXPIRED"];
 
+  // Status priority: lower number = higher priority (appears first)
+  const STATUS_PRIORITY = {
+    PENDING: 1,
+    WAITING_PAYMENT: 1,
+    PAID: 2,
+    EXPIRED: 3,
+    CANCELLED: 4,
+  };
+
+  const getStatusPriority = (status) => STATUS_PRIORITY[status] || 99;
+
   const filteredOrders = (filter === "all"
     ? orders.filter((o) => NON_REFUND_STATUSES.includes(o.status))
     : filter === "REFUND"
     ? orders.filter((o) => REFUND_STATUSES.includes(o.status))
     : orders.filter((o) => o.status === filter)
   ).sort((a, b) => {
+    // Primary sort: status priority (pending first, then paid, then expired)
+    const priorityA = getStatusPriority(a.status);
+    const priorityB = getStatusPriority(b.status);
+    if (priorityA !== priorityB) return priorityA - priorityB;
+
+    // Secondary sort: createdAt descending (newest first within same status)
     const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return db - da;
