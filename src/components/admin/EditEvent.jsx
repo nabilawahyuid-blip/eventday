@@ -6,6 +6,11 @@ import {
   updateAdminEvent,
 } from "../../services/adminEventService";
 
+import {
+  showSuccess,
+  showError,
+} from "../../utils/alert";
+
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 import "./EditEvent.css";
@@ -145,11 +150,17 @@ function EditEvent() {
           .map((t) => ({ name: t.name, price: Number(t.price) || 0, quota: Number(t.quota) || 0 })),
       };
       await updateAdminEvent(id, payload);
-      alert("Perubahan berhasil disimpan.");
+      await showSuccess(
+        "Perubahan Event Disimpan",
+        "Perubahan berhasil disimpan."
+      );
       navigate(`/admin/event/${id}`);
     } catch (err) {
       console.error("Gagal menyimpan:", err);
-      alert(err?.data?.msg || err?.message || "Gagal menyimpan perubahan.");
+      await showError(
+        "Gagal Menyimpan Perubahan",
+        err?.data?.msg || err?.message || "Gagal menyimpan perubahan."
+      );
     } finally {
       setSaving(false);
     }

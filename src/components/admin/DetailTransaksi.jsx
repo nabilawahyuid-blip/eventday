@@ -22,6 +22,12 @@ import {
   updateAdminTransactionStatus,
 } from "../../services/adminTransactionService";
 
+import {
+  showSuccess,
+  showError,
+  showConfirm,
+} from "../../utils/alert";
+
 const STATUS_MAP = {
   PENDING: "PENDING",
   WAITING_PAYMENT: "MENUNGGU PEMBAYARAN",
@@ -96,15 +102,27 @@ function DetailTransaksi() {
   const handleStatusChange = async (status) => {
     if (!id || !status) return;
     const label = STATUS_MAP[status] || status;
-    if (!window.confirm(`Ubah status transaksi menjadi ${label}?`)) return;
+    const { isConfirmed } = await showConfirm(
+      "Konfirmasi Tindakan",
+      `Ubah status transaksi menjadi ${label}?`,
+      "Ya, Lanjutkan",
+      "Batal"
+    );
+    if (!isConfirmed) return;
     try {
       setSubmitting(true);
       await updateAdminTransactionStatus(id, status);
-      alert("Status transaksi berhasil diubah.");
+      await showSuccess(
+        "Status Transaksi Diperbarui",
+        "Status transaksi berhasil diubah."
+      );
       await loadDetail();
     } catch (err) {
       console.error("Gagal mengubah status transaksi:", err);
-      alert(err?.data?.msg || err?.message || "Gagal mengubah status.");
+      await showError(
+        "Gagal Memperbarui Status Transaksi",
+        err?.data?.msg || err?.message || "Gagal mengubah status."
+      );
     } finally {
       setSubmitting(false);
     }

@@ -641,6 +641,17 @@
   color: #27a875;
 }
 
+/* Ikon besar penanda check-in di daftar tiket */
+.ticket-page .ticket-item-icon.checked {
+  background: #1a9e6b;
+
+  color: #ffffff;
+
+  font-weight: 700;
+
+  font-size: 14px;
+}
+
 /* ==
    ITEM INFO
 == */
@@ -780,6 +791,78 @@
   background: #f1eff8;
 
   color: #5b4de2;
+}
+
+/* ==
+   ACTION BUTTON (eksplisit per status, lebar stabil)
+== */
+
+.ticket-action-button {
+  min-width: 86px;
+
+  height: 30px;
+
+  padding: 0 12px;
+
+  border-radius: 8px;
+
+  font-family: "Poppins", sans-serif;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.ticket-action-button.checkin {
+  border: none;
+
+  background: #1a9e6b;
+
+  color: #ffffff;
+}
+
+.ticket-action-button.checkin:hover {
+  background: #14855a;
+}
+
+.ticket-action-button.revoke {
+  border: 1px solid #ff8f8f;
+
+  background: #ffffff;
+
+  color: #ee4141;
+}
+
+.ticket-action-button.revoke:hover {
+  background: #fff2f2;
+}
+
+/* ==
+   PEMBEDA CHECKED-IN vs BELUM (aksen kiri kartu, tanpa geser layout)
+== */
+
+.ticket-page .ticket-item.is-used {
+  background: #f4faf7;
+
+  border-color: #cdeadb;
+
+  box-shadow: inset 4px 0 0 #1a9e6b;
+}
+
+.ticket-page .ticket-item.is-open {
+  box-shadow: inset 4px 0 0 #2f6fde;
+}
+
+.ticket-page .ticket-item.is-used:hover {
+  background: #eef8f3;
+
+  border-color: #b8e2cd;
 }
 
 /* ==
@@ -1118,10 +1201,45 @@
   padding: 5px 12px;
   border-radius: 16px;
   font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .ticket-page .ticket-status span {
   font-size: 12px;
+}
+
+/* Badge status tiket — teks jelas, warna kontras per status */
+.ticket-page .ticket-status.unredeemed,
+.ticket-page .ticket-status.issued {
+  background: #e5efff;
+  color: #2f6fde;
+}
+
+.ticket-page .ticket-status.used {
+  background: #dcf6ea;
+  color: #1a9e6b;
+}
+
+.ticket-page .ticket-status.expired {
+  background: #ecebf0;
+  color: #6b6778;
+}
+
+.ticket-page .ticket-status.refunded {
+  background: #ebe8ff;
+  color: #5b4de2;
+}
+
+.ticket-page .ticket-status.revoked {
+  background: #ffe0df;
+  color: #c93a3d;
+}
+
+.ticket-page .ticket-status.pending {
+  background: #fff0d8;
+  color: #b97a1a;
 }
 
 .ticket-page .ticket-more-button {

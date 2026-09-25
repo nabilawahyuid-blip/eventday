@@ -10,6 +10,12 @@ import {
   suspendAdminUser,
 } from "../../services/adminUserService";
 
+import {
+  showSuccess,
+  showError,
+  showConfirm,
+} from "../../utils/alert";
+
 import "./DetailUser.css";
 
 function DetailUser() {
@@ -91,7 +97,8 @@ function DetailUser() {
         newStatus
       );
 
-      alert(
+      await showSuccess(
+        "Status User Diperbarui",
         `Status user berhasil diubah menjadi ${getStatusLabel(
           newStatus
         )}.`
@@ -104,7 +111,8 @@ function DetailUser() {
         err
       );
 
-      alert(
+      await showError(
+        "Gagal Memperbarui Status User",
         err?.message ||
           "Gagal mengubah status user."
       );
@@ -119,11 +127,13 @@ function DetailUser() {
   const handleSuspend = async () => {
     if (!user?.userId || actionLoading) return;
 
-    const confirmed = window.confirm(
-      `Yakin ingin suspend user "${user.name || "ini"}"?`
+    const { isConfirmed } = await showConfirm(
+      "Konfirmasi Tindakan",
+      `Yakin ingin suspend user "${user.name || "ini"}"?`,
+      "Ya, Lanjutkan",
+      "Batal"
     );
-
-    if (!confirmed) return;
+    if (!isConfirmed) return;
 
     try {
       setActionLoading(true);
@@ -135,7 +145,10 @@ function DetailUser() {
 
       await suspendAdminUser(user.userId);
 
-      alert("User berhasil di-suspend.");
+      await showSuccess(
+        "User Berhasil Disuspend",
+        "User berhasil di-suspend."
+      );
 
       await fetchUserDetail();
     } catch (err) {
@@ -144,7 +157,8 @@ function DetailUser() {
         err
       );
 
-      alert(
+      await showError(
+        "Gagal Menonaktifkan User",
         err?.message ||
           "Gagal suspend user."
       );
@@ -164,11 +178,17 @@ function DetailUser() {
         String(text)
       );
 
-      alert("Berhasil disalin.");
+      await showSuccess(
+        "Data Berhasil Disalin",
+        "Berhasil disalin."
+      );
     } catch (err) {
       console.error("Gagal copy:", err);
 
-      alert("Gagal menyalin data.");
+      await showError(
+        "Gagal Menyalin Data",
+        "Gagal menyalin data."
+      );
     }
   };
 

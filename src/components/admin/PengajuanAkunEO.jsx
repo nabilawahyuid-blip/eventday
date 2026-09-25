@@ -8,6 +8,8 @@ import {
   getEoApplications,
 } from "../../services/adminEoService";
 
+import { showWarning } from "../../utils/alert";
+
 import "./PengajuanAkunEO.css";
 
 function PengajuanAkunEO() {
@@ -260,42 +262,38 @@ function PengajuanAkunEO() {
 
             <div className="pengajuan-actions">
 
-              {/* FILTER */}
+              {/* FILTER — dropdown status */}
 
               <div className="filter-wrapper">
 
-                <button
-                  type="button"
-                  className="filter-button"
-                  onClick={() => {
-                    if (
-                      filter === "Semua"
-                    ) {
-                      handleFilter(
-                        "Pending"
-                      );
-                    } else if (
-                      filter === "Pending"
-                    ) {
-                      handleFilter(
-                        "Disetujui"
-                      );
-                    } else if (
-                      filter === "Disetujui"
-                    ) {
-                      handleFilter(
-                        "Ditolak"
-                      );
-                    } else {
-                      handleFilter(
-                        "Semua"
-                      );
-                    }
-                  }}
+                <label
+                  className="filter-select-label"
+                  htmlFor="pengajuan-eo-filter"
                 >
-                  <span>☰</span>
-                  Filter: {filter}
-                </button>
+                  Status
+                </label>
+
+                <select
+                  id="pengajuan-eo-filter"
+                  className="filter-select"
+                  value={filter}
+                  onChange={(e) =>
+                    handleFilter(e.target.value)
+                  }
+                >
+                  <option value="Semua">
+                    Semua
+                  </option>
+                  <option value="Pending">
+                    Pending
+                  </option>
+                  <option value="Disetujui">
+                    Disetujui
+                  </option>
+                  <option value="Ditolak">
+                    Ditolak
+                  </option>
+                </select>
 
               </div>
 
@@ -305,7 +303,8 @@ function PengajuanAkunEO() {
                 type="button"
                 className="export-button"
                 onClick={() =>
-                  alert(
+                  showWarning(
+                    "Ekspor Belum Tersedia",
                     "Export pengajuan EO belum tersedia di API backend."
                   )
                 }

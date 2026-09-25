@@ -1390,3 +1390,23 @@
     box-sizing: border-box;
   }
 }
+
+/* =========================================================
+   STABILITAS KOLOM AKSI — cegah geser saat SweetAlert terbuka
+   atau teks tombol berubah (Check-in ↔ Revoke ↔ Memproses...)
+   ========================================================= */
+.detail-payout-page .superadmin-card {
+  min-width: 0;
+}
+
+.detail-payout-page .decision-buttons:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
+.detail-payout-page .decision-button,
+.detail-payout-page .confirm-decision-button {
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -9,6 +9,13 @@ import {
   exportAdminTransactions,
 } from "../../services/adminTransactionService";
 
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  showConfirm,
+} from "../../utils/alert";
+
 // Map status BE (PENDING/WAITING_PAYMENT/PAID/EXPIRED/CANCELLED/REFUNDED)
 // ke label + class CSS yang tersedia (paid/pending/failed).
 const STATUS_MAP = {
@@ -57,6 +64,56 @@ const initials = (name = "") =>
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join("") || "?";
+
+// Ambil tanggal lokal YYYY-MM-DD dari field tanggal transaksi.
+// Return null bila kosong/invalid (ditoleransi = lolos filter).
+const toLocalDateKey = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
+
+const getTxnDateKey = (t) =>
+  toLocalDateKey(
+    t.createdAt ||
+      t.paidAt ||
+      t.transactionDate ||
+      t.orderDate ||
+      t.date ||
+      t.created_at ||
+      t.paid_at ||
+      null
+  );
+
+const matchDateFilter = (txnKey, dateFilter) => {
+  // Toleransi: transaksi tanpa tanggal tetap ditampilkan.
+  if (!txnKey) return true;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const txn = new Date(`${txnKey}T00:00:00`);
+  if (Number.isNaN(txn.getTime())) return true;
+  const diffDays = Math.round((today - txn) / 86400000);
+  switch (dateFilter) {
+    case "Today":
+      return diffDays === 0;
+    case "Last 7 Days":
+      return diffDays >= 0 && diffDays < 7;
+    case "This Month": {
+      const now = new Date();
+      return (
+        txn.getFullYear() === now.getFullYear() &&
+        txn.getMonth() === now.getMonth()
+      );
+    }
+    case "Last 30 Days":
+    default:
+      return diffDays >= 0 && diffDays < 30;
+  }
+};
 
 function Transaksi() {
   const navigate = useNavigate();
@@ -120,9 +177,11 @@ function Transaksi() {
       const matchStatus =
         !keys || keys.includes(st);
 
-      return matchSearch && matchStatus;
+      const matchDate = matchDateFilter(getTxnDateKey(t), dateFilter);
+
+      return matchSearch && matchStatus && matchDate;
     });
-  }, [transactions, search, statusFilter]);
+  }, [transactions, search, statusFilter, dateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
   const safePage = Math.min(currentPage, totalPages);
@@ -156,32 +215,53 @@ function Transaksi() {
   const handleExport = async () => {
     try {
       await exportAdminTransactions();
-      alert("Export transaksi berhasil diunduh.");
+      await showSuccess(
+        "Ekspor Berhasil",
+        "Export transaksi berhasil diunduh."
+      );
     } catch (err) {
-      alert(err?.message || "Gagal export transaksi.");
+      await showError(
+        "Gagal Mengekspor Transaksi",
+        err?.message || "Gagal export transaksi."
+      );
     }
   };
 
   const handleStatusChange = async (id, status) => {
     if (!id || !status) return;
-    if (!window.confirm(`Ubah status transaksi ${id} menjadi ${status}?`)) return;
+    const { isConfirmed } = await showConfirm(
+      "Konfirmasi Tindakan",
+      `Ubah status transaksi ${id} menjadi ${status}?`,
+      "Ya, Lanjutkan",
+      "Batal"
+    );
+    if (!isConfirmed) return;
     try {
       setUpdatingId(id);
       await updateAdminTransactionStatus(id, status);
-      alert("Status transaksi berhasil diubah.");
+      await showSuccess(
+        "Status Transaksi Diperbarui",
+        "Status transaksi berhasil diubah."
+      );
       await loadTransactions();
     } catch (err) {
-      alert(err?.data?.msg || err?.message || "Gagal mengubah status.");
+      await showError(
+        "Gagal Memperbarui Status Transaksi",
+        err?.data?.msg || err?.message || "Gagal mengubah status."
+      );
     } finally {
       setUpdatingId(null);
     }
   };
 
-  const handleDetail = (transaction) => {
+  const handleDetail = async (transaction) => {
     if (transaction.id) {
       navigate(`/admin/transaksi/${encodeURIComponent(transaction.id)}`);
     } else {
-      alert("ID transaksi tidak tersedia.");
+      await showWarning(
+        "ID Transaksi Tidak Tersedia",
+        "ID transaksi tidak tersedia."
+      );
     }
   };
 
@@ -222,7 +302,10 @@ function Transaksi() {
               <select
                 className="date-filter"
                 value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
+                onChange={(e) => {
+                  setDateFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
               >
                 <option>Last 30 Days</option>
                 <option>Last 7 Days</option>
@@ -412,6 +495,12 @@ function Transaksi() {
                       const email =
                         transaction.userEmail ||
                         transaction.user?.email ||
+                        transaction.customerEmail ||
+                        transaction.customer?.email ||
+                        transaction.buyerEmail ||
+                        transaction.buyer?.email ||
+                        transaction.orderEmail ||
+                        transaction.email ||
                         "-";
                       const eventName =
                         transaction.eventTitle ||

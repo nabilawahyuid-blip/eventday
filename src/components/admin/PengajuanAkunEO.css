@@ -774,12 +774,71 @@ body {
 }
 
 .pengajuan-eo-page .filter-button,
-.pengajuan-eo-page .export-button {
+.pengajuan-eo-page .export-button,
+.pengajuan-eo-page .filter-select {
   height: 42px;
   padding: 0 18px;
   border-radius: 9px;
   font-size: 14px;
   font-weight: 600;
+}
+
+/* GROUP C — filter status sebagai satu dropdown <select> */
+.pengajuan-eo-page .filter-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pengajuan-eo-page .filter-select-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: #6f7482;
+  white-space: nowrap;
+}
+
+.pengajuan-eo-page .filter-select {
+  font-family: "Poppins", sans-serif;
+  background: #ffffff;
+  border: 1px solid #d9d5e7;
+  color: #33304a;
+  cursor: pointer;
+  outline: none;
+  max-width: 220px;
+}
+
+.pengajuan-eo-page .filter-select:hover {
+  border-color: #5d50df;
+}
+
+.pengajuan-eo-page .filter-select:focus {
+  border-color: #5d50df;
+  box-shadow: 0 0 0 3px rgba(93, 80, 223, 0.14);
+}
+
+@media (max-width: 800px) {
+  .pengajuan-eo-page .filter-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .pengajuan-eo-page .filter-select {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .pengajuan-eo-page .filter-wrapper {
+    width: 100%;
+  }
+
+  .pengajuan-eo-page .filter-select {
+    width: 100%;
+  }
 }
 
 .pengajuan-eo-page .pengajuan-statistics {

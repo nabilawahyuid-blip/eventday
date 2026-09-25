@@ -46,26 +46,37 @@ export const generateAdminTickets = async (orderId) => {
   });
 };
 
+// BE menolak PATCH ("Request method 'PATCH' is not supported") —
+// endpoint aksi tiket hanya memetakan POST; fallback PUT hanya bila BE
+// memberi sinyal method tidak didukung (retry aman: state belum berubah).
+const postTicketAction = async (path) => {
+  try {
+    return await apiFetch(path, { method: "POST" });
+  } catch (err) {
+    const msg = String(err?.data?.msg || err?.message || "");
+    const methodRejected =
+      err?.status === 405 || /request method/i.test(msg);
+    if (!methodRejected) throw err;
+    return apiFetch(path, { method: "PUT" });
+  }
+};
+
 // ==========================================
 // REVOKE TICKET (status → REVOKED)
-// PATCH /api/admin/tickets/{id}/revoke + audit REVOKE_TICKET
+// POST /api/admin/tickets/{id}/revoke + audit REVOKE_TICKET
 // ==========================================
 export const revokeAdminTicket = async (id) => {
   if (!id) throw new Error("ID tiket wajib diisi.");
-  return apiFetch(`/api/admin/tickets/${encodeURIComponent(id)}/revoke`, {
-    method: "PATCH",
-  });
+  return postTicketAction(`/api/admin/tickets/${encodeURIComponent(id)}/revoke`);
 };
 
 // ==========================================
 // CHECK-IN TICKET (checkInStatus → USED, checkInAt = now)
-// PATCH /api/admin/tickets/{id}/checkin + audit CHECKIN_TICKET
+// POST /api/admin/tickets/{id}/checkin + audit CHECKIN_TICKET
 // ==========================================
 export const checkinAdminTicket = async (id) => {
   if (!id) throw new Error("ID tiket wajib diisi.");
-  return apiFetch(`/api/admin/tickets/${encodeURIComponent(id)}/checkin`, {
-    method: "PATCH",
-  });
+  return postTicketAction(`/api/admin/tickets/${encodeURIComponent(id)}/checkin`);
 };
 
 // ==========================================

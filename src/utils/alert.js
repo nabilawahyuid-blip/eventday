@@ -4,6 +4,10 @@ import "./alert.css";
 const alertConfig = {
   buttonsStyling: true,
 
+  // Jangan tambah padding kompensasi scrollbar ke <body> saat modal
+  // terbuka — itu yang menggeser kolom halaman di belakang alert.
+  scrollbarPadding: false,
+
   customClass: {
     popup: "eventday-alert-popup",
     title: "eventday-alert-title",
@@ -118,5 +122,38 @@ export const showToast = (icon, title) => {
   return Toast.fire({
     icon: icon,
     title: title,
+  });
+};
+
+export const showInputDialog = ({
+  title,
+  text = "",
+  input = "text",
+  inputOptions = {},
+  inputPlaceholder = "",
+  inputValue = "",
+  confirmText = "Lanjutkan",
+  cancelText = "Batal",
+  requiredMessage = "Nilai wajib diisi.",
+}) => {
+  return Swal.fire({
+    ...alertConfig,
+    icon: "question",
+    title: title,
+    text: text,
+    input: input,
+    inputOptions: input === "select" ? inputOptions : undefined,
+    inputPlaceholder: inputPlaceholder,
+    inputValue: inputValue,
+    showCancelButton: true,
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
+    reverseButtons: true,
+    inputValidator: (value) => {
+      if (value === undefined || value === null || String(value).trim() === "") {
+        return requiredMessage;
+      }
+      return undefined;
+    },
   });
 };
