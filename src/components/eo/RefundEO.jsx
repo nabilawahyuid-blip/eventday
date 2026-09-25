@@ -1,3 +1,5 @@
+// src/pages/RefundEO.jsx
+
 import React, { useEffect, useState } from "react";
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
@@ -194,6 +196,11 @@ function RefundEO() {
 
       alert("Refund berhasil disetujui.");
 
+      // Tutup modal jika aksi dilakukan dari dalam modal
+      if (showDetail) {
+        closeDetail();
+      }
+
       await fetchRefunds();
     } catch (error) {
       console.error("Gagal menyetujui refund:", error);
@@ -228,6 +235,11 @@ function RefundEO() {
       );
 
       alert("Refund berhasil ditolak.");
+
+      // Tutup modal jika aksi dilakukan dari dalam modal
+      if (showDetail) {
+        closeDetail();
+      }
 
       await fetchRefunds();
     } catch (error) {
@@ -720,10 +732,52 @@ function RefundEO() {
             )}
 
             {/* =================================
-                MODAL FOOTER
+                MODAL FOOTER WITH ACTIONS
             ================================= */}
 
             <div className="refund-modal-footer">
+
+              {/* TAMPILKAN TOMBOL AKSI JIKA STATUS MASIH PENDING */}
+
+              {!loadingDetail &&
+                detailData &&
+                String(detailData.status || "").toUpperCase() === "PENDING" && (
+                  <div className="pending-buttons" style={{ marginRight: "auto" }}>
+
+                    {/* TOLAK */}
+
+                    <button
+                      type="button"
+                      className="reject-btn"
+                      disabled={processingId === detailData.refund_id}
+                      onClick={() =>
+                        handleReject(detailData.refund_id)
+                      }
+                    >
+                      <span>✕</span>
+                      {processingId === detailData.refund_id
+                        ? "Memproses..."
+                        : "Tolak"}
+                    </button>
+
+                    {/* SETUJUI */}
+
+                    <button
+                      type="button"
+                      className="approve-btn"
+                      disabled={processingId === detailData.refund_id}
+                      onClick={() =>
+                        handleApprove(detailData.refund_id)
+                      }
+                    >
+                      <span>✓</span>
+                      {processingId === detailData.refund_id
+                        ? "Memproses..."
+                        : "Setujui"}
+                    </button>
+
+                  </div>
+                )}
 
               <button
                 type="button"

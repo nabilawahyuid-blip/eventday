@@ -1,3 +1,5 @@
+// src/services/organizerRegisterService.js
+
 import { apiFetch } from "./api";
 
 // ==========================================
@@ -5,14 +7,33 @@ import { apiFetch } from "./api";
 // POST /api/organizer/register
 // ==========================================
 export const registerOrganizer = async (data) => {
+  const formData = new FormData();
+
+  formData.append(
+    "organizer_name",
+    String(data.organizer_name || "").trim()
+  );
+
+  if (data.npwp_number) {
+    formData.append(
+      "npwp_number",
+      String(data.npwp_number).trim()
+    );
+  }
+
+  formData.append(
+    "bank_name",
+    String(data.bank_name || "").trim()
+  );
+
+  formData.append(
+    "bank_account_number",
+    String(data.bank_account_number || "").trim()
+  );
+
   return apiFetch("/api/organizer/register", {
     method: "POST",
-    body: JSON.stringify({
-      organizer_name: data.organizer_name,
-      npwp_number: data.npwp_number,
-      bank_name: data.bank_name,
-      bank_account_number: data.bank_account_number,
-    }),
+    body: formData,
   });
 };
 
@@ -26,8 +47,14 @@ export const uploadOrganizerDocument = async (file, documentType) => {
   formData.append("file", file);
   formData.append("documentType", documentType);
 
+  // Ambil token dari localStorage secara manual agar lolos otentikasi
+  const token = localStorage.getItem("token");
+
   return apiFetch("/api/organizer/documents/upload", {
     method: "POST",
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: formData,
   });
 };
