@@ -58,7 +58,7 @@ import DetailRefundEO from "./components/eo/DetailRefundEO";
 import ProfileEO from "./components/eo/ProfileEO";
 import RegisterEO from "./components/eo/RegisterEO";
 import StatusRegisterEO from "./components/eo/StatusRegisterEO";
-import PayoutEO from "./components/eo/PayoutEo";
+import PayoutEO from "./components/eo/PayoutEO";
 import PengajuanPayoutEO from "./components/eo/PengajuanPayoutEO";
 
 function App() {
