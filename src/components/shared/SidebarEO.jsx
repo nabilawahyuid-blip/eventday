@@ -37,10 +37,9 @@ function SidebarEO() {
 
   return (
     <aside className="sidebar-eo">
+      {/* BRAND HEADER */}
       <div className="sidebar-eo-brand">
-        <div className="sidebar-eo-logo">
-          E
-        </div>
+        <div className="sidebar-eo-logo">E</div>
 
         <div className="sidebar-eo-brand-text">
           <h2>EventDay</h2>
@@ -48,7 +47,9 @@ function SidebarEO() {
         </div>
       </div>
 
+      {/* MENU NAVIGASI UTAMA */}
       <nav className="sidebar-eo-menu">
+        {/* DASHBOARD EO */}
         <button
           type="button"
           className={`sidebar-eo-item ${
@@ -57,139 +58,114 @@ function SidebarEO() {
           onClick={() => navigate("/eo/dashboard")}
         >
           <span className="sidebar-eo-icon">
-            <LayoutDashboard
-              size={17}
-              strokeWidth={1.9}
-            />
+            <LayoutDashboard size={17} strokeWidth={1.9} />
           </span>
 
-          <span className="sidebar-eo-label">
-            Dashboard
-          </span>
+          <span className="sidebar-eo-label">Dashboard</span>
         </button>
 
+        {/* EVENT */}
         <button
           type="button"
           className={`sidebar-eo-item ${
-            location.pathname.startsWith("/eo/event")
-              ? "active"
-              : ""
+            location.pathname.startsWith("/eo/event") ? "active" : ""
           }`}
           onClick={() => navigate("/eo/event")}
         >
           <span className="sidebar-eo-icon">
-            <CalendarDays
-              size={17}
-              strokeWidth={1.9}
-            />
+            <CalendarDays size={17} strokeWidth={1.9} />
           </span>
 
-          <span className="sidebar-eo-label">
-            Event
-          </span>
+          <span className="sidebar-eo-label">Event</span>
         </button>
 
+        {/* TRANSAKSI */}
         <button
           type="button"
           className={`sidebar-eo-item ${
-            location.pathname.startsWith("/eo/transaksi")
-              ? "active"
-              : ""
+            location.pathname.startsWith("/eo/transaksi") ? "active" : ""
           }`}
           onClick={() => navigate("/eo/transaksi")}
         >
           <span className="sidebar-eo-icon">
-            <ReceiptText
-              size={17}
-              strokeWidth={1.9}
-            />
+            <ReceiptText size={17} strokeWidth={1.9} />
           </span>
 
-          <span className="sidebar-eo-label">
-            Transaksi
-          </span>
+          <span className="sidebar-eo-label">Transaksi</span>
         </button>
 
+        {/* PENGAJUAN PAYOUT */}
         <button
           type="button"
           className={`sidebar-eo-item ${
-            location.pathname.startsWith("/eo/payout")
-              ? "active"
-              : ""
+            location.pathname.startsWith("/eo/payout") ? "active" : ""
           }`}
           onClick={() => navigate("/eo/payout")}
         >
           <span className="sidebar-eo-icon">
-            <WalletCards
-              size={17}
-              strokeWidth={1.9}
-            />
+            <WalletCards size={17} strokeWidth={1.9} />
           </span>
 
-          <span className="sidebar-eo-label">
-            Pengajuan Payout
-          </span>
+          <span className="sidebar-eo-label">Pengajuan Payout</span>
         </button>
 
+        {/* REFUND */}
         <button
           type="button"
           className={`sidebar-eo-item ${
-            location.pathname.startsWith("/eo/refund")
-              ? "active"
-              : ""
+            location.pathname.startsWith("/eo/refund") ? "active" : ""
           }`}
           onClick={() => navigate("/eo/refund")}
         >
           <span className="sidebar-eo-icon">
-            <RotateCcw
-              size={17}
-              strokeWidth={1.9}
-            />
+            <RotateCcw size={17} strokeWidth={1.9} />
           </span>
 
-          <span className="sidebar-eo-label">
-            Refund
-          </span>
+          <span className="sidebar-eo-label">Refund</span>
         </button>
 
+        {/* PROFIL */}
         <button
           type="button"
           className={`sidebar-eo-item ${
-            location.pathname.startsWith("/eo/profil")
-              ? "active"
-              : ""
+            location.pathname.startsWith("/eo/profil") ? "active" : ""
           }`}
           onClick={() => navigate("/eo/profil")}
         >
           <span className="sidebar-eo-icon">
-            <UserRound
-              size={17}
-              strokeWidth={1.9}
-            />
+            <UserRound size={17} strokeWidth={1.9} />
           </span>
 
-          <span className="sidebar-eo-label">
-            Profil
-          </span>
+          <span className="sidebar-eo-label">Profil</span>
         </button>
       </nav>
 
-      <button
-        type="button"
-        className="sidebar-eo-logout"
-        onClick={handleLogout}
-      >
-        <span className="sidebar-eo-logout-icon">
-          <LogOut
-            size={17}
-            strokeWidth={1.9}
-          />
-        </span>
+      {/* FOOTER ACTIONS (DASHBOARD EO & KELUAR) */}
+      <div className="sidebar-eo-footer">
+        <button
+          type="button"
+          className="sidebar-eo-dashboard-btn"
+          onClick={() => navigate("/customer/dashboard")}
+        >
+          <span className="sidebar-eo-footer-icon">
+            <LayoutDashboard size={17} strokeWidth={1.9} />
+          </span>
 
-        <span className="sidebar-eo-logout-label">
-          Keluar
-        </span>
-      </button>
+          <span className="sidebar-eo-footer-label">Dashboard Customer</span>
+        </button>
+
+        <button
+          type="button"
+          className="sidebar-eo-logout"
+          onClick={handleLogout}
+        >
+          <span className="sidebar-eo-logout-icon">
+            <LogOut size={17} strokeWidth={1.9} />
+          </span>
+
+          <span className="sidebar-eo-logout-label">Keluar</span>
+        </button>
+      </div>
     </aside>
   );
 }

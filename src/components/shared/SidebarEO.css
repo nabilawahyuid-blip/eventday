@@ -4,506 +4,275 @@
 
 .sidebar-eo {
   position: fixed;
-
   top: 0;
   left: 0;
-
   width: 220px;
   height: 100vh;
-
   padding: 25px 14px 18px;
-
   display: flex;
   flex-direction: column;
-
   box-sizing: border-box;
-
   background: #ffffff;
-
   border-right: 1px solid #e6e2ed;
-
   z-index: 100;
 }
 
-
 /* =========================================================
-   BRAND
+   BRAND (HEADER LOGO)
 ========================================================= */
 
 .sidebar-eo-brand {
   display: flex;
-
   align-items: center;
-
   gap: 10px;
-
   padding: 0 9px;
-
-  margin-bottom: 38px;
+  margin-bottom: 32px;
 }
-
-
-/* =========================================================
-   LOGO
-========================================================= */
 
 .sidebar-eo-logo {
   width: 34px;
   height: 34px;
-
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 8px;
-
   background: #5b4de2;
-
   color: #ffffff;
-
   font-size: 15px;
-
   font-weight: 600;
-
-  box-shadow:
-    0 5px 12px rgba(91, 77, 226, 0.18);
+  box-shadow: 0 5px 12px rgba(91, 77, 226, 0.18);
 }
-
-
-/* =========================================================
-   BRAND TEXT
-========================================================= */
 
 .sidebar-eo-brand-text h2 {
   margin: 0;
-
   font-size: 17px;
-
   line-height: 1.1;
-
   color: #5144d7;
-
   font-weight: 700;
-
   letter-spacing: -0.2px;
 }
 
 .sidebar-eo-brand-text span {
   display: block;
-
   margin-top: 4px;
-
   font-size: 8px;
-
   color: #777181;
-
   font-weight: 500;
-
   letter-spacing: 0.45px;
 }
 
-
 /* =========================================================
-   MENU
+   MENU NAVIGASI
 ========================================================= */
 
 .sidebar-eo-menu {
   display: flex;
-
   flex-direction: column;
-
   gap: 6px;
 }
-
-
-/* =========================================================
-   MENU ITEM
-========================================================= */
 
 .sidebar-eo-item {
   width: 100%;
   height: 42px;
-
   padding: 0 13px;
-
   display: flex;
-
   align-items: center;
-
   gap: 12px;
-
   box-sizing: border-box;
-
   border: none;
-
   border-radius: 8px;
-
   background: transparent;
-
   color: #625d6f;
-
   font-family: "Poppins", sans-serif;
-
   font-size: 11px;
-
   font-weight: 400;
-
   text-align: left;
-
   cursor: pointer;
-
   outline: none;
-
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
-
-
-/* =========================================================
-   ICON
-========================================================= */
 
 .sidebar-eo-icon {
   width: 20px;
   height: 20px;
-
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
-  padding: 0;
-  margin: 0;
-
-  background: transparent;
-
-  border: none;
-
-  border-radius: 0;
-
-  box-shadow: none;
-
   color: #5b4de2;
-
-  transition:
-    color 0.2s ease,
-    transform 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
-
-
-/* =========================================================
-   ICON SVG
-========================================================= */
 
 .sidebar-eo-icon svg {
   width: 18px;
   height: 18px;
-
   display: block;
-
-  color: #5b4de2;
-
   stroke: currentColor;
-
   fill: none;
-
-  transition:
-    color 0.2s ease,
-    stroke 0.2s ease;
+  transition: color 0.2s ease, stroke 0.2s ease;
 }
-
-
-/* =========================================================
-   LABEL
-========================================================= */
 
 .sidebar-eo-label {
   display: block;
-
   line-height: 1.2;
-
   white-space: nowrap;
-
   color: inherit;
-
   font-family: "Poppins", sans-serif;
-
   font-size: 11px;
-
   font-weight: 400;
 }
 
-
-/* =========================================================
-   HOVER
-========================================================= */
-
+/* Hover State */
 .sidebar-eo-item:hover {
   background: #f4f2ff;
-
   color: #5144d7;
 }
 
 .sidebar-eo-item:hover .sidebar-eo-icon {
   color: #5144d7;
-
   transform: translateX(1px);
 }
 
-.sidebar-eo-item:hover .sidebar-eo-icon svg {
-  color: #5144d7;
-
-  stroke: #5144d7;
-}
-
-
-/* =========================================================
-   ACTIVE
-========================================================= */
-
+/* Active State */
 .sidebar-eo-item.active {
   background: #5546df;
-
   color: #ffffff;
-
   font-weight: 500;
-
-  box-shadow:
-    0 5px 12px rgba(85, 70, 223, 0.18);
+  box-shadow: 0 5px 12px rgba(85, 70, 223, 0.18);
 }
 
-
-/* =========================================================
-   ACTIVE LABEL
-========================================================= */
-
-.sidebar-eo-item.active .sidebar-eo-label {
-  color: #ffffff;
-
-  font-weight: 500;
-}
-
-
-/* =========================================================
-   ACTIVE ICON
-========================================================= */
-
-.sidebar-eo-item.active .sidebar-eo-icon {
-  background: transparent;
-
-  border: none;
-
-  border-radius: 0;
-
-  box-shadow: none;
-
-  color: #ffffff;
-
-  transform: none;
-}
-
+.sidebar-eo-item.active .sidebar-eo-label,
+.sidebar-eo-item.active .sidebar-eo-icon,
 .sidebar-eo-item.active .sidebar-eo-icon svg {
   color: #ffffff;
-
   stroke: #ffffff;
 }
-
-
-/* =========================================================
-   ACTIVE HOVER
-========================================================= */
 
 .sidebar-eo-item.active:hover {
   background: #4d3fd1;
-
-  color: #ffffff;
-}
-
-.sidebar-eo-item.active:hover .sidebar-eo-icon {
-  background: transparent;
-
-  color: #ffffff;
-
-  transform: none;
-}
-
-.sidebar-eo-item.active:hover .sidebar-eo-icon svg {
-  color: #ffffff;
-
-  stroke: #ffffff;
-}
-
-
-/* =========================================================
-   FOCUS
-========================================================= */
-
-.sidebar-eo-item:focus {
-  outline: none;
 }
 
 .sidebar-eo-item:focus-visible {
   outline: 2px solid rgba(91, 77, 226, 0.25);
-
   outline-offset: 2px;
 }
 
-
 /* =========================================================
-   LOGOUT
+   FOOTER AREA (DASHBOARD EO & LOGOUT BUTTONS)
 ========================================================= */
 
-.sidebar-eo-logout {
-  width: calc(100% - 18px);
-
-  height: 39px;
-
-  margin: auto 9px 0;
-
-  padding: 0;
-
+.sidebar-eo-footer {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid #f0ecf7;
   display: flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  box-sizing: border-box;
-
-  border: none;
-
-  background: transparent;
-
-  color: #e53935;
-
-  font-family: "Poppins", sans-serif;
-
-  font-size: 11px;
-
-  font-weight: 400;
-
-  text-align: left;
-
-  cursor: pointer;
-
-  outline: none;
-
-  transition:
-    color 0.2s ease,
-    transform 0.2s ease;
+  flex-direction: column;
+  gap: 4px;
 }
 
+/* Tombol Dashboard EO Tambahan */
+.sidebar-eo-dashboard-btn {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 8px;
+  background: #f4f2ff;
+  color: #5546df;
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
 
-/* =========================================================
-   LOGOUT ICON
-========================================================= */
+.sidebar-eo-dashboard-btn:hover {
+  background: #ebe7ff;
+  transform: translateX(2px);
+}
+
+.sidebar-eo-footer-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #5546df;
+}
+
+.sidebar-eo-footer-label {
+  line-height: 1.2;
+}
+
+/* Tombol Logout */
+.sidebar-eo-logout {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #e53935;
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
 
 .sidebar-eo-logout-icon {
   width: 20px;
   height: 20px;
-
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
-  padding: 0;
-  margin: 0;
-
-  background: transparent;
-
-  border: none;
-
-  border-radius: 0;
-
-  box-shadow: none;
-
   color: #e53935;
 }
-
-
-/* =========================================================
-   LOGOUT ICON SVG
-========================================================= */
 
 .sidebar-eo-logout-icon svg {
   width: 18px;
   height: 18px;
-
-  display: block;
-
-  color: #e53935;
-
   stroke: currentColor;
-
   fill: none;
 }
 
-
-/* =========================================================
-   LOGOUT LABEL
-========================================================= */
-
 .sidebar-eo-logout-label {
   line-height: 1.2;
-
-  color: inherit;
-
-  font-weight: 400;
 }
 
-
-/* =========================================================
-   LOGOUT HOVER
-========================================================= */
-
 .sidebar-eo-logout:hover {
+  background: #fdf2f2;
   color: #c62828;
-
   transform: translateX(1px);
 }
 
-.sidebar-eo-logout:hover .sidebar-eo-logout-icon {
-  color: #c62828;
-}
-
-.sidebar-eo-logout:hover .sidebar-eo-logout-icon svg {
-  color: #c62828;
-
-  stroke: #c62828;
-}
-
-
 /* =========================================================
-   TABLET
+   RESPONSIVE MEDIA QUERIES
 ========================================================= */
 
 @media (max-width: 800px) {
-
   .sidebar-eo {
     width: 200px;
   }
-
 }
 
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
 @media (max-width: 600px) {
-
   .sidebar-eo {
     display: none;
   }
-
 }
