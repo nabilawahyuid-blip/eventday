@@ -10,6 +10,13 @@ import {
   getCompanyDeedDocument,
 } from "../../services/adminEoService";
 
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  showConfirm,
+} from "../../utils/alert";
+
 import "./DetailPengajuanEo.css";
 
 export default function DetailPengajuanEo() {
@@ -158,7 +165,8 @@ export default function DetailPengajuanEo() {
     if (!application) return;
 
     if (!decision) {
-      alert(
+      await showWarning(
+        "Keputusan Belum Dipilih",
         "Silakan pilih Setujui atau Tolak terlebih dahulu."
       );
       return;
@@ -171,7 +179,8 @@ export default function DetailPengajuanEo() {
       decision === "REJECTED" &&
       !notes.trim()
     ) {
-      alert(
+      await showWarning(
+        "Alasan Penolakan Wajib",
         "Masukkan alasan penolakan terlebih dahulu."
       );
       return;
@@ -182,11 +191,14 @@ export default function DetailPengajuanEo() {
         ? "menyetujui"
         : "menolak";
 
-    const confirmed = window.confirm(
-      `Yakin ingin ${statusText} pengajuan "${application.nameOrganizer}"?`
+    const { isConfirmed } = await showConfirm(
+      "Konfirmasi Tindakan",
+      `Yakin ingin ${statusText} pengajuan "${application.nameOrganizer}"?`,
+      "Ya, Lanjutkan",
+      "Batal"
     );
 
-    if (!confirmed) return;
+    if (!isConfirmed) return;
 
     try {
       setActionLoading(true);
@@ -211,7 +223,8 @@ export default function DetailPengajuanEo() {
         response
       );
 
-      alert(
+      await showSuccess(
+        "Status Pengajuan EO Diperbarui",
         decision === "VERIFIED"
           ? "Pengajuan EO berhasil disetujui."
           : "Pengajuan EO berhasil ditolak."
@@ -225,7 +238,8 @@ export default function DetailPengajuanEo() {
         err
       );
 
-      alert(
+      await showError(
+        "Gagal Memperbarui Status Pengajuan EO",
         err?.message ||
           "Gagal mengubah status pengajuan EO."
       );
@@ -272,7 +286,8 @@ export default function DetailPengajuanEo() {
         return;
       }
 
-      alert(
+      await showWarning(
+        "Dokumen Tidak Dapat Dibuka",
         "Dokumen ditemukan, tetapi backend tidak mengirim URL dokumen."
       );
     } catch (err) {
@@ -281,7 +296,8 @@ export default function DetailPengajuanEo() {
         err
       );
 
-      alert(
+      await showError(
+        "Gagal Mengambil Dokumen",
         err?.message ||
           "Dokumen tidak dapat dibuka."
       );
@@ -593,7 +609,8 @@ export default function DetailPengajuanEo() {
                       <button
                         type="button"
                         onClick={() =>
-                          alert(
+                          showWarning(
+                            "Pratinjau Dokumen Belum Tersedia",
                             "Endpoint preview CV/Portofolio belum tersedia pada API admin."
                           )
                         }
@@ -661,6 +678,8 @@ export default function DetailPengajuanEo() {
                       className={`btn-action-reject ${
                         decision === "REJECTED"
                           ? "selected"
+                          : decision === "VERIFIED"
+                          ? "deselected"
                           : ""
                       }`}
                       disabled={
@@ -681,6 +700,8 @@ export default function DetailPengajuanEo() {
                       className={`btn-action-approve ${
                         decision === "VERIFIED"
                           ? "selected"
+                          : decision === "REJECTED"
+                          ? "deselected"
                           : ""
                       }`}
                       disabled={

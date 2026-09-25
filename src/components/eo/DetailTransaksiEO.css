@@ -552,3 +552,59 @@
     display: flex;
   }
 }
+/* =========================
+   SWEETALERT2 STYLING & PRINT MEDIA
+========================= */
+
+/* Penyesuaian Font & Rounded SweetAlert Popup */
+.swal2-popup.swal-export-popup {
+  font-family: "Poppins", sans-serif !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+}
+
+.swal2-title {
+  color: #28263f !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+.swal2-html-container {
+  color: #686575 !important;
+  font-size: 13px !important;
+}
+
+.swal2-actions button {
+  font-family: "Poppins", sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 10px 18px !important;
+}
+
+/* Ketiadaan Elemen UI Non-Cetak Saat Diprint */
+@media print {
+  /* Sembunyikan Sidebar, Navbar, dan Tombol-Tombol saat mencetak */
+  .sidebar-eo-container,
+  .navbar-eo-container,
+  .back-transaction-button,
+  .download-ticket-button {
+    display: none !important;
+  }
+
+  .detail-transaksi-main {
+    margin-left: 0 !important;
+    background: #ffffff !important;
+  }
+
+  .detail-transaksi-content {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .detail-box {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    page-break-inside: avoid;
+  }
+}

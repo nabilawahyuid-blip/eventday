@@ -306,6 +306,33 @@
 }
 
 /* =========================================================
+   GROUP C — legibilitas select (mata uang & zona waktu):
+   teks sempat terlihat "tenggelam" karena warna abu pucat.
+   Disamakan dengan input teks lain (14px, kontras #242331).
+   Tidak mengubah key settings yang dikirim ke BE.
+   ========================================================= */
+.platform-container select.form-control {
+  color: #242331;
+  background-color: #ffffff;
+  font-weight: 500;
+  opacity: 1;
+  -webkit-text-fill-color: #242331;
+  text-overflow: ellipsis;
+}
+
+.platform-container select.form-control option {
+  color: #242331;
+  background-color: #ffffff;
+  font-size: 14px;
+}
+
+.platform-container select.form-control:focus {
+  border-color: #5868ee;
+  box-shadow: 0 0 0 2px rgba(88, 104, 238, 0.15);
+  color: #242331;
+}
+
+/* =========================================================
    LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
    antar menu (desktop: Sidebar 220px, konten max 1400px)
    ========================================================= */

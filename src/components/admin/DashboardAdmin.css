@@ -330,6 +330,8 @@
 .item-status.published { background: #dcf7eb; color: #2eaa76; }
 .item-status.draft     { background: #fef3c7; color: #d97706; }
 .item-status.expired   { background: #fee2e2; color: #dc2626; }
+.item-status.deleted   { background: #fee2e2; color: #dc2626; }
+.item-status.rejected  { background: #fee2e2; color: #dc2626; }
 
 .item-more {
   flex-shrink: 0;

@@ -29,12 +29,17 @@ export default function EventManagement() {
     useState("Semua Kategori");
 
   // ==========================================
-  // PAGINATION (server-side via ?page=&size=)
+  // PAGINATION (client-side — isi tiap halaman konsisten)
   // ==========================================
+  // Kenapa client-side? Backend mengembalikan page berisi size=12
+  // SEBELUM DELETED/status/kategori disaring. Sebelumnya halaman
+  // pertama cuma tampil 6 event (12 - 6 yg DELETED), halaman
+  // berikut 9, dst — tidak seragam. Sekarang backend hanya dipakai
+  // untuk SEARCH + fetch 1x (FETCH_SIZE), sisa filter & paginasi
+  // dilakukan client-side dengan PAGE_SIZE TETAP per halaman.
   const PAGE_SIZE = 12;
+  const FETCH_SIZE = 100;
   const [page, setPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
 
   // ==========================================
   // NORMALISASI ITEM BACKEND → SHAPE UI
@@ -125,12 +130,13 @@ export default function EventManagement() {
 
   // ==========================================
   // AMBIL DATA EVENT DARI BACKEND
-  // GET /api/admin/events?search=&page=&size=12
+  // GET /api/admin/events?search=&page=0&size=100
+  // Halaman & filter ditangani client-side (lihat blok SORT & PAGINASI).
   // Fallback: /api/admin/dashboard/recent-events bila backend
   // belum punya AdminEventController (Phase 1 belum deploy →
   // 500 "No static resource").
   // ==========================================
-  const fetchEvents = useCallback(async (search = "", pageNum = 0) => {
+  const fetchEvents = useCallback(async (search = "") => {
     try {
       setLoading(true);
       setError(null);
@@ -139,8 +145,8 @@ export default function EventManagement() {
       try {
         response = await getAdminEvents({
           search,
-          page: pageNum,
-          size: PAGE_SIZE,
+          page: 0,
+          size: FETCH_SIZE,
         });
       } catch (phase1Err) {
         const m =
@@ -167,16 +173,6 @@ export default function EventManagement() {
           : [];
 
       setEvents(list.map(normalizeEvent));
-      setTotalPages(
-        typeof raw?.totalPages === "number"
-          ? raw.totalPages
-          : list.length > 0 ? 1 : 0
-      );
-      setTotalElements(
-        typeof raw?.totalElements === "number"
-          ? raw.totalElements
-          : list.length
-      );
     } catch (err) {
       console.error("Gagal memuat data event:", err);
 
@@ -194,8 +190,6 @@ export default function EventManagement() {
       }
 
       setEvents([]);
-      setTotalPages(0);
-      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -210,23 +204,10 @@ export default function EventManagement() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Fetch ulang saat kata kunci / halaman berubah
+  // Fetch ulang saat kata kunci berubah (paginasi ditangani client-side)
   useEffect(() => {
-    fetchEvents(debouncedSearch, page);
-  }, [debouncedSearch, page, fetchEvents]);
-
-  // Nomor halaman yang ditampilkan (maks 5 tombol)
-  const pageNumbers = (() => {
-    if (totalPages <= 1) return [];
-    const maxButtons = 5;
-    let start = Math.max(0, page - Math.floor(maxButtons / 2));
-    const end = Math.min(totalPages, start + maxButtons);
-    start = Math.max(0, end - maxButtons);
-    return Array.from({ length: end - start }, (_, i) => start + i);
-  })();
-
-  const rangeStart = totalElements === 0 ? 0 : page * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(totalElements, (page + 1) * PAGE_SIZE);
+    fetchEvents(debouncedSearch);
+  }, [debouncedSearch, fetchEvents]);
 
   // ==========================================
   // KLIK PANAH → DETAIL EVENT
@@ -284,6 +265,39 @@ export default function EventManagement() {
       return matchesStatus && matchesCategory;
     })
     .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+  // ==========================================
+  // PAGINATION (client-side, seragam per halaman)
+  // ==========================================
+  // totalPages/totalElements dihitung dari HASIL FILTER + SORT,
+  // bukan dari backend — jadi jumlah kartu per halaman selalu
+  // sebanyak PAGE_SIZE (kecuali halaman terakhir), berapa pun
+  // jumlah event DELETED yang terbuang di client.
+  const totalPages = Math.max(1, Math.ceil(sortedEvents.length / PAGE_SIZE));
+  const totalElements = sortedEvents.length;
+  const safePage = Math.min(page, totalPages - 1);
+  const displayedEvents = sortedEvents.slice(
+    safePage * PAGE_SIZE,
+    (safePage + 1) * PAGE_SIZE
+  );
+
+  // Reset ke halaman pertama bila hasil filter menyusut
+  useEffect(() => {
+    if (page !== safePage) setPage(safePage);
+  }, [safePage, page]);
+
+  // Nomor halaman yang ditampilkan (maks 5 tombol)
+  const pageNumbers = (() => {
+    if (totalPages <= 1) return [];
+    const maxButtons = 5;
+    let start = Math.max(0, safePage - Math.floor(maxButtons / 2));
+    const end = Math.min(totalPages, start + maxButtons);
+    start = Math.max(0, end - maxButtons);
+    return Array.from({ length: end - start }, (_, i) => start + i);
+  })();
+
+  const rangeStart = totalElements === 0 ? 0 : safePage * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(totalElements, (safePage + 1) * PAGE_SIZE);
 
   // ==========================================
   // RENDER
@@ -497,7 +511,7 @@ export default function EventManagement() {
                 /* =================================
                    EVENT DATA
                 ================================== */
-                sortedEvents.map(
+                displayedEvents.map(
                   (event, index) => {
 
                     const eventId =
@@ -668,7 +682,7 @@ export default function EventManagement() {
                   <button
                     type="button"
                     className="event-page-button"
-                    disabled={page === 0}
+                    disabled={safePage === 0}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                     aria-label="Halaman sebelumnya"
                   >
@@ -680,7 +694,7 @@ export default function EventManagement() {
                       key={p}
                       type="button"
                       className={
-                        p === page
+                        p === safePage
                           ? "event-page-button active"
                           : "event-page-button"
                       }
@@ -693,7 +707,7 @@ export default function EventManagement() {
                   <button
                     type="button"
                     className="event-page-button"
-                    disabled={page >= totalPages - 1}
+                    disabled={safePage >= totalPages - 1}
                     onClick={() =>
                       setPage((p) => Math.min(totalPages - 1, p + 1))
                     }

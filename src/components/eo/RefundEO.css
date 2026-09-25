@@ -1,1434 +1,741 @@
 /* =========================================
-   REFUND EO
+   IMPORT FONT POPPINS
 ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+/* =========================================
+   RESET & BASE STYLES
+========================================= */
 * {
   box-sizing: border-box;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
 }
-
 
 /* =========================================
    PAGE WRAPPER
 ========================================= */
-
 .refund-layout {
   width: 100%;
   min-height: 100vh;
-
-  background: #faf8ff;
+  background: #f8f9fa;
 }
 
-
 /* =========================================
-   MAIN AREA
-   SIDEBAR = 200px
+   MAIN AREA (SIDEBAR = 200px)
 ========================================= */
-
 .refund-main {
   margin-left: 200px !important;
-
   width: calc(100% - 200px) !important;
-
   min-height: 100vh;
-
-  background: #faf8ff;
+  background: #f8f9fa;
+  transition: all 0.3s ease;
 }
 
-
 /* =========================================
-   CONTENT
+   CONTENT AREA
 ========================================= */
-
 .refund-content {
   width: 100% !important;
   max-width: none !important;
-
   margin: 0 !important;
-
-  padding-top: 28px !important;
-  padding-right: 32px !important;
-  padding-bottom: 40px !important;
-  padding-left: 32px !important;
-
+  padding: 32px 40px 48px 40px !important;
   display: block !important;
 }
-
 
 /* =========================================
    HEADER
 ========================================= */
-
 .refund-header {
   width: 100% !important;
-  max-width: none !important;
-
-  margin: 0 0 30px 0 !important;
+  margin-bottom: 32px !important;
   padding: 0 !important;
-
-  display: block !important;
 }
-
-
-/* =========================================
-   TITLE
-========================================= */
 
 .refund-header > h1 {
-  margin: 0 0 38px 0 !important;
+  margin: 0 0 20px 0 !important;
   padding: 0 !important;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 25px !important;
+  font-size: 26px !important;
   font-weight: 700 !important;
-
   line-height: 1.2;
-
-  color: #11101a;
+  color: #1e293b;
+  letter-spacing: -0.5px;
 }
-
-
-/* =========================================
-   DESCRIPTION
-========================================= */
 
 .refund-description {
   width: 100%;
-
   margin: 0;
   padding: 0;
 }
 
 .refund-description h2 {
-  margin: 0 0 7px 0;
+  margin: 0 0 4px 0;
   padding: 0;
-
-  font-family: Arial, sans-serif;
-
   font-size: 18px;
-  font-weight: 700;
-
-  line-height: 1.25;
-
-  color: #25232f;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #334155;
 }
 
 .refund-description p {
   margin: 0;
   padding: 0;
-
-  font-family: Arial, sans-serif;
-
   font-size: 14px;
   font-weight: 400;
-
-  line-height: 1.5;
-
-  color: #5f5c6d;
+  color: #64748b;
 }
-
 
 /* =========================================
-   REFUND LIST
+   REFUND LIST CONTAINER
 ========================================= */
-
 .refund-list {
   width: 100% !important;
-  max-width: none !important;
-
   margin: 0 !important;
   padding: 0 !important;
-
   display: flex !important;
   flex-direction: column !important;
-
-  align-items: stretch !important;
-
-  gap: 16px !important;
+  gap: 20px !important;
 }
-
 
 /* =========================================
    REFUND CARD
 ========================================= */
-
 .refund-card {
   position: relative;
-
   width: 100% !important;
-  max-width: none !important;
-
-  min-height: 133px;
-
+  min-height: 130px;
   margin: 0 !important;
-  padding: 20px !important;
-
+  padding: 24px 28px !important;
   background: #ffffff;
-
-  border: 1px solid #e2deeb;
-
-  border-radius: 12px;
-
-  box-shadow: 0 3px 8px rgba(41, 35, 64, 0.06);
-
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
   display: flex !important;
-
   flex-direction: row !important;
-
   align-items: flex-start;
-
   justify-content: space-between;
-
   overflow: hidden;
-
-  transform: none !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
+.refund-card:hover {
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
 
-/* =========================================
-   PENDING CARD
-========================================= */
-
+/* Pending Card Adjustments */
 .refund-card-pending {
-  min-height: 207px;
+  min-height: 200px;
+  padding-bottom: 80px !important;
 }
 
-
-/* =========================================
-   PENDING ORANGE LINE
-========================================= */
-
+/* Accent Indicator Bar */
 .refund-card-pending::before {
   content: "";
-
   position: absolute;
-
   top: 0;
   bottom: 0;
   left: 0;
-
-  width: 4px;
-
-  background: #ffb13b;
+  width: 5px;
+  background: #f59e0b;
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
 }
 
-
 /* =========================================
-   REFUND INFO
+   REFUND INFO GRID (FIXED LAYOUT & CENTER)
 ========================================= */
-
 .refund-info {
   flex: 1;
-
   width: auto;
   min-width: 0;
-
   margin: 0;
   padding: 0;
-
   display: grid !important;
-
-  grid-template-columns: 220px minmax(0, 1fr) !important;
-
-  column-gap: 28px;
-
+  grid-template-columns: minmax(320px, 380px) minmax(220px, 1fr) !important;
+  column-gap: 48px;
   align-items: start;
 }
-
-
-/* =========================================
-   COLUMN
-========================================= */
 
 .refund-column {
   width: auto;
   min-width: 0;
-
-  margin: 0;
-  padding: 0;
-
   display: flex;
-
   flex-direction: column;
 }
 
-
-/* =========================================
-   REFUND ITEM
-========================================= */
-
-.refund-item {
-  width: auto;
-  min-width: 0;
-
-  height: auto;
-  min-height: 0;
-
-  margin: 0;
-  padding: 0;
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: flex-start;
-
-  border: none !important;
-
-  border-radius: 0 !important;
-
-  background: transparent !important;
-
-  box-shadow: none !important;
-}
-
-
-/* =========================================
-   TRANSACTION
-========================================= */
-
-.transaction-item {
-  width: auto !important;
-  height: auto !important;
-
-  min-height: 0 !important;
-
-  margin-top: 18px !important;
-
-  padding: 0 !important;
-
-  display: flex !important;
-
-  flex-direction: column !important;
-
-  align-items: flex-start !important;
-
-  border: none !important;
-
-  border-radius: 0 !important;
-
-  background: transparent !important;
-
-  box-shadow: none !important;
-}
-
-
-/* =========================================
-   REASON
-========================================= */
-
+/* Items inside Columns */
+.refund-item,
+.transaction-item,
 .reason-item {
   width: auto !important;
   height: auto !important;
-
-  min-height: 0 !important;
-
-  margin-top: 18px !important;
-
+  margin: 0 !important;
   padding: 0 !important;
-
   display: flex !important;
-
   flex-direction: column !important;
-
   align-items: flex-start !important;
-
   border: none !important;
-
-  border-radius: 0 !important;
-
   background: transparent !important;
-
   box-shadow: none !important;
 }
 
-
-/* =========================================
-   LABEL
-========================================= */
-
-.refund-label {
-  display: block !important;
-
-  width: auto !important;
-  height: auto !important;
-
-  margin: 0 0 5px 0 !important;
-  padding: 0 !important;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 11px !important;
-  font-weight: 500 !important;
-
-  line-height: 1.2;
-
-  color: #595767;
-
-  letter-spacing: 0.1px;
-
-  border: none !important;
-
-  background: transparent !important;
+.transaction-item,
+.reason-item {
+  margin-top: 18px !important;
 }
 
-
-/* =========================================
-   VALUE
-========================================= */
+/* Typography Labels & Values */
+.refund-label {
+  display: block !important;
+  margin: 0 0 6px 0 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 1.2;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
 
 .refund-value {
   display: block !important;
-
-  width: auto !important;
-  max-width: 100% !important;
-
-  height: auto !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
-
-  font-family: Arial, sans-serif;
-
   font-size: 15px !important;
-  font-weight: 400;
-
-  line-height: 1.3;
-
-  color: #3d3a48;
-
-  border: none !important;
-
-  background: transparent !important;
-
-  box-shadow: none !important;
-
-  white-space: nowrap;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #0f172a;
+  word-break: break-all !important;
+  white-space: normal !important;
 }
-
-
-/* =========================================
-   CUSTOMER NAME
-========================================= */
 
 .customer-name {
   font-size: 16px !important;
-
-  font-weight: 500 !important;
-
-  color: #24222d !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
 }
-
-
-/* =========================================
-   TRANSACTION ID
-========================================= */
 
 .transaction-id {
   display: block !important;
-
-  width: auto !important;
-  height: auto !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
-
-  font-family: Arial, sans-serif !important;
-
   font-size: 14px !important;
-  font-weight: 400 !important;
-
-  line-height: 1.3 !important;
-
-  color: #777485 !important;
-
-  border: none !important;
-
-  border-radius: 0 !important;
-
-  background: transparent !important;
-
-  box-shadow: none !important;
+  font-weight: 500 !important;
+  line-height: 1.4 !important;
+  color: #475569 !important;
+  word-break: break-all !important;
+  white-space: normal !important;
 }
-
-
-/* =========================================
-   REASON TEXT
-========================================= */
 
 .reason-text {
   font-size: 14px !important;
-
-  color: #4e4b5b !important;
+  font-weight: 400 !important;
+  color: #334155 !important;
+  line-height: 1.5 !important;
+  word-break: break-word !important;
 }
 
-
 /* =========================================
-   RIGHT ACTION
+   RIGHT ACTION SECTION
 ========================================= */
-
 .refund-action {
-  width: 140px !important;
-  min-width: 140px !important;
-
+  width: 150px !important;
+  min-width: 150px !important;
   margin: 0;
   padding: 0;
-
   flex-shrink: 0;
-
   display: flex;
-
   flex-direction: column;
-
-  align-items: center;
+  align-items: flex-end;
 }
 
-
-/* =========================================
-   STATUS
-========================================= */
-
+/* Status Badges */
 .refund-status {
   width: 140px !important;
-  height: 29px !important;
-
+  height: 32px !important;
   margin: 0;
-  padding: 0;
-
-  border-radius: 20px;
-
+  padding: 0 12px;
+  border-radius: 30px;
   display: flex;
-
   align-items: center;
   justify-content: center;
-
-  font-family: Arial, sans-serif;
-
   font-size: 12px;
-
   font-weight: 600;
-
   line-height: 1;
-
   white-space: nowrap;
+  letter-spacing: 0.2px;
 }
-
-
-/* =========================================
-   APPROVED
-========================================= */
 
 .status-approved {
-  background: #5debb6;
-
-  color: #087b5b;
+  background: #dcfce7;
+  color: #15803d;
 }
-
-
-/* =========================================
-   PENDING
-========================================= */
 
 .status-pending {
-  background: #ffdbb2;
-
-  color: #79510e;
+  background: #fef3c7;
+  color: #b45309;
 }
-
-
-/* =========================================
-   REJECTED
-========================================= */
 
 .status-rejected {
-  background: #ffdcdc;
-
-  color: #bd3d45;
+  background: #fee2e2;
+  color: #b91c1c;
 }
 
-
-/* =========================================
-   DETAIL REFUND BUTTON
-========================================= */
-
+/* Detail Refund Button */
 .detail-refund-btn {
   width: 140px !important;
-  height: 35px !important;
-
-  margin: 13px 0 0 0 !important;
+  height: 38px !important;
+  margin: 12px 0 0 0 !important;
   padding: 0 !important;
-
-  border: 1px solid #bcb8d5 !important;
-
-  border-radius: 8px !important;
-
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 10px !important;
   background: #ffffff !important;
-
-  color: #3d35d5 !important;
-
-  font-family: Arial, sans-serif;
-
+  color: #4f46e5 !important;
   font-size: 12px !important;
-
   font-weight: 600 !important;
-
-  line-height: 1;
-
   cursor: pointer;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .detail-refund-btn:hover {
-  background: #f5f3ff !important;
-
-  border-color: #4b42db !important;
+  background: #eef2ff !important;
+  border-color: #6366f1 !important;
+  color: #4338ca !important;
 }
 
 .detail-refund-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
-
-
-/* =========================================
-   DISABLED DETAIL
-========================================= */
 
 .detail-disabled {
-  color: #777485 !important;
+  color: #94a3b8 !important;
 }
 
-
 /* =========================================
-   PENDING ACTION
+   PENDING ACTION FOOTER (CARD)
 ========================================= */
-
 .pending-action {
   position: absolute;
-
-  left: 20px;
-  right: 20px;
-  bottom: 20px;
-
-  height: 49px;
-
-  padding-top: 16px;
-
-  border-top: 1px solid #e3dfeb;
-
+  left: 28px;
+  right: 28px;
+  bottom: 18px;
+  height: 52px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
 }
 
-
-/* =========================================
-   PENDING TEXT
-========================================= */
-
 .pending-text {
   margin: 0;
-
-  padding: 0 0 0 16px;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 12px;
-
-  font-weight: 400;
-
-  line-height: 1.2;
-
-  color: #4f4c5b;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
 }
-
-
-/* =========================================
-   PENDING BUTTONS
-========================================= */
 
 .pending-buttons {
   margin: 0;
   padding: 0;
-
   display: flex;
-
   align-items: center;
-
-  gap: 16px;
+  gap: 12px;
 }
 
-
-/* =========================================
-   COMMON BUTTON
-========================================= */
-
+/* Approve & Reject Buttons */
 .reject-btn,
 .approve-btn {
-  height: 32px;
-
+  height: 36px;
   margin: 0;
-
-  padding: 0 22px;
-
+  padding: 0 20px;
   border: none;
-
-  border-radius: 7px;
-
+  border-radius: 8px;
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  gap: 7px;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 12px;
-
+  gap: 6px;
+  font-size: 13px;
   font-weight: 600;
-
-  line-height: 1;
-
   cursor: pointer;
-
-  transition:
-    transform 0.15s ease,
-    opacity 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.reject-btn:hover,
+.reject-btn {
+  min-width: 96px;
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.reject-btn:hover {
+  background: #dc2626;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.approve-btn {
+  min-width: 108px;
+  background: #10b981;
+  color: #ffffff;
+}
+
 .approve-btn:hover {
-  opacity: 0.9;
+  background: #059669;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
 .reject-btn:active,
 .approve-btn:active {
+  transform: scale(0.96);
+}
+
+.reject-btn:disabled,
+.approve-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+/* =========================================
+   EMPTY STATE
+========================================= */
+.refund-empty {
+  width: 100%;
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+}
+
+/* =========================================
+   MODAL DIALOG
+========================================= */
+.refund-modal-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+}
+
+.refund-modal {
+  width: 100%;
+  max-width: 580px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: refundModalShow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes refundModalShow {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Modal Header */
+.refund-modal-header {
+  width: 100%;
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.refund-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.refund-modal-close {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.refund-modal-close:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* Modal Content */
+.refund-modal-loading {
+  padding: 48px 24px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.refund-detail-content {
+  width: 100%;
+  padding: 12px 28px 16px 28px;
+}
+
+.detail-row {
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row span {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.detail-row strong {
+  max-width: 65%;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+  word-break: break-word;
+}
+
+/* Modal Footer */
+.refund-modal-footer {
+  width: 100%;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #f1f5f9;
+  background: #fafafa;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+}
+
+.refund-modal-footer .pending-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-close-modal {
+  min-width: 100px;
+  height: 38px;
+  padding: 0 24px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.btn-close-modal:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.btn-close-modal:active {
   transform: scale(0.97);
 }
 
-
 /* =========================================
-   REJECT
+   RESPONSIVE DESIGN (TABLET & MOBILE)
 ========================================= */
-
-.reject-btn {
-  min-width: 96px;
-
-  background: #ca161b;
-
-  color: #ffffff;
-}
-
-
-/* =========================================
-   APPROVE
-========================================= */
-
-.approve-btn {
-  min-width: 109px;
-
-  background: #007d59;
-
-  color: #ffffff;
-}
-
-
-/* =========================================
-   TABLET
-========================================= */
-
 @media (max-width: 1100px) {
-
   .refund-main {
     margin-left: 200px !important;
-
     width: calc(100% - 200px) !important;
   }
 
   .refund-content {
-    padding-top: 25px !important;
-    padding-right: 25px !important;
-    padding-left: 25px !important;
-    padding-bottom: 35px !important;
+    padding: 28px 28px 40px 28px !important;
   }
 
   .refund-info {
-    grid-template-columns: 190px minmax(0, 1fr) !important;
-
-    column-gap: 20px;
+    grid-template-columns: minmax(260px, 300px) minmax(0, 1fr) !important;
+    column-gap: 24px;
   }
 
   .refund-action {
-    width: 125px !important;
-    min-width: 125px !important;
+    width: 130px !important;
+    min-width: 130px !important;
   }
 
-  .refund-status {
-    width: 125px !important;
-  }
-
+  .refund-status,
   .detail-refund-btn {
-    width: 125px !important;
-  }
-
-  .refund-value {
-    font-size: 14px !important;
-  }
-
-  .customer-name {
-    font-size: 15px !important;
+    width: 130px !important;
   }
 }
-
-
-/* =========================================
-   MOBILE
-========================================= */
 
 @media (max-width: 768px) {
-
   .refund-main {
     margin-left: 0 !important;
-
     width: 100% !important;
   }
 
   .refund-content {
-    width: 100% !important;
-
-    padding-top: 20px !important;
-    padding-right: 16px !important;
-    padding-left: 16px !important;
-    padding-bottom: 30px !important;
+    padding: 20px 16px 32px 16px !important;
   }
 
   .refund-header > h1 {
-    margin-bottom: 30px !important;
-
-    font-size: 23px !important;
-  }
-
-  .refund-description h2 {
-    font-size: 17px;
-  }
-
-  .refund-description p {
-    font-size: 13px;
-  }
-
-
-  /* CARD */
-
-  .refund-card,
-  .refund-card-pending {
-    width: 100% !important;
-
-    min-height: auto;
-
-    padding: 18px !important;
-
-    display: flex !important;
-
-    flex-direction: column !important;
-
-    align-items: stretch;
-
-    gap: 18px;
-  }
-
-
-  /* INFO */
-
-  .refund-info {
-    width: 100% !important;
-
-    display: grid !important;
-
-    grid-template-columns: 1fr !important;
-
-    column-gap: 0;
-
-    padding: 0 !important;
-  }
-
-
-  .refund-column {
-    width: 100%;
-  }
-
-
-  .refund-column + .refund-column {
-    margin-top: 18px;
-  }
-
-
-  .refund-value {
-    max-width: 100% !important;
-
-    white-space: normal;
-
-    overflow: visible;
-
-    text-overflow: unset;
-  }
-
-
-  /* ACTION */
-
-  .refund-action {
-    width: 100% !important;
-
-    min-width: 0 !important;
-
-    display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
-    gap: 10px;
-
-    align-items: center;
-  }
-
-
-  .refund-status {
-    width: 100% !important;
-
-    height: 34px !important;
-  }
-
-
-  .detail-refund-btn {
-    width: 100% !important;
-
-    height: 34px !important;
-
-    margin-top: 0 !important;
-  }
-
-
-  /* PENDING */
-
-  .pending-action {
-    position: static;
-
-    width: 100%;
-
-    height: auto;
-
-    margin: 0;
-
-    padding-top: 16px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: stretch;
-
-    gap: 13px;
-  }
-
-
-  .pending-text {
-    padding-left: 0;
-  }
-
-
-  .pending-buttons {
-    width: 100%;
-
-    gap: 10px;
-  }
-
-
-  .reject-btn,
-  .approve-btn {
-    flex: 1;
-
-    width: auto;
-
-    min-width: 0;
-  }
-}
-
-
-/* =========================================
-   SMALL MOBILE
-========================================= */
-
-@media (max-width: 480px) {
-
-  .refund-content {
-    padding-top: 16px !important;
-    padding-right: 12px !important;
-    padding-left: 12px !important;
-    padding-bottom: 25px !important;
-  }
-
-  .refund-header > h1 {
-    margin-bottom: 28px !important;
-
     font-size: 22px !important;
   }
 
-  .refund-description h2 {
-    font-size: 16px;
-  }
-
-  .refund-description p {
-    font-size: 12px;
-  }
-
-
   .refund-card,
   .refund-card-pending {
-    padding: 16px !important;
-
-    border-radius: 10px;
+    padding: 20px !important;
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 20px;
+    min-height: auto;
   }
 
+  .refund-info {
+    grid-template-columns: 1fr !important;
+    row-gap: 16px;
+  }
+
+  .transaction-item,
+  .reason-item {
+    margin-top: 12px !important;
+  }
 
   .refund-action {
-    grid-template-columns: 1fr;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: center;
   }
-
 
   .refund-status,
   .detail-refund-btn {
     width: 100% !important;
   }
 
-
-  .pending-buttons {
-    flex-direction: column;
-
-    width: 100%;
+  .detail-refund-btn {
+    margin-top: 0 !important;
   }
 
+  .pending-action {
+    position: static;
+    width: 100%;
+    height: auto;
+    margin-top: 8px;
+    padding-top: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .pending-text {
+    padding-left: 0;
+  }
+
+  .pending-buttons {
+    width: 100%;
+    gap: 10px;
+  }
 
   .reject-btn,
   .approve-btn {
-    width: 100%;
-
-    height: 36px;
-
-    flex: none;
+    flex: 1;
   }
-}
-/* =========================================
-   EMPTY REFUND
-========================================= */
-
-.refund-empty {
-  width: 100%;
-  padding: 40px 20px;
-
-  text-align: center;
-
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-
-  color: #777485;
-
-  background: #ffffff;
-
-  border: 1px solid #e2deeb;
-  border-radius: 12px;
-}
-
-
-/* =========================================
-   DISABLED BUTTON
-========================================= */
-
-.reject-btn:disabled,
-.approve-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-
-/* =========================================
-   REFUND DETAIL MODAL
-========================================= */
-
-.refund-modal-overlay {
-  position: fixed;
-
-  inset: 0;
-
-  width: 100%;
-  height: 100%;
-
-  padding: 20px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(20, 18, 30, 0.45);
-
-  z-index: 9999;
-}
-
-
-/* =========================================
-   MODAL
-========================================= */
-
-.refund-modal {
-  width: 100%;
-  max-width: 600px;
-
-  max-height: 90vh;
-
-  overflow-y: auto;
-
-  background: #ffffff;
-
-  border-radius: 14px;
-
-  box-shadow:
-    0 15px 45px rgba(0, 0, 0, 0.20);
-
-  animation: refundModalShow 0.2s ease;
-}
-
-
-@keyframes refundModalShow {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-
-/* =========================================
-   MODAL HEADER
-========================================= */
-
-.refund-modal-header {
-  width: 100%;
-
-  padding: 20px 24px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: space-between;
-
-  border-bottom: 1px solid #e8e5ef;
-}
-
-
-.refund-modal-header h2 {
-  margin: 0;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 20px;
-  font-weight: 700;
-
-  color: #25232f;
-}
-
-
-.refund-modal-close {
-  width: 32px;
-  height: 32px;
-
-  padding: 0;
-
-  border: none;
-
-  background: transparent;
-
-  color: #777485;
-
-  font-size: 18px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  cursor: pointer;
-
-  border-radius: 6px;
-
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-
-.refund-modal-close:hover {
-  background: #f5f3ff;
-
-  color: #3d35d5;
-}
-
-
-/* =========================================
-   MODAL LOADING
-========================================= */
-
-.refund-modal-loading {
-  padding: 45px 24px;
-
-  text-align: center;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 14px;
-
-  color: #777485;
-}
-
-
-/* =========================================
-   DETAIL CONTENT
-========================================= */
-
-.refund-detail-content {
-  width: 100%;
-
-  padding: 8px 24px 12px;
-}
-
-
-/* =========================================
-   DETAIL ROW
-========================================= */
-
-.detail-row {
-  width: 100%;
-
-  min-height: 55px;
-
-  padding: 14px 0;
-
-  display: flex;
-
-  align-items: flex-start;
-  justify-content: space-between;
-
-  gap: 25px;
-
-  border-bottom: 1px solid #eeeaf3;
-}
-
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-
-.detail-row span {
-  flex-shrink: 0;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 13px;
-  font-weight: 400;
-
-  line-height: 1.4;
-
-  color: #777485;
-}
-
-
-.detail-row strong {
-  max-width: 65%;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 13px;
-  font-weight: 600;
-
-  line-height: 1.4;
-
-  color: #302e3b;
-
-  text-align: right;
-
-  word-break: break-word;
-}
-
-
-/* =========================================
-   MODAL FOOTER
-========================================= */
-
-.refund-modal-footer {
-  width: 100%;
-
-  padding: 16px 24px 20px;
-
-  display: flex;
-
-  justify-content: flex-end;
-
-  border-top: 1px solid #e8e5ef;
-}
-
-
-.btn-close-modal {
-  min-width: 90px;
-
-  height: 36px;
-
-  padding: 0 20px;
-
-  border: none;
-
-  border-radius: 7px;
-
-  background: #5542dc;
-
-  color: #ffffff;
-
-  font-family: Arial, sans-serif;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  cursor: pointer;
-
-  transition:
-    opacity 0.2s ease,
-    transform 0.15s ease;
-}
-
-
-.btn-close-modal:hover {
-  opacity: 0.9;
-}
-
-
-.btn-close-modal:active {
-  transform: scale(0.97);
-}
-
-
-/* =========================================
-   MODAL MOBILE
-========================================= */
-
-@media (max-width: 600px) {
 
   .refund-modal-overlay {
-    padding: 12px;
+    padding: 16px;
   }
-
 
   .refund-modal {
-    width: 100%;
-
-    max-height: 92vh;
-
-    border-radius: 12px;
+    border-radius: 16px;
   }
-
 
   .refund-modal-header {
-    padding: 16px 18px;
+    padding: 18px 20px;
   }
-
-
-  .refund-modal-header h2 {
-    font-size: 18px;
-  }
-
 
   .refund-detail-content {
-    padding: 8px 18px 10px;
+    padding: 12px 20px;
   }
-
 
   .detail-row {
     flex-direction: column;
-
-    gap: 6px;
-
-    padding: 13px 0;
+    gap: 4px;
+    padding: 10px 0;
   }
-
-
-  .detail-row span {
-    font-size: 12px;
-  }
-
 
   .detail-row strong {
     max-width: 100%;
-
-    font-size: 13px;
-
     text-align: left;
   }
 
-
   .refund-modal-footer {
-    padding: 14px 18px 18px;
+    padding: 16px 20px;
+    flex-direction: column-reverse;
+    gap: 12px;
   }
 
+  .refund-modal-footer .pending-buttons {
+    width: 100%;
+  }
 
   .btn-close-modal {
     width: 100%;
   }
-
 }
 
-
-/* =========================================
-   EXTRA SMALL MOBILE
-========================================= */
-
-@media (max-width: 400px) {
-
-  .refund-modal-overlay {
-    padding: 8px;
+@media (max-width: 480px) {
+  .refund-content {
+    padding: 16px 12px 24px 12px !important;
   }
 
-
-  .refund-modal-header {
-    padding: 15px;
+  .refund-action {
+    grid-template-columns: 1fr;
   }
 
-
-  .refund-detail-content {
-    padding-left: 15px;
-    padding-right: 15px;
+  .pending-buttons {
+    flex-direction: column;
   }
 
-
-  .refund-modal-footer {
-    padding-left: 15px;
-    padding-right: 15px;
+  .reject-btn,
+  .approve-btn {
+    width: 100%;
+    height: 38px;
   }
-
 }

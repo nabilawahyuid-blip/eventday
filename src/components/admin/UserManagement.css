@@ -1425,6 +1425,104 @@ body {
 }
 
 /* =========================================================
+   GROUP C — segmented control rapi: search + tab role sejajar,
+   state aktif jelas, tidak overflow di mobile.
+   Tombol 14px / h 40-42px, badge 12px (standar admin).
+   ========================================================= */
+.user-management-page .user-toolbar {
+  min-height: 0;
+  padding: 12px 14px;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.user-management-page .user-filter-tabs {
+  height: 42px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #e2ddf0;
+  border-radius: 11px;
+  background: #f2f0f9;
+  overflow: visible;
+}
+
+.user-management-page .filter-tab {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #5f5a6e;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.user-management-page .filter-tab:hover {
+  background: #e9e5f7;
+  color: #463dc4;
+}
+
+.user-management-page .filter-tab.active {
+  background: #ffffff;
+  color: #4a3fd1;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(74, 63, 209, 0.18);
+}
+
+.user-management-page .advanced-filter {
+  width: 42px;
+  height: 42px;
+  border-radius: 9px;
+  font-size: 16px;
+}
+
+@media (max-width: 1000px) {
+  .user-management-page .user-toolbar {
+    gap: 10px;
+  }
+
+  .user-management-page .user-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .user-management-page .user-filter-tabs {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .user-management-page .filter-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 8px;
+  }
+}
+
+@media (max-width: 700px) {
+  .user-management-page .user-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .user-management-page .user-filter-tabs {
+    width: 100%;
+  }
+
+  .user-management-page .advanced-filter {
+    width: 100%;
+  }
+}
+
+/* =========================================================
    LAYOUT ADMIN SERAGAM — posisi judul & konten tidak bergeser
    antar menu (desktop: Sidebar 220px, konten max 1400px)
    ========================================================= */

@@ -11,6 +11,12 @@ import {
   uploadAdminPlatformLogo,
 } from "../../services/adminSettingsService";
 
+import {
+  showSuccess,
+  showError,
+  showWarning,
+} from "../../utils/alert";
+
 function PengaturanPlatform() {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -103,10 +109,14 @@ function PengaturanPlatform() {
         adminFee: Number(formData.adminFee) || 0,
         orderExpiryMinutes: Number(formData.orderExpiry) || 15,
       });
-      alert("Pengaturan platform berhasil disimpan!");
+      await showSuccess(
+        "Pengaturan Platform Disimpan",
+        "Pengaturan platform berhasil disimpan!"
+      );
     } catch (err) {
       console.error("Gagal menyimpan pengaturan:", err);
-      alert(
+      await showError(
+        "Gagal Menyimpan Pengaturan",
         err?.data?.msg || err?.message || "Gagal menyimpan pengaturan."
       );
     } finally {
@@ -119,7 +129,10 @@ function PengaturanPlatform() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Ukuran logo maksimal 5MB.");
+      await showWarning(
+        "Logo Terlalu Besar",
+        "Ukuran logo maksimal 5MB."
+      );
       e.target.value = "";
       return;
     }
@@ -132,10 +145,16 @@ function PengaturanPlatform() {
           res?.data?.logoName ||
           file.name
       );
-      alert("Logo berhasil diunggah!");
+      await showSuccess(
+        "Logo Berhasil Diunggah",
+        "Logo berhasil diunggah!"
+      );
     } catch (err) {
       console.error("Gagal unggah logo:", err);
-      alert(err?.data?.msg || err?.message || "Gagal unggah logo.");
+      await showError(
+        "Gagal Mengunggah Logo",
+        err?.data?.msg || err?.message || "Gagal unggah logo."
+      );
     } finally {
       setUploading(false);
       e.target.value = "";
