@@ -23,6 +23,12 @@ import {
   revokeAdminTicket,
 } from "../../services/adminTicketService";
 
+import {
+  showSuccess,
+  showError,
+  showConfirm,
+} from "../../utils/alert";
+
 const STATUS_MAP = {
   UNREDEEMED: "BELUM DIGUNAKAN",
   USED: "DIGUNAKAN",
@@ -92,13 +98,15 @@ function DetailTiket() {
       data?.checkInStatus || data?.status || ""
     ).toUpperCase();
     const action = st === "UNREDEEMED" ? "checkin" : "revoke";
-    const label =
-      st === "UNREDEEMED" ? "check-in (gunakan)" : "revoke (cabut)";
 
     const code = data?.ticketCode || data?.id || id;
-    if (!window.confirm(`${action === "checkin" ? "Check-in" : "Revoke"} tiket ${code}?`)) {
-      return;
-    }
+    const { isConfirmed } = await showConfirm(
+      "Konfirmasi Tindakan",
+      `${action === "checkin" ? "Check-in" : "Revoke"} tiket ${code}?`,
+      "Ya, Lanjutkan",
+      "Batal"
+    );
+    if (!isConfirmed) return;
 
     try {
       setSubmitting(true);
@@ -107,11 +115,19 @@ function DetailTiket() {
       } else {
         await revokeAdminTicket(id);
       }
-      alert(`Tiket berhasil di-${label}!`);
+      await showSuccess(
+        "Tiket Berhasil Diproses",
+        action === "checkin"
+          ? "Tiket berhasil di-check-in."
+          : "Tiket berhasil dicabut."
+      );
       await loadDetail();
     } catch (err) {
       console.error("Gagal memproses tiket:", err);
-      alert(err?.data?.msg || err?.message || "Gagal memproses tiket.");
+      await showError(
+        "Gagal Memproses Tiket",
+        err?.data?.msg || err?.message || "Gagal memproses tiket."
+      );
     } finally {
       setSubmitting(false);
     }

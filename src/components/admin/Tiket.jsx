@@ -9,16 +9,29 @@ import {
   generateAdminTickets,
   checkinAdminTicket,
   revokeAdminTicket,
+  getAdminTicketInventory,
 } from "../../services/adminTicketService";
+import { getAdminTransactions } from "../../services/adminTransactionService";
+import {
+  showSuccess,
+  showError,
+  showWarning,
+  showInfo,
+  showConfirm,
+  showInputDialog,
+} from "../../utils/alert";
 
 // Status tiket BE (UNREDEEMED/USED/EXPIRED/REFUNDED/REVOKED)
-// → label + class CSS yang tersedia (issued/pending).
+// → badge teks jelas dengan class kontras per status.
+// Tiket yang sudah check-in (USED / CHECKED_IN) tampil hijau "CHECKED IN".
 const STATUS_MAP = {
-  UNREDEEMED: { label: "Issued", cls: "issued" },
-  USED: { label: "Used", cls: "issued" },
-  EXPIRED: { label: "Expired", cls: "pending" },
-  REFUNDED: { label: "Refunded", cls: "pending" },
-  REVOKED: { label: "Revoked", cls: "pending" },
+  UNREDEEMED: { label: "BELUM DIGUNAKAN", cls: "unredeemed" },
+  USED: { label: "CHECKED IN", cls: "used" },
+  CHECKED_IN: { label: "CHECKED IN", cls: "used" },
+  CHECKIN: { label: "CHECKED IN", cls: "used" },
+  EXPIRED: { label: "KEDALUWARSA", cls: "expired" },
+  REFUNDED: { label: "DIREFUND", cls: "refunded" },
+  REVOKED: { label: "DICABUT", cls: "revoked" },
 };
 
 const ICON_CLASSES = ["purple", "blue", "orange", "green"];
@@ -40,17 +53,31 @@ function Tiket() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  // Ringkasan stok per event dari BE (GET /tickets/inventory) — dipakai
+  // untuk kartu statistik bila tersedia, fallback ke snapshot tiket.
+  const [inventory, setInventory] = useState([]);
 
   const perPage = 8;
 
   const loadTickets = async () => {
     try {
       setLoading(true);
-      const res = await getAdminTickets({ page: 0, size: 100 });
+      const [res, invRes] = await Promise.all([
+        getAdminTickets({ page: 0, size: 100 }),
+        getAdminTicketInventory().catch(() => null),
+      ]);
       const data = res?.data || res;
       setTickets(
         Array.isArray(data) ? data : data?.content || []
       );
+      const invData = invRes?.data ?? invRes;
+      if (Array.isArray(invData)) {
+        setInventory(invData);
+      } else if (invData && typeof invData === "object") {
+        setInventory([invData]);
+      } else {
+        setInventory([]);
+      }
       setError("");
     } catch (err) {
       console.error("Gagal memuat tiket:", err);
@@ -65,6 +92,12 @@ function Tiket() {
   useEffect(() => {
     loadTickets();
   }, []);
+
+  // BE mengirim status lewat `status` ATAU `checkInStatus` (halaman detail
+  // memakai keduanya) — resolver tunggal agar list, badge, aksi konsisten.
+  // Didefinisikan di sini (sebelum useMemo statistik) agar tidak crash TDZ.
+  const getTicketStatus = (t) =>
+    String(t?.checkInStatus || t?.status || "").toUpperCase();
 
   const filtered = useMemo(() => {
     const kw = search.trim().toLowerCase();
@@ -92,72 +125,153 @@ function Tiket() {
     safePage * perPage
   );
 
-  // Statistik turunan dari snapshot tiket yang dimuat
+  // Statistik: utamakan ringkasan inventory BE (kapasitas & terjual asli),
+  // fallback ke snapshot tiket bila inventory kosong/gagal dimuat.
   const stats = useMemo(() => {
     const count = (pred) => tickets.filter(pred).length;
-    const sold = count(
-      (t) => String(t.status || "").toUpperCase() === "USED"
+    const soldSnap = count(
+      (t) => ["USED", "CHECKED_IN", "CHECKIN"].includes(getTicketStatus(t))
     );
-    const available = count(
-      (t) => String(t.status || "").toUpperCase() === "UNREDEEMED"
+    const availableSnap = count(
+      (t) => getTicketStatus(t) === "UNREDEEMED"
     );
     const expired = count(
-      (t) => String(t.status || "").toUpperCase() === "EXPIRED"
+      (t) => getTicketStatus(t) === "EXPIRED"
     );
-    const total = tickets.length || 1;
     const revenue = tickets.reduce((sum, t) => {
       const v = Number(t.price ?? t.tierPrice ?? t.amount ?? 0);
       return sum + (Number.isNaN(v) ? 0 : v);
     }, 0);
-    const activeEvents = new Set(
+    const snapEvents = new Set(
       tickets
         .map((t) => t.eventId ?? t.event?.id)
         .filter(Boolean)
     ).size;
+
+    let total = tickets.length;
+    let sold = soldSnap;
+    let available = availableSnap;
+    let activeEvents = snapEvents;
+    if (inventory.length > 0) {
+      const num = (v) => {
+        const n = Number(v ?? 0);
+        return Number.isNaN(n) ? 0 : n;
+      };
+      const cap = inventory.reduce(
+        (s, e) =>
+          s + num(e.totalCapacity ?? e.capacity ??
+            (e.tiers || []).reduce((ts, tr) => ts + num(tr.totalQuota ?? tr.quota), 0)),
+        0
+      );
+      const soldInv = inventory.reduce(
+        (s, e) =>
+          s + num(e.totalSold ?? e.soldCount ??
+            (e.tiers || []).reduce((ts, tr) => ts + num(tr.soldCount ?? tr.sold), 0)),
+        0
+      );
+      if (cap > 0) {
+        total = cap;
+        sold = soldInv;
+        available = Math.max(0, cap - soldInv);
+        activeEvents = inventory.filter(
+          (e) => num(e.totalCapacity ?? e.capacity ?? 1) > 0
+        ).length || snapEvents;
+      }
+    }
+    const base = total || 1;
     return {
-      total: tickets.length,
+      total,
       sold,
       available,
       expired,
       revenue,
       activeEvents,
-      availabilityPct: Math.round((available / total) * 100),
+      availabilityPct: Math.round((available / base) * 100),
     };
-  }, [tickets]);
+  }, [tickets, inventory]);
 
   const renderStatus = (raw) => {
     const st = String(raw || "").toUpperCase();
-    return STATUS_MAP[st] || { label: raw || "-", cls: "pending" };
+    return STATUS_MAP[st] || { label: String(raw || "-").toUpperCase(), cls: "unredeemed" };
   };
 
   const handleExport = async () => {
     try {
       await exportAdminTickets();
-      alert("Export tiket berhasil diunduh.");
+      showSuccess("Export tiket berhasil diunduh.");
     } catch (err) {
-      alert(err?.message || "Gagal export tiket.");
+      showError(err?.message || "Gagal export tiket.");
     }
   };
 
   const handleGenerateTickets = async () => {
-    // Meminta orderId dari pengguna
-    const orderId = prompt(
-      "Masukkan Order ID (UUID) untuk generate tiket:\n\nContoh: 123e4567-e89b-12d3-a456-426614174000"
-    );
+    // Ambil daftar order terbaru agar admin tinggal pilih (tanpa ketik UUID)
+    let options = {};
+    try {
+      const res = await getAdminTransactions({ page: 0, size: 50 });
+      const data = res?.data ?? res;
+      const list = Array.isArray(data) ? data : data?.content || [];
+      list.forEach((o) => {
+        const oid = o?.id ?? o?.orderId;
+        if (!oid) return;
+        const buyer =
+          o.customerName ||
+          o.userName ||
+          o.user?.name ||
+          o.buyerName ||
+          "Customer";
+        const label =
+          `${o.orderNumber || oid} — ${buyer} — ` +
+          formatRupiah(o.totalAmount ?? o.amount ?? o.grandTotal ?? 0);
+        options[String(oid)] = label;
+      });
+    } catch {
+      options = {};
+    }
+    const hasOptions = Object.keys(options).length > 0;
 
-    // Guard: jika user Batal (cancel) atau tidak menginput apa-apa
-    if (!orderId || orderId.trim() === "") {
-      alert("Generate dibatalkan — Order ID tidak valid atau belum dipilih.");
+    const result = await showInputDialog({
+      title: "Generate Tiket dari Order",
+      text: hasOptions
+        ? "Pilih order yang tiketnya akan diterbitkan."
+        : "Daftar order tidak tersedia — masukkan Order ID secara manual.",
+      input: hasOptions ? "select" : "text",
+      inputOptions: options,
+      inputPlaceholder: hasOptions ? "Pilih order..." : "Contoh: 123e4567-e89b-12d3-a456-426614174000",
+      confirmText: "Generate",
+      requiredMessage: "Pilih order terlebih dahulu.",
+    });
+
+    if (!result.isConfirmed) {
+      showInfo(
+        "Generate dibatalkan",
+        "Tidak ada order yang dipilih."
+      );
+      return;
+    }
+
+    const orderId = String(result.value ?? "").trim();
+    if (!orderId) {
+      showWarning(
+        "Order belum dipilih",
+        "Pilih order terlebih dahulu."
+      );
       return;
     }
 
     try {
-      await generateAdminTickets(orderId.trim());
-      alert("Generate tiket berhasil! Order ID: " + orderId.trim());
+      await generateAdminTickets(orderId);
+      showSuccess(
+        "Generate tiket berhasil!",
+        "Order ID: " + orderId
+      );
       // Refresh daftar tiket agar tampil yang baru
       await loadTickets();
     } catch (err) {
-      alert("Gagal generate tiket: " + (err?.data?.msg || err?.message || "Unknown error"));
+      showError(
+        "Gagal generate tiket",
+        err?.data?.msg || err?.message || "Unknown error"
+      );
     }
   };
 
@@ -166,25 +280,89 @@ function Tiket() {
     if (detailId) {
       navigate(`/admin/tiket/${encodeURIComponent(detailId)}`);
     } else {
-      alert("ID tiket tidak tersedia.");
+      showError(
+        "ID Tiket tidak tersedia",
+        "ID tiket tidak dapat ditentukan dari data."
+      );
     }
   };
 
+  // Aksi yang tersedia per status: hanya tiket aktif yang bisa diproses.
+  // EXPIRED / REFUNDED / REVOKED adalah status akhir → tanpa aksi.
+  const getTicketAction = (rawTicketOrStatus) => {
+    const st = typeof rawTicketOrStatus === "string"
+      ? String(rawTicketOrStatus || "").toUpperCase()
+      : getTicketStatus(rawTicketOrStatus);
+    if (st === "UNREDEEMED" || st === "") return "checkin";
+    if (st === "USED" || st === "CHECKED_IN" || st === "CHECKIN") return "revoke";
+    return null;
+  };
+
   const handleTicketAction = async (ticket) => {
-    const st = String(ticket.status || "").toUpperCase();
-    const action = st === "UNREDEEMED" ? "checkin" : "revoke";
-    const label = st === "UNREDEEMED" ? "check-in (gunakan)" : "revoke (cabut)";
-    if (!window.confirm(`${action === "checkin" ? "Check-in" : "Revoke"} tiket ${ticket.id ?? ticket.ticketCode}?`)) return;
-    try {
-      if (action === "checkin") {
-        await checkinAdminTicket(ticket.id);
-      } else {
-        await revokeAdminTicket(ticket.id);
+    const kind = getTicketAction(ticket);
+    const code = ticket.ticketCode ?? ticket.id ?? ticket.code ?? "-";
+    // BE tidak selalu mengirim `id` — pakai ticketCode/code sebagai
+    // identifier bila `id` kosong (inilah sumber error "ID tiket wajib diisi").
+    const ticketKey = ticket.id ?? ticket.ticketCode ?? ticket.code;
+    if (!ticketKey) {
+      showError(
+        "ID Tiket tidak tersedia",
+        "ID tiket tidak dapat ditentukan dari data."
+      );
+      return;
+    }
+    if (!kind) {
+      showInfo(
+        "Tidak ada aksi",
+        `Tiket berstatus ${renderStatus(getTicketStatus(ticket)).label} tidak dapat diproses.`
+      );
+      return;
+    }
+    // Samakan baris yang sedang diproses agar update optimistis tepat sasaran
+    const matchKey = (t) =>
+      String(t?.id ?? t?.ticketCode ?? t?.code ?? "") === String(ticketKey);
+    if (kind === "checkin") {
+      const { isConfirmed } = await showConfirm(
+        "Check-in tiket",
+        `Tandai tiket ${code} sebagai sudah digunakan?`,
+        "Ya, Check-in",
+        "Batal"
+      );
+      if (!isConfirmed) return;
+      try {
+        await checkinAdminTicket(ticketKey);
+        // Optimistis: tandai hijau seketika tanpa menunggu refresh BE
+        // (list BE kadang mengembalikan snapshot lama / field berbeda).
+        setTickets((prev) =>
+          prev.map((t) =>
+            matchKey(t) ? { ...t, status: "USED", checkInStatus: "USED" } : t
+          )
+        );
+        showSuccess("Check-in berhasil", `Tiket ${code} ditandai CHECKED IN.`);
+        await loadTickets();
+      } catch (err) {
+        showError("Gagal check-in", err?.data?.msg || err?.message || "Gagal memproses tiket.");
       }
-      alert(`Tiket berhasil di-${label}!`);
+      return;
+    }
+    const { isConfirmed } = await showConfirm(
+      "Revoke tiket",
+      `Tiket ${code} akan DICABUT dan tidak berlaku lagi. Lanjutkan?`,
+      "Ya, Revoke",
+      "Batal"
+    );
+    if (!isConfirmed) return;
+    try {
+      await revokeAdminTicket(ticketKey);
+      setTickets((prev) =>
+        prev.map((t) =>
+          matchKey(t) ? { ...t, status: "REVOKED", checkInStatus: "REVOKED" } : t
+        )
+      );
+      showSuccess("Tiket dicabut", `Tiket ${code} berstatus REVOKED.`);
       await loadTickets();
     } catch (err) {
-      alert(err?.data?.msg || err?.message || "Gagal memproses tiket.");
+      showError("Gagal revoke", err?.data?.msg || err?.message || "Gagal memproses tiket.");
     }
   };
 
@@ -292,7 +470,10 @@ function Tiket() {
 
                 <div className="availability-bar">
 
-                  <div className="availability-progress"></div>
+                  <div
+                    className="availability-progress"
+                    style={{ width: `${stats.availabilityPct}%` }}
+                  ></div>
 
                 </div>
 
@@ -396,17 +577,24 @@ function Tiket() {
               ) : pageItems.length > 0 ? (
 
                 pageItems.map((ticket, idx) => {
-                  const st = renderStatus(ticket.status);
+                  const st = renderStatus(getTicketStatus(ticket));
+                  const isUsed = ["USED", "CHECKED_IN", "CHECKIN"].includes(
+                    getTicketStatus(ticket)
+                  );
                   const id = ticket.id ?? ticket.ticketCode ?? "-";
                   const name =
                     ticket.eventTitle ||
                     ticket.event?.title ||
+                    ticket.ticketCode ||
+                    ticket.id ||
                     "-";
                   const type =
                     ticket.tierName ||
                     ticket.ticketType ||
                     ticket.type ||
+                    ticket.categoryName ||
                     "Tiket";
+                  const actionKind = getTicketAction(ticket);
                   const price = formatRupiah(
                     ticket.price ?? ticket.tierPrice ?? ticket.amount
                   );
@@ -416,15 +604,16 @@ function Tiket() {
 
                   return (
                     <div
-                      className="ticket-item"
+                      className={`ticket-item ${isUsed ? "is-used" : "is-open"}`}
                       key={id}
                     >
 
                       {/* ICON */}
                       <div
-                        className={`ticket-item-icon ${iconClass}`}
+                        className={`ticket-item-icon ${isUsed ? "checked" : iconClass}`}
+                        title={isUsed ? "Sudah check-in" : "Belum digunakan"}
                       >
-                        ▣
+                        {isUsed ? "✓" : "▣"}
                       </div>
 
                       {/* INFORMATION */}
@@ -473,19 +662,21 @@ function Tiket() {
                       <div
                         className={`ticket-status ${st.cls}`}
                       >
-                        <span>●</span>
+                        {isUsed ? "✓ " : ""}
                         {st.label}
                       </div>
 
                       {/* ACTION */}
-                      <button
-                        type="button"
-                        className="ticket-more-button"
-                        onClick={() => handleTicketAction(ticket)}
-                        title="Check-in / Revoke"
-                      >
-                        ⋮
-                      </button>
+                      {actionKind ? (
+                        <button
+                          type="button"
+                          className={`ticket-action-button ${actionKind}`}
+                          onClick={() => handleTicketAction(ticket)}
+                          title={actionKind === "checkin" ? "Check-in tiket" : "Revoke tiket"}
+                        >
+                          {actionKind === "checkin" ? "Check-in" : "Revoke"}
+                        </button>
+                      ) : null}
 
                     </div>
                   );

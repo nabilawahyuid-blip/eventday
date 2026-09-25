@@ -16,6 +16,8 @@ import "./PengajuanPayout.css";
 
 import { getAdminPayouts } from "../../services/adminPayoutService";
 
+import { showWarning } from "../../utils/alert";
+
 // Status payout BE → label + class CSS (pending/approved/rejected)
 const STATUS_MAP = {
   PENDING: { label: "Pending", statusType: "pending" },
@@ -28,10 +30,12 @@ const formatDate = (iso) => {
   if (!iso) return "-";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return String(iso);
-  return d.toLocaleDateString("id-ID", {
+  return d.toLocaleString("id-ID", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
@@ -122,9 +126,10 @@ function PengajuanPayout() {
     { pending: 0, approved: 0, rejected: 0 }
   );
 
-  const handleDetail = (item) => {
+  const handleDetail = async (item) => {
     if (!item?.id) {
-      alert(
+      await showWarning(
+        "ID Payout Tidak Ditemukan",
         "ID payout tidak ditemukan pada data."
       );
 

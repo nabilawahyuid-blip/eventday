@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { createAdminEvent, updateAdminEventStatus } from "../../services/adminEventService";
+import {
+  showSuccess,
+  showError,
+  showWarning,
+} from "../../utils/alert";
 import EventBannerUpload from "./EventBannerUpload";
 
 import Sidebar from "../shared/Sidebar";
@@ -89,13 +94,17 @@ function TambahEvent() {
     setSubmitError(null);
 
     if (!namaEvent.trim()) {
-      alert("Harap isi Nama Event terlebih dahulu!");
+      await showWarning(
+        "Nama Event Belum Diisi",
+        "Harap isi Nama Event terlebih dahulu!"
+      );
       return;
     }
 
     // Tolak URL yang terbukti rusak (hanya bila tanpa file — file selalu menang)
     if (!banner.file && banner.url && !banner.urlValid) {
-      alert(
+      await showWarning(
+        "URL Banner Tidak Valid",
         "URL gambar tidak bisa dimuat (bukan file gambar langsung). " +
         "Pakai 'Copy image address' dari gambarnya, atau pilih file."
       );
@@ -181,13 +190,13 @@ function TambahEvent() {
           ".\nBuka Detail Event lalu klik 'Setujui' untuk mempublish.";
       }
 
-      alert(pesan);
+      await showSuccess("Event Berhasil Dibuat", pesan);
       navigate("/admin/event-management");
     } catch (err) {
       console.error("Gagal membuat event:", err);
       const msg = err?.data?.msg || err?.message || "Gagal membuat event.";
       setSubmitError(msg);
-      alert(msg);
+      await showError("Gagal Membuat Event", msg);
     } finally {
       setSubmitting(false);
     }

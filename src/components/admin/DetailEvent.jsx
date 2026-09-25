@@ -10,6 +10,14 @@ import {
   rejectAdminEvent,
 } from "../../services/adminEventService";
 
+import {
+  showConfirm,
+  showSuccess,
+  showError,
+  showWarning,
+  showInfo,
+} from "../../utils/alert";
+
 import { resolveBannerUrl } from "../../utils/bannerUrl";
 
 import {
@@ -316,11 +324,11 @@ function DetailEvent() {
         ...prev,
         status: "PUBLISHED",
       }));
-      alert("Event disetujui & dipublikasikan!");
+      showSuccess("Event disetujui & dipublikasikan!");
       setApproving(false);
     } catch (err) {
       console.error("Gagal menyetujui event:", err);
-      alert("Gagal menyetujui event: " + (err?.data?.msg || err?.message));
+      showError("Gagal menyetujui event", err?.data?.msg || err?.message);
       setApproving(false);
     }
   };
@@ -333,11 +341,11 @@ function DetailEvent() {
         ...prev,
         status: "REJECTED",
       }));
-      alert("Event ditolak!");
+      showSuccess("Event ditolak!");
       setRejecting(false);
     } catch (err) {
       console.error("Gagal menolak event:", err);
-      alert("Gagal menolak event: " + (err?.data?.msg || err?.message));
+      showError("Gagal menolak event", err?.data?.msg || err?.message);
       setRejecting(false);
     }
   };
@@ -348,11 +356,11 @@ function DetailEvent() {
       await deleteAdminEvent(eventId);
       setEvent(null);
       navigate("/event-management");
-      alert("Event dihapus (soft delete).");
+      showSuccess("Event dihapus (soft delete).");
       setDeleting(false);
     } catch (err) {
       console.error("Gagal menghapus event:", err);
-      alert("Gagal menghapus event: " + (err?.data?.msg || err?.message));
+      showError("Gagal menghapus event", err?.data?.msg || err?.message);
       setDeleting(false);
     }
   };

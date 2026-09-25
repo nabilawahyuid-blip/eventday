@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Building2,
   Check,
+  X,
   FileText,
 } from "lucide-react";
 
@@ -20,6 +21,12 @@ import {
   updateAdminPayoutStatus,
   getPayoutReconciliation,
 } from "../../services/adminPayoutService";
+
+import {
+  showSuccess,
+  showError,
+  showWarning,
+} from "../../utils/alert";
 
 const STATUS_MAP = {
   PENDING: "PENDING",
@@ -100,7 +107,10 @@ function DetailPengajuanPayout() {
   const handleConfirm = async () => {
     if (!id) return;
     if (!decision) {
-      alert("Silakan pilih keputusan terlebih dahulu.");
+      await showWarning(
+        "Keputusan Belum Dipilih",
+        "Silakan pilih keputusan terlebih dahulu."
+      );
       return;
     }
 
@@ -108,7 +118,8 @@ function DetailPengajuanPayout() {
       setSubmitting(true);
       const status = decision === "approved" ? "APPROVED" : "REJECTED";
       await updateAdminPayoutStatus(id, status, note || null);
-      alert(
+      await showSuccess(
+        "Status Payout Diperbarui",
         decision === "approved"
           ? "Pengajuan payout disetujui."
           : "Pengajuan payout ditolak."
@@ -116,7 +127,8 @@ function DetailPengajuanPayout() {
       navigate("/admin/pengajuan-payout");
     } catch (err) {
       console.error("Gagal mengubah status payout:", err);
-      alert(
+      await showError(
+        "Gagal Memperbarui Pengajuan Payout",
         err?.data?.msg || err?.message || "Gagal mengubah status payout."
       );
     } finally {
@@ -137,11 +149,15 @@ function DetailPengajuanPayout() {
       if (url) {
         window.open(url, "_blank");
       } else {
-        alert("URL dokumen rekonsiliasi tidak tersedia di respons.");
+        await showWarning(
+          "Dokumen Rekonsiliasi Tidak Tersedia",
+          "URL dokumen rekonsiliasi tidak tersedia di respons."
+        );
       }
     } catch (err) {
       console.error("Gagal mengambil dokumen rekonsiliasi:", err);
-      alert(
+      await showError(
+        "Gagal Membuka Dokumen Rekonsiliasi",
         err?.data?.msg ||
           err?.message ||
           "Gagal mengambil dokumen rekonsiliasi."
@@ -187,37 +203,63 @@ function DetailPengajuanPayout() {
   const rawStatus = String(data.status || "PENDING").toUpperCase();
   const statusLabel = STATUS_MAP[rawStatus] || data.status;
 
-  const eventName =
-    data.event?.title ||
-    data.eventTitle ||
-    data.eventName ||
-    "-";
+  // DEBUG: log full response untuk lihat field mana yang dikirim backend
+  if (!window.__detailPayoutDebugLogged) {
+    console.log("[DetailPengajuanPayout] Full response:", data);
+    window.__detailPayoutDebugLogged = true;
+  }
 
   const organizerName =
     data.nameOrganizer ||
     data.organizerName ||
+    data.organizer_name ||
     data.organizer?.name ||
     data.user?.name ||
     data.userName ||
     "-";
 
   const gross = Number(
-    data.amount ?? data.grossAmount ?? data.totalAmount ?? 0
+    data.amount ??
+    data.grossAmount ??
+    data.gross_amount ??
+    data.totalAmount ??
+    data.total_amount ??
+    0
   );
 
   const fee = Number(
-    data.platformFee ?? (Number.isNaN(gross) ? 0 : gross * 0.05)
+    data.platformFee ??
+    data.platform_fee ??
+    data.fee ??
+    (Number.isNaN(gross) ? 0 : gross * 0.05)
   );
 
   const net = Number.isNaN(gross) ? 0 : Math.max(gross - fee, 0);
 
-  const totalSold = data.totalTicketsSold ?? data.ticketsSold ?? "-";
-  const quota = data.ticketQuota ?? data.quota ?? "-";
-
-  const bankName = data.bankName || "-";
-  const accountNumber = data.accountNumber || data.bankAccountNumber || "-";
-  const accountName = data.accountName || data.bankAccountName || "-";
-  const bankVerified = data.bankVerified ?? data.isBankVerified ?? false;
+  const bankName = data.bankName || data.bank_name || "-";
+  const accountNumber =
+    data.accountNumber ||
+    data.account_number ||
+    data.bankAccountNumber ||
+    data.bank_account_number ||
+    "-";
+  const accountName =
+    data.bankAccountName ||
+    data.bank_account_name ||
+    data.account_holder_name ||
+    data.accountHolderName ||
+    data.account_holder_name ||
+    data.accountName ||
+    data.account_name ||
+    data.holderName ||
+    data.holder_name ||
+    "-";
+  const bankVerified =
+    data.bankVerified ??
+    data.bank_verified ??
+    data.isBankVerified ??
+    data.is_bank_verified ??
+    false;
 
   const requestDate =
     data.createdAt || data.requestDate || data.submittedAt;
@@ -301,7 +343,7 @@ function DetailPengajuanPayout() {
 
 
               {/* =================================================
-                  EVENT & PAYOUT
+                  EVENT ORGANIZER & PAYOUT
               ================================================= */}
 
               <section className="detail-payout-card event-payout-card">
@@ -309,7 +351,7 @@ function DetailPengajuanPayout() {
                 <div className="detail-card-header">
 
                   <h2>
-                    Rincian Event &amp; Payout
+                    Rincian Organizer & Payout
                   </h2>
 
                   <span>
@@ -323,21 +365,6 @@ function DetailPengajuanPayout() {
 
                 <div className="event-payout-grid">
 
-                  {/* EVENT */}
-
-                  <div className="detail-field">
-
-                    <span className="detail-field-label">
-                      NAMA EVENT
-                    </span>
-
-                    <strong>
-                      {eventName}
-                    </strong>
-
-                  </div>
-
-
                   {/* ORGANIZER */}
 
                   <div className="detail-field">
@@ -348,23 +375,6 @@ function DetailPengajuanPayout() {
 
                     <strong>
                       {organizerName}
-                    </strong>
-
-                  </div>
-
-
-                  {/* TICKET */}
-
-                  <div className="detail-field">
-
-                    <span className="detail-field-label">
-                      TOTAL TIKET TERJUAL
-                    </span>
-
-                    <strong>
-                      {totalSold !== "-" && quota !== "-"
-                        ? `${totalSold} / ${quota}`
-                        : totalSold}
                     </strong>
 
                   </div>
@@ -507,24 +517,17 @@ function DetailPengajuanPayout() {
                       STATUS VALIDASI REKENING
                     </span>
 
-                    <span
-                      className={
-                        bankVerified
-                          ? "verified-badge"
-                          : "unverified-badge"
-                      }
-                    >
-
-                      <Check
-                        size={14}
-                        strokeWidth={2}
-                      />
-
-                      {bankVerified
-                        ? "Terverifikasi Otomatis"
-                        : "Belum Terverifikasi"}
-
-                    </span>
+                    {bankVerified ? (
+                      <span className="verified-badge">
+                        <Check size={14} strokeWidth={2} />
+                        Terverifikasi Otomatis
+                      </span>
+                    ) : (
+                      <span className="unverified-badge">
+                        <X size={14} strokeWidth={2} />
+                        Belum Terverifikasi
+                      </span>
+                    )}
 
                   </div>
 

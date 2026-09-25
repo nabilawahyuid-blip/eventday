@@ -74,7 +74,15 @@ function UserManagement() {
         );
       }
 
-      setUsers(userData);
+      // Urutkan dari user PALING BARU (createdAt descending) —
+      // user yang baru terdaftar tampil di urutan pertama.
+      const sortedUsers = [...userData].sort((a, b) => {
+        const ta = new Date(a.createdAt || 0).getTime();
+        const tb = new Date(b.createdAt || 0).getTime();
+        return tb - ta;
+      });
+
+      setUsers(sortedUsers);
     } catch (err) {
       console.error(
         "Gagal mengambil data users:",
@@ -430,20 +438,6 @@ function UserManagement() {
                 </button>
 
               </div>
-
-              {/* FILTER BUTTON */}
-
-              <button
-                type="button"
-                className="advanced-filter"
-                onClick={() =>
-                  console.log(
-                    "Advanced filter"
-                  )
-                }
-              >
-                ☰
-              </button>
 
             </div>
 
