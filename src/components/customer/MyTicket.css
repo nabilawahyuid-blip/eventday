@@ -124,6 +124,22 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #dfe4ee 0%, #c8d0e0 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticket-image-placeholder .placeholder-text {
+  font-size: 48px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.ticket-event-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .my-ticket-list {
@@ -181,19 +197,19 @@
   box-sizing: border-box;
 }
 
-.ticket-status-badge.used {
+.ticket-status-badge.paid {
   background: #aaf1c9;
   border: 1px solid #65d99b;
   color: #176b43;
 }
 
-.ticket-status-badge.unused {
+.ticket-status-badge.pending {
   background: #ffe57a;
   border: 1px solid #f1c934;
   color: #8b5b00;
 }
 
-.ticket-status-badge.expired {
+.ticket-status-badge.failed {
   background: #ffb1b7;
   border: 1px solid #f07882;
   color: #a31e28;

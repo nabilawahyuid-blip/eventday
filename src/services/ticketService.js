@@ -31,6 +31,11 @@ export const getTicketDetail = (ticketCode, userEmail) => {
   return apiFetch(`/api/tickets/issued-detail?${queryParams.toString()}`);
 };
 
+// Daftar tiket per order (eliminasi N+1 calls)
+// GET /api/tickets/by-order/<orderId>
+export const getTicketsByOrder = (orderId) =>
+  apiFetch(`/api/tickets/by-order/${orderId}`);
+
 // Riwayat transaksi → data: [{orderId,orderNumber,eventTitle,ticketTierName,quantity,totalAmount,status,createdAt,expiredAt}]
 // GET /api/transactions/history
 export const getTransactionHistory = () =>
@@ -48,6 +53,7 @@ export const ticketService = {
   getMyTickets,
   getMyTicketsAuth,
   getTicketDetail,
+  getTicketsByOrder,
   getTransactionHistory,
   scanTicket,
 };

@@ -6,37 +6,43 @@ import FooterCustomer from "../shared/FooterCustomer";
 import {
   getTransactionHistory,
   getMyTicketsAuth,
+  getMyTickets,
+  getTicketDetail,
 } from "../../services/ticketService";
 import { getEvents } from "../../services/eventService";
+import { getRefundHistory } from "../../services/refundService";
 import "./MyTicket.css";
 
 const ORDER_STATUS_LABEL = {
   PAID: "Terbayar",
   PENDING: "Menunggu",
+  WAITING_PAYMENT: "Menunggu Pembayaran",
   REFUND_REQUESTED: "Refund Diajukan",
   REFUNDED: "Refund Disetujui",
   REJECTED: "Refund Ditolak",
-  EXPIRED: "Kedaluwarsa",
+  EXPIRED: "Gagal Bayar",
   CANCELLED: "Dibatalkan",
+  REFUND: "Refund",
 };
 
 const ORDER_STATUS_TYPE = {
   PAID: "paid",
   PENDING: "pending",
+  WAITING_PAYMENT: "pending",
   REFUND_REQUESTED: "refund-requested",
   REFUNDED: "refunded",
   REJECTED: "rejected",
-  EXPIRED: "expired",
+  EXPIRED: "failed",
   CANCELLED: "cancelled",
+  REFUND: "refund",
 };
 
 const FILTER_OPTIONS = [
   { key: "all", label: "Semua" },
   { key: "PAID", label: "Terbayar" },
-  { key: "PENDING", label: "Menunggu Pembayaran" },
-  { key: "REFUND_REQUESTED", label: "Refund Diajukan" },
-  { key: "REFUNDED", label: "Refund Disetujui" },
-  { key: "EXPIRED", label: "Kedaluwarsa" },
+  { key: "PENDING", label: "Menunggu" },
+  { key: "EXPIRED", label: "Gagal" },
+  { key: "REFUND", label: "Refund" },
 ];
 
 function formatCurrency(amount) {
@@ -59,6 +65,40 @@ function formatDate(dateStr) {
 }
 
 const PENDING_STATUSES = ["PENDING", "WAITING_PAYMENT"];
+const REFUND_STATUSES = ["REFUND_REQUESTED", "REFUNDED", "REJECTED"];
+
+function getCategoryColor(title) {
+  if (!title) return "#6c757d";
+  const categories = {
+    "MUSIC": "#e91e63",
+    "KONSER": "#e91e63",
+    "CONCERT": "#e91e63",
+    "FESTIVAL": "#9c27b0",
+    "CONFERENCE": "#2196f3",
+    "KONFERENSI": "#2196f3",
+    "EXHIBITION": "#ff9800",
+    "PAMERAN": "#ff9800",
+    "CULINARY": "#4caf50",
+    "KULINER": "#4caf50",
+    "WORKSHOP": "#00bcd4",
+    "SEMINAR": "#00bcd4",
+  };
+  const upperTitle = title.toUpperCase();
+  for (const [key, color] of Object.entries(categories)) {
+    if (upperTitle.includes(key)) return color;
+  }
+  let hash = 0;
+  for (let i = 0; i < title.length; i++) hash = title.charCodeAt(i) + ((hash << 5) - hash);
+  const hue = hash % 360;
+  return `hsl(${hue}, 60%, 45%)`;
+}
+
+function getCategoryInitial(title) {
+  if (!title) return "?";
+  const words = title.trim().split(/\s+/);
+  if (words.length === 1) return words[0][0].toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
 
 function MyTicket() {
   const navigate = useNavigate();
@@ -69,18 +109,111 @@ function MyTicket() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await getTransactionHistory();
-        const data = res?.data || [];
+        // Fetch both transaction history and refund history in parallel
+        const [transRes, refundRes] = await Promise.all([
+          getTransactionHistory(),
+          getRefundHistory(),
+        ]);
+
+        const transData = transRes?.data || [];
+        const refundData = refundRes?.data || [];
 
         // Deduplikasi by orderId (backend bisa return duplikat)
         const seen = new Set();
-        const unique = data.filter((o) => {
+        const unique = transData.filter((o) => {
           if (seen.has(o.orderId)) return false;
           seen.add(o.orderId);
           return true;
         });
 
-        setOrders(unique);
+        // Build refund map: orderId -> refund info
+        const refundMap = {};
+        refundData.forEach((refund) => {
+          if (refund.orderId) {
+            refundMap[refund.orderId] = {
+              refundId: refund.refundId,
+              status: refund.status, // PENDING, APPROVED, REJECTED, etc.
+              amount: refund.amount,
+              reason: refund.reason,
+              createdAt: refund.createdAt,
+            };
+          }
+        });
+
+        // Merge refund info into orders
+        const merged = unique.map((order) => {
+          const refundInfo = refundMap[order.orderId];
+          if (refundInfo) {
+            // Determine order status based on refund status
+            let orderStatus = order.status;
+            if (refundInfo.status === "PENDING") {
+              orderStatus = "REFUND_REQUESTED";
+            } else if (refundInfo.status === "APPROVED" || refundInfo.status === "REFUNDED") {
+              orderStatus = "REFUNDED";
+            } else if (refundInfo.status === "REJECTED") {
+              orderStatus = "REJECTED";
+            }
+            return {
+              ...order,
+              refundInfo,
+              status: orderStatus,
+            };
+          }
+          return order;
+        });
+
+        // Fetch event images from issued-detail for each order
+        // Strategy: Call issued-detail for first N tickets to build orderId -> imageUrl map
+        try {
+          const email = localStorage.getItem("email") || localStorage.getItem("userEmail");
+          console.log("[MyTicket] Fetching images - email:", email);
+          const myTicketsRes = email ? await getMyTickets(email) : await getMyTicketsAuth();
+          const myTickets = myTicketsRes?.data || [];
+          console.log("[MyTicket] myTickets:", myTickets);
+
+          // Call issued-detail for first N tickets to build orderId -> imageUrl map
+          // Tickets have ticketItemId; issued-detail returns orderId + eventImageUrl
+          const MAX_TICKETS = 15;
+          const ticketsToCheck = myTickets.slice(0, MAX_TICKETS);
+          console.log("[MyTicket] Checking tickets:", ticketsToCheck.map(t => t.ticketItemId));
+
+          const imagePromises = ticketsToCheck.map(async (ticket) => {
+            const code = ticket.ticketCode || ticket.ticketItemId;
+            if (!code) return { orderId: null, imageUrl: null };
+            try {
+              const detailRes = await getTicketDetail(code);
+              console.log("[MyTicket] issued-detail for", code, ":", detailRes);
+              const data = detailRes?.data;
+              const orderId = data?.orderId;
+              const imageUrl = data?.eventImageUrl || data?.eventImage;
+              return { orderId, imageUrl };
+            } catch (err) {
+              console.warn("[MyTicket] issued-detail error for", code, ":", err);
+              return { orderId: null, imageUrl: null };
+            }
+          });
+
+          const imageResults = await Promise.all(imagePromises);
+          console.log("[MyTicket] imageResults:", imageResults);
+
+          // Build orderId -> imageUrl map
+          const imageMap = {};
+          imageResults.forEach(({ orderId, imageUrl }) => {
+            if (orderId && imageUrl) imageMap[orderId] = imageUrl;
+          });
+          console.log("[MyTicket] imageMap:", imageMap);
+
+          // Merge image URLs into merged orders
+          const withImages = merged.map((order) => ({
+            ...order,
+            image: imageMap[order.orderId] || order.image || order.bannerUrl || null,
+          }));
+
+          setOrders(withImages);
+        } catch (imgErr) {
+          console.warn("[MyTicket] Failed to fetch event images:", imgErr);
+          setOrders(merged);
+        }
       } catch (err) {
         console.error("[MyTicket] transactions/history error:", err.message);
 
@@ -122,10 +255,33 @@ function MyTicket() {
 
   const isPendingOrder = (order) => PENDING_STATUSES.includes(order?.status);
 
+  const REFUND_STATUSES = ["REFUND_REQUESTED", "REFUNDED", "REJECTED"];
+
+  const NON_REFUND_STATUSES = ["PAID", "PENDING", "WAITING_PAYMENT", "EXPIRED"];
+
+  // Status priority: lower number = higher priority (appears first)
+  const STATUS_PRIORITY = {
+    PENDING: 1,
+    WAITING_PAYMENT: 1,
+    PAID: 2,
+    EXPIRED: 3,
+    CANCELLED: 4,
+  };
+
+  const getStatusPriority = (status) => STATUS_PRIORITY[status] || 99;
+
   const filteredOrders = (filter === "all"
-    ? orders
+    ? orders.filter((o) => NON_REFUND_STATUSES.includes(o.status))
+    : filter === "REFUND"
+    ? orders.filter((o) => REFUND_STATUSES.includes(o.status))
     : orders.filter((o) => o.status === filter)
   ).sort((a, b) => {
+    // Primary sort: status priority (pending first, then paid, then expired)
+    const priorityA = getStatusPriority(a.status);
+    const priorityB = getStatusPriority(b.status);
+    if (priorityA !== priorityB) return priorityA - priorityB;
+
+    // Secondary sort: createdAt descending (newest first within same status)
     const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return db - da;
@@ -239,15 +395,57 @@ function OrderCard({ order, onClick }) {
   const label = ORDER_STATUS_LABEL[statusKey] || statusKey;
   const type = ORDER_STATUS_TYPE[statusKey] || "pending";
   const isPending = PENDING_STATUSES.includes(statusKey);
+  const hasRefund = !!order.refundInfo;
+  const refundStatus = order.refundInfo?.status;
+
+  // Handle click based on order status and refund status
+  const handleCardClick = (e) => {
+    e.stopPropagation();
+    
+    if (isPending) {
+      onClick(order); // Lanjut bayar
+    } else if (hasRefund) {
+      // Show warning for refund requested/processed orders
+      let message = "";
+      if (refundStatus === "PENDING") {
+        message = "Refund untuk pesanan ini sudah diajukan dan sedang diproses.";
+      } else if (refundStatus === "APPROVED" || refundStatus === "REFUNDED") {
+        message = "Refund untuk pesanan ini sudah disetujui dan dana akan dikembalikan.";
+      } else if (refundStatus === "REJECTED") {
+        message = "Pengajuan refund untuk pesanan ini telah ditolak.";
+      } else {
+        message = "Pesanan ini sudah memiliki pengajuan refund.";
+      }
+      Swal.fire({
+        icon: "info",
+        title: "Refund Sudah Diajukan",
+        text: message,
+        confirmButtonColor: "#5548dc",
+      });
+    } else {
+      onClick(order); // Lihat detail
+    }
+  };
 
   return (
     <article
       className="my-ticket-card"
-      onClick={() => !isPending && onClick(order)}
+      onClick={handleCardClick}
       style={{ cursor: isPending ? "default" : "pointer" }}
     >
       <div className="ticket-image-section">
-        <div className="ticket-image-placeholder" />
+        {order.image || order.bannerUrl ? (
+          <img 
+            src={order.image || order.bannerUrl} 
+            alt={order.eventTitle || "Event"} 
+            className="ticket-event-image"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+        ) : (
+          <div className="ticket-image-placeholder" style={{ backgroundColor: getCategoryColor(order.eventTitle) }}>
+            <span className="placeholder-text">{getCategoryInitial(order.eventTitle)}</span>
+          </div>
+        )}
         <div className="ticket-image-overlay"></div>
 
         <span className={`ticket-status-badge ${type}`}>
@@ -294,6 +492,12 @@ function OrderCard({ order, onClick }) {
           {isPending ? (
             <button className="resume-payment-btn" onClick={(e) => { e.stopPropagation(); onClick(order); }}>
               Lanjut Bayar
+            </button>
+          ) : hasRefund ? (
+            <button className="refund-status-btn" onClick={(e) => { e.stopPropagation(); onClick(order); }}>
+              {refundStatus === "PENDING" ? "Refund Diproses" : 
+               refundStatus === "APPROVED" || refundStatus === "REFUNDED" ? "Refund Disetujui" :
+               refundStatus === "REJECTED" ? "Refund Ditolak" : "Refund Diajukan"}
             </button>
           ) : (
             <button onClick={(e) => { e.stopPropagation(); onClick(order); }}>Lihat Detail</button>
