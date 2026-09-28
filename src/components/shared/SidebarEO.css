@@ -1,5 +1,5 @@
 /* =========================================================
-   SIDEBAR EO
+   SIDEBAR EO (DESKTOP)
 ========================================================= */
 
 .sidebar-eo {
@@ -16,10 +16,6 @@
   border-right: 1px solid #e6e2ed;
   z-index: 100;
 }
-
-/* =========================================================
-   BRAND (HEADER LOGO)
-========================================================= */
 
 .sidebar-eo-brand {
   display: flex;
@@ -61,10 +57,6 @@
   font-weight: 500;
   letter-spacing: 0.45px;
 }
-
-/* =========================================================
-   MENU NAVIGASI
-========================================================= */
 
 .sidebar-eo-menu {
   display: flex;
@@ -110,7 +102,6 @@
   display: block;
   stroke: currentColor;
   fill: none;
-  transition: color 0.2s ease, stroke 0.2s ease;
 }
 
 .sidebar-eo-label {
@@ -123,7 +114,6 @@
   font-weight: 400;
 }
 
-/* Hover State */
 .sidebar-eo-item:hover {
   background: #f4f2ff;
   color: #5144d7;
@@ -134,7 +124,6 @@
   transform: translateX(1px);
 }
 
-/* Active State */
 .sidebar-eo-item.active {
   background: #5546df;
   color: #ffffff;
@@ -153,15 +142,6 @@
   background: #4d3fd1;
 }
 
-.sidebar-eo-item:focus-visible {
-  outline: 2px solid rgba(91, 77, 226, 0.25);
-  outline-offset: 2px;
-}
-
-/* =========================================================
-   FOOTER AREA (DASHBOARD EO & LOGOUT BUTTONS)
-========================================================= */
-
 .sidebar-eo-footer {
   margin-top: auto;
   padding-top: 14px;
@@ -171,7 +151,6 @@
   gap: 4px;
 }
 
-/* Tombol Dashboard EO Tambahan */
 .sidebar-eo-dashboard-btn {
   width: 100%;
   height: 38px;
@@ -208,11 +187,6 @@
   color: #5546df;
 }
 
-.sidebar-eo-footer-label {
-  line-height: 1.2;
-}
-
-/* Tombol Logout */
 .sidebar-eo-logout {
   width: 100%;
   height: 38px;
@@ -244,35 +218,270 @@
   color: #e53935;
 }
 
-.sidebar-eo-logout-icon svg {
-  width: 18px;
-  height: 18px;
-  stroke: currentColor;
-  fill: none;
-}
-
-.sidebar-eo-logout-label {
-  line-height: 1.2;
-}
-
 .sidebar-eo-logout:hover {
   background: #fdf2f2;
   color: #c62828;
   transform: translateX(1px);
 }
 
+/* Sembunyikan Elemen Mobile secara default */
+.mobile-eo-nav-wrapper,
+.mobile-popup-overlay {
+  display: none;
+}
+
 /* =========================================================
-   RESPONSIVE MEDIA QUERIES
+   MOBILE RESPONSIVE & FLOATING MENU STYLES
 ========================================================= */
 
-@media (max-width: 800px) {
+@media (max-width: 768px) {
   .sidebar-eo {
-    width: 200px;
+    display: none;
+  }
+
+  /* Container Pembungkus posisi melayang */
+  .mobile-eo-nav-wrapper {
+    display: block;
+    position: fixed;
+    bottom: 16px;
+    left: 0;
+    right: 0;
+    padding: 0 16px;
+    z-index: 1000;
+    pointer-events: none; /* Supaya klik di luar navbar melintas ke bawah */
+  }
+
+  /* Nav Bar Melayang (Floating Pill) */
+  .mobile-eo-nav {
+    pointer-events: auto;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    height: 62px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    box-sizing: border-box;
+    /* Soft Elevation Shadow */
+    box-shadow: 0 10px 30px -5px rgba(85, 70, 223, 0.2),
+                0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .mobile-eo-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: transparent;
+    border: none;
+    color: #837e8f;
+    font-family: "Poppins", sans-serif;
+    padding: 6px 0;
+    cursor: pointer;
+    border-radius: 16px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .mobile-eo-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+  }
+
+  .mobile-eo-label {
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  /* Active State Navbar Mobile */
+  .mobile-eo-nav-item.active {
+    color: #5546df;
+    font-weight: 600;
+  }
+
+  .mobile-eo-nav-item.active .mobile-eo-icon {
+    transform: translateY(-2px);
+  }
+
+  .mobile-eo-nav-item.active .mobile-eo-icon svg {
+    stroke: #5546df;
+  }
+
+  .mobile-eo-nav-item.mobile-logout {
+    color: #e53935;
+  }
+
+  .mobile-eo-nav-item.mobile-logout .mobile-eo-icon svg {
+    stroke: #e53935;
+  }
+
+  /* OVERLAY BACKDROP POPUP */
+  .mobile-popup-overlay {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(18, 14, 38, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1001;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  /* POPUP BOTTOM SHEET MELAYANG */
+  .mobile-popup-content {
+    position: fixed;
+    bottom: 90px; /* Jarak dari bawah agar pas di atas nav bar melayang */
+    left: 16px;
+    right: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 24px;
+    padding: 12px 18px 20px;
+    box-sizing: border-box;
+    box-shadow: 0 20px 40px rgba(27, 21, 60, 0.22);
+    animation: floatUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Drag Indicator Handle */
+  .mobile-popup-drag-handle {
+    width: 36px;
+    height: 4px;
+    background: #e2dded;
+    border-radius: 10px;
+    margin: 0 auto 12px;
+  }
+
+  .mobile-popup-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0ebf7;
+  }
+
+  .mobile-popup-header h3 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #5144d7;
+    letter-spacing: -0.1px;
+  }
+
+  .mobile-popup-close {
+    background: #f4f2ff;
+    border: none;
+    color: #777181;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+  }
+
+  .mobile-popup-close:hover {
+    background: #ebe7ff;
+    color: #5144d7;
+  }
+
+  /* GRID POPUP MENU */
+  .mobile-popup-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .mobile-popup-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 6px;
+    border-radius: 16px;
+    border: 1px solid #f2edf9;
+    background: #fbfafd;
+    color: #625d6f;
+    font-family: "Poppins", sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-popup-item:active {
+    transform: scale(0.96);
+  }
+
+  .mobile-popup-icon {
+    color: #5b4de2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-popup-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* Active Menu Item inside Popup */
+  .mobile-popup-item.active {
+    background: #5546df;
+    color: #ffffff;
+    border-color: #5546df;
+    box-shadow: 0 6px 14px rgba(85, 70, 223, 0.28);
+  }
+
+  .mobile-popup-item.active .mobile-popup-icon {
+    color: #ffffff;
+  }
+
+  .mobile-popup-item.active .mobile-popup-icon svg {
+    stroke: #ffffff;
   }
 }
 
-@media (max-width: 600px) {
-  .sidebar-eo {
-    display: none;
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes floatUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
