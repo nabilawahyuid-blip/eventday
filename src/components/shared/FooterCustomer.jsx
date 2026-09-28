@@ -46,11 +46,18 @@ function FooterCustomer() {
 
         <button
           className={`customer-bottom-nav-item ${
-            location.pathname.startsWith("../register-eo")
+            location.pathname.startsWith("../register-eo") || location.pathname.startsWith("/eo/dashboard")
               ? "active"
               : ""
           }`}
-          onClick={() => navigate("../register-eo")}
+          onClick={() => {
+            const role = localStorage.getItem("role") || "CUSTOMER";
+            if (role === "ORGANIZER") {
+              navigate("/eo/dashboard");
+            } else {
+              navigate("../register-eo");
+            }
+          }}
         >
           <svg viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="8.5" />

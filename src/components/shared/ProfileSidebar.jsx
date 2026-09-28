@@ -63,8 +63,8 @@ function ProfileSidebar({ open, onClose }) {
 
   const securityMenus = [
     {
-      label: "Ubah Sandi/Reset",
-      path: "/forgot-password",
+      label: "Ubah Sandi",
+      path: "/customer/change-password",
       type: "lock",
     },
     {
