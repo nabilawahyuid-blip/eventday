@@ -1383,3 +1383,67 @@
     font-size: 14px;
   }
 }
+
+/* =========================================================
+   PERBAIKAN SWIPE TABEL — pengaman scroll horizontal internal.
+   Aturan global (tidak mengubah tampilan desktop): wrapper
+   dikunci max-width + properti sentuh agar swipe di HP selalu
+   menggeser tabel, bukan kepotong viewport.
+   ========================================================= */
+
+.audit-log-page .audit-table-card {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.audit-log-page .audit-table-wrapper {
+  display: block;
+
+  max-width: 100%;
+  min-width: 0;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x pan-y;
+}
+
+/* =========================================================
+   PERBAIKAN MOBILE — hanya sentuh ≤600px
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .audit-log-page .audit-log-content {
+    padding: 18px 14px 30px;
+  }
+
+  .audit-log-page .audit-log-header h1 {
+    font-size: 21px;
+  }
+
+  .audit-log-page .audit-log-header p {
+    font-size: 11px;
+  }
+
+  .audit-log-page .audit-search-box input {
+    font-size: 16px;
+  }
+
+  .audit-log-page .audit-table {
+    min-width: 760px;
+  }
+
+  .audit-log-page .audit-table-footer {
+    align-items: stretch;
+  }
+
+  .audit-log-page .audit-pagination {
+    justify-content: center;
+
+    flex-wrap: wrap;
+  }
+
+}

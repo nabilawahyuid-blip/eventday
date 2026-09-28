@@ -1552,3 +1552,101 @@ body {
     font-size: 14px;
   }
 }
+
+/* =========================================================
+   PERBAIKAN MOBILE — ditaruh paling akhir supaya menang dari
+   blok PENYERAGAMAN/GROUP C (spesifisitas sama, menang karena
+   urutan). Hanya sentuh ≤700px, desktop tidak berubah.
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .user-management-page .user-content {
+    padding: 18px 14px 30px;
+  }
+
+  .user-management-page .user-heading h1 {
+    font-size: 21px;
+  }
+
+  .user-management-page .user-heading p {
+    font-size: 11px;
+  }
+
+  .user-management-page .user-search {
+    height: 40px;
+
+    min-width: 0;
+  }
+
+  .user-management-page .user-search input {
+    font-size: 16px;
+  }
+
+  .user-management-page .user-filter-tabs {
+    overflow-x: auto;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .user-management-page .filter-tab {
+    flex: 1 0 auto;
+
+    padding: 0 10px;
+
+    font-size: 10px;
+
+    white-space: nowrap;
+  }
+
+  .user-management-page .user-table-wrapper {
+    display: block;
+
+    max-width: 100%;
+    min-width: 0;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    touch-action: pan-x pan-y;
+  }
+
+  .user-management-page .user-table th {
+    font-size: 9px;
+  }
+
+  .user-management-page .user-table td {
+    font-size: 11px;
+  }
+
+  .user-management-page .user-info strong {
+    font-size: 12px;
+  }
+
+  .user-management-page .user-info span {
+    font-size: 10px;
+
+    overflow-wrap: anywhere;
+  }
+
+  .user-management-page .user-status {
+    font-size: 10px;
+
+    padding: 4px 10px;
+  }
+
+  .user-management-page .user-table-footer {
+    align-items: center;
+  }
+
+  .user-management-page .pagination {
+    align-self: center;
+
+    flex-wrap: wrap;
+
+    justify-content: center;
+  }
+
+}
