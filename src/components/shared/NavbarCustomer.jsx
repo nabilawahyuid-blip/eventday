@@ -24,6 +24,7 @@ function NavbarCustomer() {
     username: "",
     avatarUrl: null,
     initials: "U",
+    role: localStorage.getItem("role") || "CUSTOMER",
   });
 
   const searchRef = useRef(null);
@@ -41,12 +42,15 @@ function NavbarCustomer() {
           .join("")
           .toUpperCase()
           .slice(0, 2);
+        const role = data.role || localStorage.getItem("role") || "CUSTOMER";
+        localStorage.setItem("role", role);
         setUserProfile({
           name,
           email: data.email || localStorage.getItem("email") || "",
           username: data.username || "",
           avatarUrl: data.avatarUrl || localStorage.getItem("avatarUrl") || null,
           initials,
+          role,
         });
       } catch {
         const name = localStorage.getItem("name") || "USER";
@@ -188,15 +192,6 @@ function NavbarCustomer() {
           <div className="customer-logo" onClick={handleLogoClick}>
             EVENT<span>DAY</span>
           </div>
-
-          <button className="location-button">
-            <svg viewBox="0 0 24 24">
-              <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-              <circle cx="12" cy="10" r="2.5" />
-            </svg>
-            <span>Jakarta, ID</span>
-            <span className="location-arrow">⌄</span>
-          </button>
         </div>
 
         {/* DESKTOP SEARCH */}
@@ -269,8 +264,15 @@ function NavbarCustomer() {
             Tiket
           </button>
           <button
-            className={`nav-link ${location.pathname.startsWith("/register-eo") ? "active" : ""}`}
-            onClick={() => navigate("/register-eo")}
+            className={`nav-link ${location.pathname.startsWith("/register-eo") || location.pathname.startsWith("/eo/dashboard") ? "active" : ""}`}
+            onClick={() => {
+              const role = userProfile.role || localStorage.getItem("role") || "CUSTOMER";
+              if (role === "ORGANIZER") {
+                navigate("/eo/dashboard");
+              } else {
+                navigate("/register-eo");
+              }
+            }}
           >
             Buat Event
           </button>

@@ -58,6 +58,11 @@ export default defineConfig(({ mode }) => {
 
   const proxyTarget = env.VITE_NGROK_URL;
 
+  // Ambil URL Ngrok dari .env, atau fallback ke localhost
+  const targetUrl = env.VITE_NGROK_URL || "http://localhost:5000";
+
+  console.log("--> Proxy Target URL Active:", targetUrl);
+
   return {
     plugins: [react()],
 
