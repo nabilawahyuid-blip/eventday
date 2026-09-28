@@ -24,6 +24,7 @@ function NavbarCustomer() {
     username: "",
     avatarUrl: null,
     initials: "U",
+    role: localStorage.getItem("role") || "CUSTOMER",
   });
 
   const searchRef = useRef(null);
@@ -41,12 +42,15 @@ function NavbarCustomer() {
           .join("")
           .toUpperCase()
           .slice(0, 2);
+        const role = data.role || localStorage.getItem("role") || "CUSTOMER";
+        localStorage.setItem("role", role);
         setUserProfile({
           name,
           email: data.email || localStorage.getItem("email") || "",
           username: data.username || "",
           avatarUrl: data.avatarUrl || localStorage.getItem("avatarUrl") || null,
           initials,
+          role,
         });
       } catch {
         const name = localStorage.getItem("name") || "USER";
@@ -260,8 +264,15 @@ function NavbarCustomer() {
             Tiket
           </button>
           <button
-            className={`nav-link ${location.pathname.startsWith("/register-eo") ? "active" : ""}`}
-            onClick={() => navigate("/register-eo")}
+            className={`nav-link ${location.pathname.startsWith("/register-eo") || location.pathname.startsWith("/eo/dashboard") ? "active" : ""}`}
+            onClick={() => {
+              const role = userProfile.role || localStorage.getItem("role") || "CUSTOMER";
+              if (role === "ORGANIZER") {
+                navigate("/eo/dashboard");
+              } else {
+                navigate("/register-eo");
+              }
+            }}
           >
             Buat Event
           </button>
