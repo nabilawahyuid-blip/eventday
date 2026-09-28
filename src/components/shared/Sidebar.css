@@ -483,6 +483,99 @@
 
 
 /* =========================================================
+   CLOSE BUTTON (hanya di drawer mobile)
+========================================================= */
+
+.sidebar-close {
+  display: none;
+
+  width: 30px;
+  height: 30px;
+
+  margin-left: auto;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #625d6f;
+
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
+.sidebar-close:hover {
+  background: #f4f2ff;
+
+  color: #5144d7;
+}
+
+
+/* =========================================================
+   PROFIL ADMIN — hanya tampil di drawer mobile.
+   Desktop disembunyikan agar layout lama tidak berubah.
+========================================================= */
+
+.sidebar-profile {
+  display: none;
+}
+
+.sidebar-profile-avatar {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #e5b991, #a97857);
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sidebar-profile-info {
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+.sidebar-profile-info strong {
+  overflow: hidden;
+
+  color: #242331;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-profile-info span {
+  overflow: hidden;
+
+  color: #777181;
+
+  font-size: 10px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
    TABLET
 ========================================================= */
 
@@ -496,13 +589,98 @@
 
 
 /* =========================================================
+   OVERLAY (MOBILE DRAWER)
+========================================================= */
+
+.sidebar-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(36, 35, 49, 0.45);
+
+  z-index: 99;
+}
+
+
+/* =========================================================
    MOBILE
 ========================================================= */
 
 @media (max-width: 600px) {
 
   .sidebar {
-    display: none;
+    width: 250px;
+    max-height: 100vh;
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    transform: translateX(-105%);
+
+    transition: transform 0.25s ease;
+
+    box-shadow: none;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+
+    box-shadow:
+      8px 0 30px rgba(36, 35, 49, 0.18);
+  }
+
+  .sidebar-close {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-profile {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    text-align: center;
+
+    gap: 8px;
+
+    margin: 4px 4px 12px;
+    padding: 16px 10px 14px;
+
+    border: 1px solid #e6e2ed;
+    border-radius: 12px;
+
+    background: #f7f6fb;
+  }
+
+  .sidebar-profile-avatar {
+    width: 60px;
+    height: 60px;
+
+    font-size: 22px;
+  }
+
+  .sidebar-profile-avatar img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    display: block;
+  }
+
+  .sidebar-profile-info strong {
+    font-size: 13px;
+  }
+
+  .sidebar-profile-info span {
+    font-size: 10px;
   }
 
 }

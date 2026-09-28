@@ -239,7 +239,7 @@ input:focus {
 @media (max-width: 600px) {
   .login-card {
     width: 100%;
-    padding: 28px 24px 32px;
+    padding: 28px 16px 32px;
   }
 
   .login-card h1 {
@@ -261,4 +261,72 @@ input:focus {
   .login-form {
     margin-top: 45px;
   }
+}
+
+/* =========================================================
+   PENYERAGAMAN MOBILE — padding kiri-kanan konsisten 16px
+   di semua halaman (admin, EO, customer, auth).
+   Hanya sisi kiri/kanan; padding atas/bawah tetap milik
+   tiap halaman. !important dipakai supaya menang dari
+   aturan per-halaman (spesifisitas lebih tinggi) tanpa
+   harus menyentuh ±25 file CSS satu per satu.
+   Ubah --page-gutter-mobile bila standar berubah.
+   ========================================================= */
+
+:root {
+  --page-gutter-mobile: 16px;
+}
+
+@media (max-width: 600px) {
+
+  .dashboard-content,
+  .event-content,
+  .detail-content,
+  .edit-content,
+  .user-content,
+  .detail-user-content,
+  .transaction-content,
+  .ticket-content,
+  .detail-payout-content,
+  .audit-log-content,
+  .platform-content,
+  .pengajuan-eo-content,
+  .pengajuan-payout-content,
+  .dashboard-eo-content,
+  .add-event-content,
+  .transaksi-eo-content,
+  .detail-transaksi-content,
+  .detail-refund-content,
+  .detail-event-eo-content,
+  .refund-main > .refund-content,
+  .profile-eo-content,
+  .pengajuan-payout-eo-content,
+  .payout-eo-content,
+  .event-eo-content,
+  .customer-content,
+  .detail-event-container,
+  .ticket-success-container,
+  .my-ticket-container,
+  .transaction-container,
+  .refund-list-container,
+  .refund-detail-container,
+  .refund-container,
+  .terms-container,
+  .privacy-content,
+  .profile-mobile-container,
+  .change-password-content,
+  .edit-profile-content,
+  .order-detail-container,
+  .forgot-page,
+  .register-content,
+  .otp-content,
+  .reset-password-content {
+    padding-left: var(--page-gutter-mobile) !important;
+    padding-right: var(--page-gutter-mobile) !important;
+  }
+
+  .checkout-container {
+    width: calc(100% - 32px) !important;
+  }
+
 }

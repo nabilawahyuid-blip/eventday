@@ -1061,3 +1061,76 @@ body {
     box-sizing: border-box;
   }
 }
+
+/* =========================================================
+   PERBAIKAN MOBILE — ditaruh paling akhir supaya menang dari
+   blok PENYERAGAMAN (spesifisitas sama, menang karena urutan)
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .event-management-page .event-content {
+    padding: 18px 14px 30px;
+  }
+
+  .event-management-page .page-heading {
+    align-items: flex-start;
+  }
+
+  .event-management-page .page-heading h2 {
+    font-size: 20px;
+  }
+
+  .event-management-page .page-heading p {
+    font-size: 11px;
+  }
+
+  .event-management-page .event-search input,
+  .event-management-page .event-filter {
+    font-size: 16px;
+  }
+
+  .event-management-page .event-card h3 {
+    font-size: 14px;
+
+    display: -webkit-box;
+
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+
+    overflow: hidden;
+  }
+
+  .event-management-page .event-detail {
+    font-size: 11px;
+
+    overflow-wrap: anywhere;
+  }
+
+  .event-management-page .event-card-footer span {
+    font-size: 11px;
+  }
+
+  .event-management-page .event-status {
+    font-size: 9px;
+  }
+
+  .event-management-page .event-cover span {
+    font-size: 8px;
+  }
+
+  .event-management-page .event-pagination {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 10px;
+  }
+
+  .event-management-page .event-pagination-controls {
+    flex-wrap: wrap;
+
+    justify-content: center;
+  }
+
+}
