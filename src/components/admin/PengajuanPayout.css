@@ -768,3 +768,108 @@
     box-sizing: border-box;
   }
 }
+
+/* =========================================================
+   PERBAIKAN MOBILE — ditaruh paling akhir supaya menang dari
+   blok PENYERAGAMAN (spesifisitas sama, menang karena urutan).
+   Hanya sentuh ≤600px, desktop tidak berubah.
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .pengajuan-payout-page .pengajuan-payout-content {
+    padding: 20px 14px 32px;
+  }
+
+  .pengajuan-payout-page .pengajuan-payout-header h1 {
+    font-size: 21px;
+  }
+
+  .pengajuan-payout-page .pengajuan-payout-header p {
+    font-size: 11px;
+  }
+
+  .pengajuan-payout-page .payout-statistics {
+    gap: 10px;
+  }
+
+  .pengajuan-payout-page .payout-stat-card {
+    min-height: 100px;
+
+    padding: 16px;
+  }
+
+  .pengajuan-payout-page .payout-stat-label {
+    font-size: 11px;
+  }
+
+  .pengajuan-payout-page .payout-stat-number {
+    font-size: 26px;
+  }
+
+  .pengajuan-payout-page .payout-stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .pengajuan-payout-page .payout-list {
+    gap: 12px;
+  }
+
+  .pengajuan-payout-page .payout-request-card {
+    min-height: 0;
+
+    padding: 16px;
+  }
+
+  .pengajuan-payout-page .payout-event-icon {
+    width: 42px;
+    height: 42px;
+
+    min-width: 42px;
+  }
+
+  .pengajuan-payout-page .payout-event-info {
+    flex: 1;
+
+    min-width: 0;
+  }
+
+  .pengajuan-payout-page .payout-event-info h2 {
+    font-size: 15px;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+  }
+
+  .pengajuan-payout-page .payout-organizer {
+    font-size: 11px;
+  }
+
+  .pengajuan-payout-page .payout-date {
+    font-size: 10px;
+  }
+
+  .pengajuan-payout-page .payout-request-action {
+    flex-wrap: wrap;
+
+    gap: 8px;
+  }
+
+  .pengajuan-payout-page .payout-status {
+    min-width: 0;
+
+    font-size: 11px;
+  }
+
+  .pengajuan-payout-page .payout-detail-button {
+    min-width: 95px;
+    height: 36px;
+
+    font-size: 11px;
+  }
+
+}

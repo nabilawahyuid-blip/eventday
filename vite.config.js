@@ -67,10 +67,14 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
 
     server: {
+      host: true,
+      port: 5173,
       proxy: proxyRules(proxyTarget),
     },
 
     preview: {
+      host: true,
+      port: 4173,
       proxy: proxyRules(proxyTarget),
     },
   };
