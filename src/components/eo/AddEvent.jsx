@@ -52,6 +52,11 @@ function AddEvent() {
   const [lineups, setLineups] = useState([""]);
 
   // =====================================================
+  // FACILITIES (Disesuaikan dengan DB Entity)
+  // =====================================================
+  const [facilities, setFacilities] = useState([""]);
+
+  // =====================================================
   // FILE & PREVIEW STATE
   // =====================================================
   const [banner, setBanner] = useState(null);
@@ -86,7 +91,7 @@ function AddEvent() {
         icon: "warning",
         title: "Perhatian",
         text: "Minimal harus ada satu jadwal event.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return;
     }
@@ -112,7 +117,7 @@ function AddEvent() {
         icon: "warning",
         title: "Perhatian",
         text: "Minimal harus ada satu kategori tiket.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return;
     }
@@ -138,11 +143,37 @@ function AddEvent() {
         icon: "warning",
         title: "Perhatian",
         text: "Minimal harus ada satu pengisi acara (lineup).",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return;
     }
     setLineups(lineups.filter((_, i) => i !== index));
+  };
+
+  // =====================================================
+  // FACILITY HANDLERS
+  // =====================================================
+  const handleAddFacility = () => {
+    setFacilities([...facilities, ""]);
+  };
+
+  const handleFacilityChange = (index, value) => {
+    const updated = [...facilities];
+    updated[index] = value;
+    setFacilities(updated);
+  };
+
+  const handleDeleteFacility = (index) => {
+    if (facilities.length === 1) {
+      Swal.fire({
+        icon: "warning",
+        title: "Perhatian",
+        text: "Minimal harus ada satu fasilitas event.",
+        confirmButtonColor: "#6256e8",
+      });
+      return;
+    }
+    setFacilities(facilities.filter((_, i) => i !== index));
   };
 
   // =====================================================
@@ -157,7 +188,7 @@ function AddEvent() {
         icon: "error",
         title: "Ukuran File Terlalu Besar",
         text: "Ukuran banner maksimal 5MB.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       e.target.value = "";
       return;
@@ -168,7 +199,7 @@ function AddEvent() {
         icon: "error",
         title: "Format Tidak Sesuai",
         text: "File banner harus berupa gambar (JPG, PNG, WebP).",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       e.target.value = "";
       return;
@@ -200,7 +231,7 @@ function AddEvent() {
         icon: "error",
         title: "Ukuran File Terlalu Besar",
         text: "Ukuran dokumen perizinan maksimal 10MB.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       e.target.value = "";
       return;
@@ -220,7 +251,7 @@ function AddEvent() {
         icon: "error",
         title: "Format Tidak Sesuai",
         text: "Dokumen perizinan harus berupa file PDF atau ZIP.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       e.target.value = "";
       return;
@@ -238,7 +269,7 @@ function AddEvent() {
         icon: "warning",
         title: "Form Belum Lengkap",
         text: "Nama event wajib diisi.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return false;
     }
@@ -248,7 +279,7 @@ function AddEvent() {
         icon: "warning",
         title: "Form Belum Lengkap",
         text: "Kategori event wajib dipilih.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return false;
     }
@@ -258,7 +289,7 @@ function AddEvent() {
         icon: "warning",
         title: "Form Belum Lengkap",
         text: "Deskripsi event wajib diisi.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return false;
     }
@@ -268,7 +299,7 @@ function AddEvent() {
         icon: "warning",
         title: "Form Belum Lengkap",
         text: "Lokasi / venue event wajib diisi.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return false;
     }
@@ -278,7 +309,7 @@ function AddEvent() {
         icon: "warning",
         title: "Banner Belum Diunggah",
         text: "Silakan upload banner event terlebih dahulu.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return false;
     }
@@ -291,7 +322,7 @@ function AddEvent() {
           icon: "warning",
           title: "Jadwal Belum Lengkap",
           text: `Tanggal pada jadwal ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -300,7 +331,7 @@ function AddEvent() {
           icon: "warning",
           title: "Jadwal Belum Lengkap",
           text: `Jam mulai pada jadwal ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -309,7 +340,7 @@ function AddEvent() {
           icon: "warning",
           title: "Jadwal Belum Lengkap",
           text: `Jam selesai pada jadwal ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -318,7 +349,7 @@ function AddEvent() {
           icon: "error",
           title: "Waktu Tidak Valid",
           text: `Jam selesai pada jadwal ke-${i + 1} harus lebih besar dari jam mulai.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -332,7 +363,7 @@ function AddEvent() {
           icon: "warning",
           title: "Tiket Belum Lengkap",
           text: `Nama kategori tiket ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -341,7 +372,7 @@ function AddEvent() {
           icon: "warning",
           title: "Tiket Belum Lengkap",
           text: `Harga tiket ke-${i + 1} tidak valid.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -350,7 +381,7 @@ function AddEvent() {
           icon: "warning",
           title: "Tiket Belum Lengkap",
           text: `Kuota tiket ke-${i + 1} harus lebih dari 0.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -363,7 +394,20 @@ function AddEvent() {
           icon: "warning",
           title: "Lineup Belum Lengkap",
           text: `Nama pengisi acara (lineup) ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
+          confirmButtonColor: "#6256e8",
+        });
+        return false;
+      }
+    }
+
+    // Validate Facilities
+    for (let i = 0; i < facilities.length; i++) {
+      if (!facilities[i].trim()) {
+        Swal.fire({
+          icon: "warning",
+          title: "Fasilitas Belum Lengkap",
+          text: `Fasilitas ke-${i + 1} wajib diisi.`,
+          confirmButtonColor: "#6256e8",
         });
         return false;
       }
@@ -375,7 +419,7 @@ function AddEvent() {
         icon: "warning",
         title: "Dokumen Belum Diunggah",
         text: "Silakan upload dokumen perizinan event.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
       return false;
     }
@@ -401,6 +445,11 @@ function AddEvent() {
       .filter(Boolean)
       .join(", ");
 
+    const facilityData = facilities
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .join(", ");
+
     const ticketData = tickets.map((ticket) => ({
       tier_name: ticket.name.trim(),
       price: Number(ticket.price),
@@ -415,6 +464,7 @@ function AddEvent() {
       start_date: startDate,
       end_date: endDate,
       lineup: lineupData || null,
+      facility: facilityData || null,
       banner_url: bannerUrl,
       tickets: ticketData,
     };
@@ -424,14 +474,22 @@ function AddEvent() {
     let bannerUrl = null;
 
     if (banner) {
-      const bannerResponse = await uploadOrganizerEventBanner(banner);
-      bannerUrl =
-        bannerResponse?.data?.banner_url ||
-        bannerResponse?.banner_url ||
-        null;
+      try {
+        const bannerResponse = await uploadOrganizerEventBanner(banner);
+        bannerUrl =
+          bannerResponse?.data?.banner_url ||
+          bannerResponse?.banner_url ||
+          null;
 
-      if (!bannerUrl) {
-        throw new Error("Banner berhasil diupload tetapi URL banner tidak ditemukan.");
+        if (!bannerUrl) {
+          throw new Error("Banner berhasil diupload tetapi URL banner tidak ditemukan.");
+        }
+      } catch (err) {
+        // Tangani Error 504 Gateway Timeout secara khusus
+        if (err?.message?.includes("504") || err?.status === 504) {
+          throw new Error("Server mengalami timeout saat mengupload banner. Coba gunakan gambar dengan ukuran lebih kecil.");
+        }
+        throw err;
       }
     }
 
@@ -465,7 +523,7 @@ function AddEvent() {
         icon: "success",
         title: "Draft Tersimpan!",
         text: "Event berhasil disimpan sebagai draft.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       }).then(() => {
         navigate("/eo/event");
       });
@@ -476,7 +534,7 @@ function AddEvent() {
         icon: "error",
         title: "Gagal Menyimpan",
         text: message,
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
     } finally {
       setSubmitting(false);
@@ -507,7 +565,7 @@ function AddEvent() {
         icon: "success",
         title: "Berhasil Diajukan!",
         text: "Event Anda berhasil dibuat dan menunggu persetujuan admin.",
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       }).then(() => {
         navigate("/eo/event");
       });
@@ -518,7 +576,7 @@ function AddEvent() {
         icon: "error",
         title: "Gagal Membuat Event",
         text: message,
-        confirmColor: "#6256e8",
+        confirmButtonColor: "#6256e8",
       });
     } finally {
       setSubmitting(false);
@@ -853,6 +911,42 @@ function AddEvent() {
                   <button
                     type="button"
                     onClick={() => handleDeleteLineup(index)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* FASILITAS EVENT */}
+          <section className="form-card">
+            <div className="section-header">
+              <h2>Fasilitas Event</h2>
+              <button
+                type="button"
+                className="add-small-button"
+                onClick={handleAddFacility}
+              >
+                + Tambah Fasilitas
+              </button>
+            </div>
+
+            <div className="lineup-list">
+              {facilities.map((facility, index) => (
+                <div className="lineup-row" key={index}>
+                  <input
+                    type="text"
+                    value={facility}
+                    placeholder="Contoh: Free Parking, Food Court, Air Mineral"
+                    onChange={(e) =>
+                      handleFacilityChange(index, e.target.value)
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteFacility(index)}
                   >
                     ×
                   </button>
