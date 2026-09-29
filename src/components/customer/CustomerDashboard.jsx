@@ -19,10 +19,14 @@ import "./CustomerDashboard.css";
 
 const CATEGORY_PARAMS = {
   Semua: "",
-  Musik: "MUSIC_FESTIVAL",
-  Konferensi: "CONFERENCE",
-  Pameran: "EXHIBITION",
-  Kuliner: "CULINARY",
+  "Music Festival": "MUSIC_FESTIVAL",
+  Exhibition: "EXHIBITION",
+  Entertainment: "ENTERTAINMENT",
+  Culinary: "CULINARY",
+  Technology: "TECHNOLOGY",
+  Conference: "CONFERENCE",
+  "Seminar Workshop": "SEMINAR_WORKSHOP",
+  Community: "COMMUNITY",
 };
 
 // =====================================================
@@ -402,10 +406,14 @@ function DashboardCustomer() {
 
   const categories = [
     "Semua",
-    "Musik",
-    "Konferensi",
-    "Pameran",
-    "Kuliner",
+    "Music Festival",
+    "Exhibition",
+    "Entertainment",
+    "Culinary",
+    "Technology",
+    "Conference",
+    "Seminar Workshop",
+    "Community",
   ];
 
   // =====================================================
