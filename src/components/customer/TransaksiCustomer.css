@@ -6,323 +6,379 @@
 }
 
 .transaction-container {
-  width: min(1180px, calc(100% - 68px));
-  margin-left: auto;
-  margin-right: auto;
-  padding: 30px 0 40px;
-  flex: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 38px 32px 85px;
   box-sizing: border-box;
+  flex: 1;
 }
 
 .transaction-header {
-  margin-bottom: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 48px;
+  flex-wrap: wrap;
 }
 
 .transaction-header h1 {
-  margin: 0 0 8px;
-  color: #111827;
-  font-size: 32px;
+  margin: 0;
+  color: #101a32;
+  font-size: 38px;
   line-height: 1.2;
-  font-weight: 800;
-  letter-spacing: -0.8px;
+  font-weight: 750;
+  letter-spacing: -1px;
 }
 
 .transaction-header p {
-  margin: 0;
-  color: #667795;
-  font-size: 14px;
+  margin: 8px 0 0;
+  color: #657493;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 /* TAB */
 
 .transaction-tabs {
-  width: 100%;
-  min-height: 44px;
-  padding: 7px 16px;
-  background: #ffffff;
-  border-radius: 12px;
   display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 12px 25px;
-  width: calc(100% - 24px);
-  box-sizing: border-box;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
 }
 
 .transaction-tabs button {
-  border: none;
-  background: #edf1f7;
-  color: #53627b;
-  padding: 8px 17px;
-  border-radius: 18px;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 100px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid #d7e3fa;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #5c6475;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   transition: 0.2s ease;
-  white-space: nowrap;
 }
 
 .transaction-tabs button:hover {
-  background: #e3e8f2;
+  background: #f0f3ff;
+  border-color: #5a55ed;
+  color: #5a55ed;
 }
 
 .transaction-tabs button.active {
-  background: #5a52f2;
+  background: #5a55ed;
+  border-color: #5a55ed;
   color: #ffffff;
-  box-shadow: 0 3px 8px rgba(90, 82, 242, 0.2);
 }
 
-/* TRANSACTION GRID */
+/* LIST */
 
 .transaction-list {
-  width: calc(100% - 24px);
-  margin-left: auto;
-  margin-right: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
 }
-/* CARD */
 
-.transaction-card {
+/* CARD — match RefundList style */
+
+.rl-card {
+  min-width: 0;
+  width: 100%;
   background: #ffffff;
-  border-radius: 14px;
-  padding: 16px;
-  box-sizing: border-box;
-  min-height: 295px;
-  box-shadow: 0 7px 25px rgba(30, 42, 70, 0.06);
-  display: flex;
-  flex-direction: column;
+  border-radius: 11px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(28, 39, 70, 0.07);
 }
 
-.transaction-card-top {
+.rl-card-header {
+  padding: 16px 18px 14px;
+}
+
+.rl-card-header-top {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: 15px;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.order-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.rl-card-header h2 {
+  margin: 0;
+  color: #17233c;
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 700;
+  flex: 1;
+  min-width: 0;
 }
 
-.order-label {
-  color: #8a9bb8;
-  font-size: 11px;
-}
+/* STATUS BADGE - match MyTicket style */
 
-.order-info strong {
-  color: #26344b;
-  font-size: 12px;
-  letter-spacing: 0.2px;
-}
-
-/* STATUS */
-
-.transaction-status {
+.rl-status-badge {
   flex-shrink: 0;
-  padding: 5px 13px;
-  border-radius: 20px;
+  min-height: 26px;
+  padding: 3px 12px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 11px;
-  line-height: 1;
-  font-weight: 500;
+  font-weight: 600;
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
-.transaction-status.waiting {
+.rl-status-badge.waiting {
   background: #fff1a8;
   border: 1px solid #f3d23e;
   color: #936600;
 }
 
-.transaction-status.success {
+.rl-status-badge.success {
   background: #bdf5d0;
   border: 1px solid #78d99b;
   color: #237348;
 }
 
-.transaction-status.failed {
-  background: #ffd1d1;
-  border: 1px solid #ff9b9b;
-  color: #bb2d2d;
+.rl-status-badge.failed {
+  background: #ffb1b7;
+  border: 1px solid #f07882;
+  color: #a31e28;
 }
 
-.transaction-status.cancelled {
-  background: #e9edf3;
-  border: 1px solid #d6dce6;
-  color: #667085;
+.rl-status-badge.refund {
+  background: #e0d5ff;
+  border: 1px solid #c5b5ff;
+  color: #5b46d1;
 }
 
-/* EVENT */
-
-.transaction-event {
-  margin-top: 17px;
-}
-
-.transaction-event h2 {
-  margin: 0 0 12px;
-  color: #15243b;
-  font-size: 20px;
-  line-height: 1.2;
-  font-weight: 700;
-}
-
-.ticket-summary {
+.rl-card-date {
+  margin-top: 10px;
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: #687995;
-  font-size: 11px;
+  gap: 8px;
+  color: #4f5567;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-.ticket-type {
-  color: #4e46ef;
-  background: #eef0ff;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 600;
+.rl-card-date svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: #4d5261;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.ticket-dot {
-  color: #687995;
+.rl-card-divider {
+  width: 100%;
+  height: 1px;
+  background: #e2e5ec;
 }
 
-/* DETAIL */
-
-.transaction-detail {
-  margin-top: 12px;
-  padding: 10px 11px;
-  background: #f6f8fb;
-  border: 1px solid #edf0f5;
-  border-radius: 11px;
+.rl-card-detail {
+  padding: 14px 18px 14px;
 }
 
-.detail-row {
+.rl-detail-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 15px;
+  gap: 10px;
   min-height: 22px;
   color: #6d7e9a;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.detail-row strong {
+.rl-detail-row span:first-child {
+  color: #5a6a8a;
+  font-weight: 500;
+}
+
+.rl-detail-row strong {
   color: #35445d;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-align: right;
 }
 
-.detail-row .expired-date {
-  color: #ff334d;
-}
-
-.detail-row.total-row {
-  padding-top: 6px;
+.rl-detail-row.rl-detail-total {
+  padding-top: 8px;
   margin-top: 4px;
   border-top: 1px solid #dfe4eb;
   color: #26344b;
 }
 
-.detail-row.total-row span {
+.rl-detail-row.rl-detail-total span {
   font-weight: 700;
 }
 
-.detail-row.total-row strong {
+.rl-detail-row.rl-detail-total strong {
   color: #4d45ed;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 
-.detail-row.total-row strong:last-child {
-  color: #4d45ed;
-}
-
-/* CARD FOOTER */
-
-.transaction-card-footer {
-  margin-top: auto;
-  padding-top: 11px;
-  border-top: 1px solid #e5e8ef;
+.rl-card-action {
+  padding: 14px 18px 16px;
   display: flex;
   justify-content: flex-end;
 }
 
-.primary-transaction-button,
-.outline-transaction-button {
-  height: 37px;
-  padding: 0 17px;
-  border-radius: 6px;
-  font-family: inherit;
+.rl-card-action button {
+  min-width: 111px;
+  height: 36px;
+  padding: 0 15px;
+  border: 1px solid #4238ff;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #3730d9;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
 }
 
-.primary-transaction-button {
-  border: none;
-  background: #5047e9;
-  color: #ffffff;
-}
-
-.primary-transaction-button:hover {
-  background: #433bd5;
-}
-
-.outline-transaction-button {
-  border: 1px solid #4e46f2;
-  background: #ffffff;
-  color: #4e46f2;
-}
-
-.outline-transaction-button:hover {
+.rl-card-action button:hover {
   background: #f2f1ff;
 }
 
-/* EMPTY */
+/* EMPTY STATE */
 
 .empty-transaction {
-  grid-column: 1 / -1;
+  width: 100%;
   background: #ffffff;
   border-radius: 14px;
-  min-height: 220px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
+  gap: 16px;
+  padding: 40px 20px;
+  box-sizing: border-box;
+  border: 1px solid #e5e8ef;
 }
 
 .empty-transaction h3 {
-  margin: 0 0 8px;
+  margin: 0;
   color: #1c2a40;
   font-size: 18px;
+  font-weight: 700;
 }
 
 .empty-transaction p {
   margin: 0;
-  color: #7a89a2;
-  font-size: 13px;
+  color: #7d89a2;
+  font-size: 15px;
+}
+
+/* LOADING */
+
+.transaction-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 60px 20px;
+  color: #667795;
+  font-size: 14px;
+}
+
+.ticket-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e5ec;
+  border-top-color: #5a55ed;
+  border-radius: 50%;
+  animation: refundListSpin 0.8s linear infinite;
+}
+
+@keyframes refundListSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* GRID LAYOUT */
+
+.transaction-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
 }
 
 /* TABLET */
 
-@media (max-width: 900px) {
+@media (max-width: 1050px) {
   .transaction-container {
-    width: min(100% - 40px, 700px);
+    padding-left: 25px;
+    padding-right: 25px;
   }
 
   .transaction-list {
-    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 900px) {
+  .transaction-container {
+    padding-left: 25px;
+    padding-right: 25px;
   }
 
   .transaction-tabs {
-    margin-bottom: 30px;
+    gap: 7px;
+    padding: 5px 12px;
+  }
+
+  .transaction-tabs button {
+    min-width: 0;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 11px;
+  }
+
+  .transaction-list {
+    gap: 20px;
+  }
+
+  .rl-card-header {
+    padding: 14px 16px 12px;
+  }
+
+  .rl-card-header h2 {
+    font-size: 16px;
+  }
+
+  .rl-card-header-top {
+    gap: 8px;
+  }
+
+  .rl-status-badge {
+    min-height: 24px;
+    padding: 2px 10px;
+    font-size: 10px;
+  }
+
+  .rl-card-date {
+    font-size: 13px;
+  }
+
+  .rl-card-action {
+    padding: 12px 16px 14px;
+  }
+
+  .rl-card-action button {
+    min-width: 100px;
+    height: 34px;
+    font-size: 12px;
   }
 }
 
@@ -330,168 +386,135 @@
 
 @media (max-width: 768px) {
   .transaction-page {
-    min-height: 100vh;
-    padding-bottom: 74px;
-  }
-
-  .transaction-container {
-    width: calc(100% - 24px);
-    padding: 24px 0 25px;
-  }
-
-  .transaction-header {
-    margin: 0 12px 10px;
-  }
-
-  .transaction-header h1 {
-    font-size: 25px;
-    letter-spacing: -0.5px;
-    margin-bottom: 0;
-  }
-
-  .transaction-header p {
-    display: none;
-  }
-
-  /* TAB MOBILE */
-
-  .transaction-tabs {
-    margin: 0 12px 25px;
-    width: calc(100% - 24px);
-    min-height: 36px;
-    padding: 4px 4px;
-    gap: 7px;
-    border-radius: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
     background: #ffffff;
   }
 
-  .transaction-tabs::-webkit-scrollbar {
-    display: none;
+  .transaction-container {
+    width: 100%;
+    padding: 38px 37px 110px;
+    box-sizing: border-box;
+  }
+
+  .transaction-header {
+    display: block;
+    margin-bottom: 34px;
+  }
+
+  .transaction-header h1 {
+    font-size: 27px;
+    letter-spacing: -0.5px;
+  }
+
+  .transaction-header p {
+    max-width: 330px;
+    margin-top: 8px;
+    font-size: 16px;
+    line-height: 1.45;
+  }
+
+  .transaction-tabs {
+    margin-top: 18px;
   }
 
   .transaction-tabs button {
-    padding: 7px 14px;
-    font-size: 11px;
-    flex-shrink: 0;
+    min-width: 0;
+    height: 32px;
+    padding: 0 12px;
+    font-size: 12px;
   }
-
-  /* LIST */
 
   .transaction-list {
     display: flex;
     flex-direction: column;
-    gap: 24px;
-    margin: 0 12px;
+    gap: 20px;
   }
 
-  /* CARD */
-
-  .transaction-card {
+  .rl-card {
     width: 100%;
-    min-height: 0;
-    padding: 16px;
-    border-radius: 14px;
+    border-radius: 11px;
+    box-shadow: 0 6px 18px rgba(28, 39, 70, 0.07);
   }
 
-  .transaction-card-top {
-    gap: 8px;
+  .rl-card-header {
+    padding: 16px 18px 14px;
   }
 
-  .order-label {
-    font-size: 10px;
+  .rl-card-header-top {
+    gap: 10px;
   }
 
-  .order-info strong {
+  .rl-card-header h2 {
+    font-size: 18px;
+  }
+
+  .rl-status-badge {
+    min-height: 26px;
+    padding: 3px 12px;
     font-size: 11px;
   }
 
-  .transaction-status {
-    font-size: 10px;
-    padding: 6px 12px;
-  }
-
-  .transaction-event {
-    margin-top: 17px;
-  }
-
-  .transaction-event h2 {
-    font-size: 19px;
-    margin-bottom: 12px;
-  }
-
-  .ticket-summary {
-    font-size: 11px;
-  }
-
-  .transaction-detail {
-    margin-top: 12px;
-    padding: 9px 10px;
-  }
-
-  .detail-row {
-    min-height: 22px;
-    font-size: 10px;
-  }
-
-  .detail-row strong {
-    font-size: 10px;
-  }
-
-  .detail-row.total-row strong {
-    font-size: 11px;
-  }
-
-  .transaction-card-footer {
+  .rl-card-date {
     margin-top: 10px;
-    padding-top: 11px;
+    font-size: 14px;
   }
 
-  .primary-transaction-button,
-  .outline-transaction-button {
-    height: 37px;
-    font-size: 12px;
-    padding: 0 15px;
+  .rl-card-action {
+    padding: 14px 18px 16px;
   }
 
-  .empty-transaction {
-    min-height: 180px;
+  .rl-card-action button {
+    min-width: 111px;
+    height: 36px;
+    font-size: 13px;
   }
 }
 
-/* SMALL MOBILE */
-
-@media (max-width: 400px) {
+@media (max-width: 480px) {
   .transaction-container {
-    width: calc(100% - 16px);
+    padding-left: 37px;
+    padding-right: 37px;
   }
 
-  .transaction-header {
-    margin-left: 8px;
-    margin-right: 8px;
+  .transaction-header h1 {
+    font-size: 26px;
+  }
+
+  .rl-card-header {
+    padding: 14px 16px 12px;
+  }
+
+  .rl-card-header h2 {
+    font-size: 16px;
+  }
+
+  .rl-status-badge {
+    min-height: 24px;
+    padding: 2px 10px;
+    font-size: 10px;
+  }
+
+  .rl-card-date {
+    font-size: 13px;
+  }
+
+  .rl-card-action {
+    padding: 12px 16px 14px;
+  }
+
+  .rl-card-action button {
+    min-width: 100px;
+    height: 34px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 370px) {
+  .transaction-container {
+    padding-left: 22px;
+    padding-right: 22px;
   }
 
   .transaction-header h1 {
     font-size: 23px;
-  }
-
-  .transaction-tabs {
-    margin-left: 8px;
-    margin-right: 8px;
-    width: calc(100% - 16px);
-  }
-
-  .transaction-list {
-    margin-left: 8px;
-    margin-right: 8px;
-  }
-
-  .transaction-card {
-    padding: 15px;
-  }
-
-  .transaction-status {
-    padding: 5px 9px;
   }
 }
