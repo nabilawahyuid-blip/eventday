@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -9,6 +9,7 @@ import {
   createOrganizerEvent,
   publishOrganizerEvent,
   uploadOrganizerEventBanner,
+  getEventCategories,
 } from "../../services/organizerEventService";
 
 import "./AddEvent.css";
@@ -17,10 +18,12 @@ function AddEvent() {
   const navigate = useNavigate();
 
   // =====================================================
-  // BASIC EVENT DATA
+  // BASIC EVENT DATA & CATEGORIES STATE
   // =====================================================
   const [eventName, setEventName] = useState("");
   const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
 
@@ -47,12 +50,12 @@ function AddEvent() {
   ]);
 
   // =====================================================
-  // LINEUP
+  // LINEUP (NAME & LINK FOTO)
   // =====================================================
-  const [lineups, setLineups] = useState([""]);
+  const [lineups, setLineups] = useState([{ name: "", image: "" }]);
 
   // =====================================================
-  // FACILITIES (Disesuaikan dengan DB Entity)
+  // FACILITIES
   // =====================================================
   const [facilities, setFacilities] = useState([""]);
 
@@ -68,6 +71,80 @@ function AddEvent() {
   // =====================================================
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // =====================================================
+  // FETCH CATEGORIES FROM BACKEND (ROBUST & SAFE)
+  // =====================================================
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const res = await getEventCategories();
+
+        // Ekstrak array dari berbagai kemungkinan format response backend
+        let catData = [];
+        if (Array.isArray(res)) {
+          catData = res;
+        } else if (Array.isArray(res?.data)) {
+          catData = res.data;
+        } else if (Array.isArray(res?.data?.data)) {
+          catData = res.data.data;
+        } else if (Array.isArray(res?.content)) {
+          catData = res.content;
+        }
+
+        // Jika data dari API kosong/gagal, gunakan Enum Default
+        if (catData.length === 0) {
+          catData = [
+            "MUSIC_FESTIVAL",
+            "CONFERENCE",
+            "EXHIBITION",
+            "CULINARY",
+            "TECHNOLOGY",
+            "ENTERTAINMENT",
+            "SEMINAR_WORKSHOP",
+            "COMMUNITY",
+          ];
+        }
+
+        setCategories(catData);
+      } catch (err) {
+        console.warn("Gagal mengambil kategori dari API, menggunakan daftar fallback:", err);
+        setCategories([
+          "MUSIC_FESTIVAL",
+          "CONFERENCE",
+          "EXHIBITION",
+          "CULINARY",
+          "TECHNOLOGY",
+          "ENTERTAINMENT",
+          "SEMINAR_WORKSHOP",
+          "COMMUNITY",
+        ]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Helper untuk mendapatkan nilai value dan label kategori
+  const getCategoryValue = (cat) => {
+    if (!cat) return "";
+    if (typeof cat === "object" && cat !== null) {
+      return cat.code || cat.value || cat.id || cat.name || "";
+    }
+    return String(cat);
+  };
+
+  const formatCategoryLabel = (cat) => {
+    if (!cat) return "";
+    const raw = typeof cat === "object" && cat !== null ? (cat.name || cat.label || cat.code) : cat;
+    return String(raw)
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   // =====================================================
   // SCHEDULE HANDLERS
@@ -128,12 +205,12 @@ function AddEvent() {
   // LINEUP HANDLERS
   // =====================================================
   const handleAddLineup = () => {
-    setLineups([...lineups, ""]);
+    setLineups([...lineups, { name: "", image: "" }]);
   };
 
-  const handleLineupChange = (index, value) => {
+  const handleLineupChange = (index, field, value) => {
     const updated = [...lineups];
-    updated[index] = value;
+    updated[index] = { ...updated[index], [field]: value };
     setLineups(updated);
   };
 
@@ -177,7 +254,7 @@ function AddEvent() {
   };
 
   // =====================================================
-  // BANNER HANDLER (WITH PREVIEW)
+  // BANNER & PERMISSION FILE HANDLER
   // =====================================================
   const handleBannerChange = (e) => {
     const file = e.target.files?.[0];
@@ -194,20 +271,8 @@ function AddEvent() {
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      Swal.fire({
-        icon: "error",
-        title: "Format Tidak Sesuai",
-        text: "File banner harus berupa gambar (JPG, PNG, WebP).",
-        confirmButtonColor: "#6256e8",
-      });
-      e.target.value = "";
-      return;
-    }
-
     setBanner(file);
-    const objectUrl = URL.createObjectURL(file);
-    setBannerPreview(objectUrl);
+    setBannerPreview(URL.createObjectURL(file));
   };
 
   const handleRemoveBanner = (e) => {
@@ -219,326 +284,76 @@ function AddEvent() {
     }
   };
 
-  // =====================================================
-  // PERMISSION FILE HANDLER
-  // =====================================================
   const handlePermissionChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      Swal.fire({
-        icon: "error",
-        title: "Ukuran File Terlalu Besar",
-        text: "Ukuran dokumen perizinan maksimal 10MB.",
-        confirmButtonColor: "#6256e8",
-      });
-      e.target.value = "";
-      return;
-    }
-
-    const allowedTypes = [
-      "application/pdf",
-      "application/zip",
-      "application/x-zip-compressed",
-    ];
-
-    const fileName = file.name.toLowerCase();
-    const validExtension = fileName.endsWith(".pdf") || fileName.endsWith(".zip");
-
-    if (!allowedTypes.includes(file.type) && !validExtension) {
-      Swal.fire({
-        icon: "error",
-        title: "Format Tidak Sesuai",
-        text: "Dokumen perizinan harus berupa file PDF atau ZIP.",
-        confirmButtonColor: "#6256e8",
-      });
-      e.target.value = "";
-      return;
-    }
-
     setPermissionFile(file);
   };
 
   // =====================================================
-  // VALIDATION FORM (STRICT)
+  // FORM VALIDATION & SUBMIT
   // =====================================================
   const validateForm = (isDraft = false) => {
     if (!eventName.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Nama event wajib diisi.",
-        confirmButtonColor: "#6256e8",
-      });
+      Swal.fire({ icon: "warning", title: "Form Belum Lengkap", text: "Nama event wajib diisi.", confirmButtonColor: "#6256e8" });
       return false;
     }
-
     if (!category) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Kategori event wajib dipilih.",
-        confirmButtonColor: "#6256e8",
-      });
+      Swal.fire({ icon: "warning", title: "Form Belum Lengkap", text: "Kategori event wajib dipilih.", confirmButtonColor: "#6256e8" });
       return false;
     }
-
     if (!description.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Deskripsi event wajib diisi.",
-        confirmButtonColor: "#6256e8",
-      });
+      Swal.fire({ icon: "warning", title: "Form Belum Lengkap", text: "Deskripsi event wajib diisi.", confirmButtonColor: "#6256e8" });
       return false;
     }
-
     if (!location.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Lokasi / venue event wajib diisi.",
-        confirmButtonColor: "#6256e8",
-      });
+      Swal.fire({ icon: "warning", title: "Form Belum Lengkap", text: "Lokasi / venue event wajib diisi.", confirmButtonColor: "#6256e8" });
       return false;
     }
-
-    if (!banner && !isDraft) {
-      Swal.fire({
-        icon: "warning",
-        title: "Banner Belum Diunggah",
-        text: "Silakan upload banner event terlebih dahulu.",
-        confirmButtonColor: "#6256e8",
-      });
-      return false;
-    }
-
-    // Validate Schedule
-    for (let i = 0; i < schedules.length; i++) {
-      const schedule = schedules[i];
-      if (!schedule.date) {
-        Swal.fire({
-          icon: "warning",
-          title: "Jadwal Belum Lengkap",
-          text: `Tanggal pada jadwal ke-${i + 1} wajib diisi.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-      if (!schedule.startTime) {
-        Swal.fire({
-          icon: "warning",
-          title: "Jadwal Belum Lengkap",
-          text: `Jam mulai pada jadwal ke-${i + 1} wajib diisi.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-      if (!schedule.endTime) {
-        Swal.fire({
-          icon: "warning",
-          title: "Jadwal Belum Lengkap",
-          text: `Jam selesai pada jadwal ke-${i + 1} wajib diisi.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-      if (schedule.endTime <= schedule.startTime) {
-        Swal.fire({
-          icon: "error",
-          title: "Waktu Tidak Valid",
-          text: `Jam selesai pada jadwal ke-${i + 1} harus lebih besar dari jam mulai.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-    }
-
-    // Validate Tickets
-    for (let i = 0; i < tickets.length; i++) {
-      const ticket = tickets[i];
-      if (!ticket.name.trim()) {
-        Swal.fire({
-          icon: "warning",
-          title: "Tiket Belum Lengkap",
-          text: `Nama kategori tiket ke-${i + 1} wajib diisi.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-      if (ticket.price === "" || Number(ticket.price) < 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Tiket Belum Lengkap",
-          text: `Harga tiket ke-${i + 1} tidak valid.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-      if (ticket.quota === "" || Number(ticket.quota) <= 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Tiket Belum Lengkap",
-          text: `Kuota tiket ke-${i + 1} harus lebih dari 0.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-    }
-
-    // Validate Lineup
-    for (let i = 0; i < lineups.length; i++) {
-      if (!lineups[i].trim()) {
-        Swal.fire({
-          icon: "warning",
-          title: "Lineup Belum Lengkap",
-          text: `Nama pengisi acara (lineup) ke-${i + 1} wajib diisi.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-    }
-
-    // Validate Facilities
-    for (let i = 0; i < facilities.length; i++) {
-      if (!facilities[i].trim()) {
-        Swal.fire({
-          icon: "warning",
-          title: "Fasilitas Belum Lengkap",
-          text: `Fasilitas ke-${i + 1} wajib diisi.`,
-          confirmButtonColor: "#6256e8",
-        });
-        return false;
-      }
-    }
-
-    // Validate Permission File
-    if (!permissionFile && !isDraft) {
-      Swal.fire({
-        icon: "warning",
-        title: "Dokumen Belum Diunggah",
-        text: "Silakan upload dokumen perizinan event.",
-        confirmButtonColor: "#6256e8",
-      });
-      return false;
-    }
-
     return true;
-  };
-
-  // =====================================================
-  // HELPERS & PAYLOAD BUILDER
-  // =====================================================
-  const buildDateTime = (date, time) => {
-    if (!date || !time) return null;
-    return `${date}T${time}:00`;
   };
 
   const buildEventPayload = (bannerUrl = null) => {
     const firstSchedule = schedules[0];
-    const startDate = buildDateTime(firstSchedule?.date, firstSchedule?.startTime);
-    const endDate = buildDateTime(firstSchedule?.date, firstSchedule?.endTime);
+    const startDate = `${firstSchedule?.date}T${firstSchedule?.startTime}:00`;
+    const endDate = `${firstSchedule?.date}T${firstSchedule?.endTime}:00`;
 
-    const lineupData = lineups
-      .map((item) => item.trim())
-      .filter(Boolean)
+    // Format LineUp hemat karakter: "Nama|LinkFoto"
+    const lineupString = lineups
+      .filter((item) => item.name.trim() !== "")
+      .map((item) => {
+        const name = item.name.trim();
+        const img = item.image.trim();
+        return img ? `${name}|${img}` : name;
+      })
       .join(", ");
 
-    const facilityData = facilities
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .join(", ");
-
-    const ticketData = tickets.map((ticket) => ({
-      tier_name: ticket.name.trim(),
-      price: Number(ticket.price),
-      total_quota: Number(ticket.quota),
-    }));
+    const facilityArray = facilities.map((item) => item.trim()).filter(Boolean);
 
     return {
       title: eventName.trim(),
       description: description.trim(),
-      category,
+      category: category,
+      location: location.trim(),
       venue_name: location.trim(),
+      date: startDate,
       start_date: startDate,
       end_date: endDate,
-      lineup: lineupData || null,
-      facility: facilityData || null,
+      lineup: lineupString,
+      facilities: facilityArray,
+      image: bannerUrl,
       banner_url: bannerUrl,
-      tickets: ticketData,
+      
+      // FIX TIKET: Kirim name, label, dan tier_name sekaligus agar dibaca backend
+      tickets: tickets.map((t) => ({
+        name: t.name.trim(),
+        label: t.name.trim(),
+        tier_name: t.name.trim(),
+        ticket_name: t.name.trim(),
+        price: Number(t.price),
+        quota: Number(t.quota),
+      })),
     };
-  };
-
-  const createEvent = async () => {
-    let bannerUrl = null;
-
-    if (banner) {
-      try {
-        const bannerResponse = await uploadOrganizerEventBanner(banner);
-        bannerUrl =
-          bannerResponse?.data?.banner_url ||
-          bannerResponse?.banner_url ||
-          null;
-
-        if (!bannerUrl) {
-          throw new Error("Banner berhasil diupload tetapi URL banner tidak ditemukan.");
-        }
-      } catch (err) {
-        // Tangani Error 504 Gateway Timeout secara khusus
-        if (err?.message?.includes("504") || err?.status === 504) {
-          throw new Error("Server mengalami timeout saat mengupload banner. Coba gunakan gambar dengan ukuran lebih kecil.");
-        }
-        throw err;
-      }
-    }
-
-    const payload = buildEventPayload(bannerUrl);
-    const response = await createOrganizerEvent(payload);
-    return response;
-  };
-
-  // =====================================================
-  // ACTIONS
-  // =====================================================
-  const handleSaveDraft = async () => {
-    if (!validateForm(true)) return;
-
-    try {
-      setSubmitting(true);
-      setError("");
-
-      const response = await createEvent();
-      const eventId =
-        response?.data?.event_id ||
-        response?.data?.id ||
-        response?.event_id ||
-        response?.id;
-
-      if (!eventId) {
-        throw new Error("Event berhasil dibuat tetapi ID event tidak ditemukan.");
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Draft Tersimpan!",
-        text: "Event berhasil disimpan sebagai draft.",
-        confirmButtonColor: "#6256e8",
-      }).then(() => {
-        navigate("/eo/event");
-      });
-    } catch (err) {
-      const message = err?.message || "Gagal menyimpan draft event.";
-      setError(message);
-      Swal.fire({
-        icon: "error",
-        title: "Gagal Menyimpan",
-        text: message,
-        confirmButtonColor: "#6256e8",
-      });
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const handleCreateEvent = async () => {
@@ -548,47 +363,68 @@ function AddEvent() {
       setSubmitting(true);
       setError("");
 
-      const createResponse = await createEvent();
-      const eventId =
-        createResponse?.data?.event_id ||
-        createResponse?.data?.id ||
-        createResponse?.event_id ||
-        createResponse?.id;
-
-      if (!eventId) {
-        throw new Error("Event berhasil dibuat tetapi ID event tidak ditemukan.");
+      let bannerUrl = null;
+      if (banner) {
+        const bannerResponse = await uploadOrganizerEventBanner(banner);
+        bannerUrl = bannerResponse?.data?.banner_url || bannerResponse?.data?.image || bannerResponse?.banner_url || null;
       }
 
-      await publishOrganizerEvent({ event_id: eventId });
+      const payload = buildEventPayload(bannerUrl);
+      const response = await createOrganizerEvent(payload);
+      const eventId = response?.data?.id || response?.data?.event_id || response?.id;
+
+      if (eventId) {
+        await publishOrganizerEvent({ event_id: eventId });
+      }
 
       Swal.fire({
         icon: "success",
         title: "Berhasil Diajukan!",
-        text: "Event Anda berhasil dibuat dan menunggu persetujuan admin.",
+        text: "Event Anda berhasil dibuat.",
         confirmButtonColor: "#6256e8",
-      }).then(() => {
-        navigate("/eo/event");
-      });
+      }).then(() => navigate("/eo/event"));
     } catch (err) {
-      const message = err?.message || "Gagal membuat event.";
+      console.error("ERROR CREATE EVENT:", err);
+      const message = err?.response?.data?.msg || err?.message || "Gagal membuat event.";
       setError(message);
-      Swal.fire({
-        icon: "error",
-        title: "Gagal Membuat Event",
-        text: message,
-        confirmButtonColor: "#6256e8",
-      });
+      Swal.fire({ icon: "error", title: "Gagal Membuat Event", text: message, confirmButtonColor: "#6256e8" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  // =====================================================
-  // TOTAL QUOTA
-  // =====================================================
-  const totalQuota = tickets.reduce((total, ticket) => {
-    return total + (Number(ticket.quota) || 0);
-  }, 0);
+  const handleSaveDraft = async () => {
+    if (!validateForm(true)) return;
+
+    try {
+      setSubmitting(true);
+      setError("");
+
+      let bannerUrl = null;
+      if (banner) {
+        const bannerResponse = await uploadOrganizerEventBanner(banner);
+        bannerUrl = bannerResponse?.data?.banner_url || bannerResponse?.data?.image || bannerResponse?.banner_url || null;
+      }
+
+      const payload = buildEventPayload(bannerUrl);
+      await createOrganizerEvent(payload);
+
+      Swal.fire({
+        icon: "success",
+        title: "Draft Tersimpan!",
+        text: "Event berhasil disimpan sebagai draft.",
+        confirmButtonColor: "#6256e8",
+      }).then(() => navigate("/eo/event"));
+    } catch (err) {
+      const message = err?.response?.data?.msg || err?.message || "Gagal menyimpan draft.";
+      setError(message);
+      Swal.fire({ icon: "error", title: "Gagal Menyimpan", text: message, confirmButtonColor: "#6256e8" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const totalQuota = tickets.reduce((total, ticket) => total + (Number(ticket.quota) || 0), 0);
 
   return (
     <div className="add-event-page">
@@ -598,17 +434,13 @@ function AddEvent() {
         <NavbarEO />
 
         <div className="add-event-content">
-          {error && (
-            <div className="dashboard-error" style={{ marginBottom: "20px" }}>
-              {error}
-            </div>
-          )}
+          {error && <div className="dashboard-error" style={{ marginBottom: "20px" }}>{error}</div>}
 
           {/* HEADER */}
           <div className="add-event-header">
             <div className="add-event-title">
               <span className="add-event-small-title">Event</span>
-              <h1>Buat Event baru</h1>
+              <h1>Buat Event Baru</h1>
               <p>Isi detail di bawah untuk mempublikasikan event Anda.</p>
             </div>
 
@@ -645,39 +477,36 @@ function AddEvent() {
                   type="text"
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
-                  placeholder="Contoh: Sedih Fest 2024"
+                  placeholder="Contoh: Sedih Fest 2026"
                 />
               </div>
 
+              {/* DROPDOWN KATEGORI FIX */}
               <div className="form-field">
                 <label>KATEGORI EVENT</label>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
+                  disabled={loadingCategories}
+                  style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}
                 >
-                  <option value="">Pilih Kategori...</option>
-                  <option value="Konser">Konser</option>
-                  <option value="Musik">Musik</option>
-                  <option value="Seminar">Seminar</option>
-                  <option value="Workshop">Workshop</option>
-                  <option value="Festival">Festival</option>
-                  <option value="Olahraga">Olahraga</option>
-                  <option value="Komunitas">Komunitas</option>
-                  <option value="Lainnya">Lainnya</option>
+                  <option value="">
+                    {loadingCategories ? "Memuat Kategori..." : "-- Pilih Kategori Event --"}
+                  </option>
+                  {categories.map((cat, index) => {
+                    const val = getCategoryValue(cat);
+                    const label = formatCategoryLabel(cat);
+                    return (
+                      <option key={index} value={val}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
-
-                {category && (
-                  <span className="category-tag">
-                    {category}
-                    <button type="button" onClick={() => setCategory("")}>
-                      ×
-                    </button>
-                  </span>
-                )}
               </div>
             </div>
 
-            <div className="form-field description-field">
+            <div className="form-field description-field" style={{ marginTop: "16px" }}>
               <label>DESKRIPSI EVENT</label>
               <textarea
                 value={description}
@@ -690,65 +519,35 @@ function AddEvent() {
           {/* LOKASI EVENT */}
           <section className="form-card">
             <h2>Lokasi Event</h2>
-
             <div className="form-field">
               <label>DETAIL LOKASI / VENUE</label>
-              <div className="input-with-icon">
-                <span className="search-icon">🔍</span>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Cari gedung, stadion, atau alamat lengkap..."
-                />
-              </div>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Cari gedung, stadion, atau alamat lengkap..."
+              />
             </div>
           </section>
 
           {/* BANNER EVENT */}
           <section className="form-card">
             <h2>Banner Event</h2>
-
             {bannerPreview ? (
               <div className="banner-preview-wrapper">
-                <img
-                  src={bannerPreview}
-                  alt="Banner Event Preview"
-                  className="banner-preview-img"
-                />
-                <div className="banner-preview-overlay">
-                  <span className="banner-filename">{banner?.name}</span>
-                  <div className="banner-action-buttons">
-                    <label className="change-banner-btn">
-                      Ganti Gambar
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleBannerChange}
-                      />
-                    </label>
-                    <button
-                      type="button"
-                      className="remove-banner-btn"
-                      onClick={handleRemoveBanner}
-                    >
-                      Hapus
-                    </button>
-                  </div>
+                <img src={bannerPreview} alt="Banner Preview" className="banner-preview-img" style={{ maxHeight: "200px", borderRadius: "8px" }} />
+                <div style={{ marginTop: "10px" }}>
+                  <button type="button" className="remove-banner-btn" onClick={handleRemoveBanner}>
+                    Hapus / Ganti Gambar
+                  </button>
                 </div>
               </div>
             ) : (
               <label className="upload-box">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBannerChange}
-                />
+                <input type="file" accept="image/*" onChange={handleBannerChange} />
                 <div className="upload-icon">☁</div>
                 <strong>Upload Banner Event (16:9)</strong>
-                <span>
-                  Drag & drop atau klik untuk memilih file (Max 5MB)
-                </span>
+                <span>Klik untuk memilih file (Max 5MB)</span>
               </label>
             )}
           </section>
@@ -757,58 +556,41 @@ function AddEvent() {
           <section className="form-card">
             <div className="section-header">
               <h2>Jadwal Event</h2>
-              <button
-                type="button"
-                className="add-small-button"
-                onClick={handleAddSchedule}
-              >
+              <button type="button" className="add-small-button" onClick={handleAddSchedule}>
                 + Tambah Jadwal
               </button>
             </div>
 
             <div className="schedule-list">
               {schedules.map((schedule, index) => (
-                <div className="schedule-row" key={index}>
-                  <div className="schedule-field">
+                <div className="schedule-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                  <div className="schedule-field" style={{ flex: 1 }}>
                     <label>TANGGAL</label>
                     <input
                       type="date"
                       value={schedule.date}
-                      onChange={(e) =>
-                        handleScheduleChange(index, "date", e.target.value)
-                      }
+                      onChange={(e) => handleScheduleChange(index, "date", e.target.value)}
                     />
                   </div>
-
-                  <div className="schedule-field">
+                  <div className="schedule-field" style={{ flex: 1 }}>
                     <label>JAM MULAI</label>
                     <input
                       type="time"
                       value={schedule.startTime}
-                      onChange={(e) =>
-                        handleScheduleChange(index, "startTime", e.target.value)
-                      }
+                      onChange={(e) => handleScheduleChange(index, "startTime", e.target.value)}
                     />
                   </div>
-
-                  <div className="schedule-field">
+                  <div className="schedule-field" style={{ flex: 1 }}>
                     <label>JAM SELESAI</label>
                     <input
                       type="time"
                       value={schedule.endTime}
-                      onChange={(e) =>
-                        handleScheduleChange(index, "endTime", e.target.value)
-                      }
+                      onChange={(e) => handleScheduleChange(index, "endTime", e.target.value)}
                     />
                   </div>
-
-                  <button
-                    type="button"
-                    className="delete-row-button"
-                    onClick={() => handleDeleteSchedule(index)}
-                  >
-                    🗑
-                  </button>
+                  {schedules.length > 1 && (
+                    <button type="button" onClick={() => handleDeleteSchedule(index)}>×</button>
+                  )}
                 </div>
               ))}
             </div>
@@ -818,102 +600,73 @@ function AddEvent() {
           <section className="form-card">
             <div className="section-header">
               <h2>Kategori Tiket</h2>
-              <button
-                type="button"
-                className="add-small-button"
-                onClick={handleAddTicket}
-              >
+              <button type="button" className="add-small-button" onClick={handleAddTicket}>
                 + Tambah Kategori
               </button>
             </div>
 
             <div className="ticket-table">
-              <div className="ticket-header">
-                <span>NAMA KATEGORI</span>
-                <span>HARGA TIKET (RP)</span>
-                <span>KUOTA</span>
-                <span></span>
-              </div>
-
               {tickets.map((ticket, index) => (
-                <div className="ticket-row" key={index}>
+                <div className="ticket-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
                   <input
                     type="text"
                     value={ticket.name}
-                    placeholder="Contoh: VIP / Regular"
-                    onChange={(e) =>
-                      handleTicketChange(index, "name", e.target.value)
-                    }
+                    placeholder="Nama Kategori (VIP)"
+                    onChange={(e) => handleTicketChange(index, "name", e.target.value)}
+                    style={{ flex: 1 }}
                   />
-
                   <input
                     type="number"
                     value={ticket.price}
-                    placeholder="0"
-                    min="0"
-                    onChange={(e) =>
-                      handleTicketChange(index, "price", e.target.value)
-                    }
+                    placeholder="Harga (Rp)"
+                    onChange={(e) => handleTicketChange(index, "price", e.target.value)}
+                    style={{ flex: 1 }}
                   />
-
                   <input
                     type="number"
                     value={ticket.quota}
-                    placeholder="0"
-                    min="1"
-                    onChange={(e) =>
-                      handleTicketChange(index, "quota", e.target.value)
-                    }
+                    placeholder="Kuota"
+                    onChange={(e) => handleTicketChange(index, "quota", e.target.value)}
+                    style={{ flex: 1 }}
                   />
-
-                  <button
-                    type="button"
-                    className="delete-ticket-button"
-                    onClick={() => handleDeleteTicket(index)}
-                  >
-                    ×
-                  </button>
+                  {tickets.length > 1 && (
+                    <button type="button" onClick={() => handleDeleteTicket(index)}>×</button>
+                  )}
                 </div>
               ))}
             </div>
-
-            <div className="total-quota">
-              <span>Total Kuota:</span>
-              <strong>{totalQuota}</strong>
-            </div>
+            <div style={{ marginTop: "10px", fontWeight: "600" }}>Total Kuota: {totalQuota}</div>
           </section>
 
-          {/* LINE UP */}
+          {/* LINE UP (NAME + LINK FOTO) */}
           <section className="form-card">
             <div className="section-header">
               <h2>Line Up Event</h2>
-              <button
-                type="button"
-                className="add-small-button"
-                onClick={handleAddLineup}
-              >
+              <button type="button" className="add-small-button" onClick={handleAddLineup}>
                 + Tambah LineUp
               </button>
             </div>
 
             <div className="lineup-list">
               {lineups.map((lineup, index) => (
-                <div className="lineup-row" key={index}>
+                <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
                   <input
                     type="text"
-                    value={lineup}
-                    placeholder="Contoh: Nama artis / pengisi acara"
-                    onChange={(e) =>
-                      handleLineupChange(index, e.target.value)
-                    }
+                    value={lineup.name}
+                    placeholder="Nama Artis / Pengisi Acara"
+                    onChange={(e) => handleLineupChange(index, "name", e.target.value)}
+                    style={{ flex: 1 }}
                   />
-
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteLineup(index)}
-                  >
-                    ×
-                  </button>
+                  <input
+                    type="url"
+                    value={lineup.image}
+                    placeholder="Link Foto Artis (https://...)"
+                    onChange={(e) => handleLineupChange(index, "image", e.target.value)}
+                    style={{ flex: 1.5 }}
+                  />
+                  {lineups.length > 1 && (
+                    <button type="button" onClick={() => handleDeleteLineup(index)}>×</button>
+                  )}
                 </div>
               ))}
             </div>
@@ -923,33 +676,24 @@ function AddEvent() {
           <section className="form-card">
             <div className="section-header">
               <h2>Fasilitas Event</h2>
-              <button
-                type="button"
-                className="add-small-button"
-                onClick={handleAddFacility}
-              >
+              <button type="button" className="add-small-button" onClick={handleAddFacility}>
                 + Tambah Fasilitas
               </button>
             </div>
 
             <div className="lineup-list">
               {facilities.map((facility, index) => (
-                <div className="lineup-row" key={index}>
+                <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
                   <input
                     type="text"
                     value={facility}
-                    placeholder="Contoh: Free Parking, Food Court, Air Mineral"
-                    onChange={(e) =>
-                      handleFacilityChange(index, e.target.value)
-                    }
+                    placeholder="Contoh: Free Parking, Food Court"
+                    onChange={(e) => handleFacilityChange(index, e.target.value)}
+                    style={{ flex: 1 }}
                   />
-
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteFacility(index)}
-                  >
-                    ×
-                  </button>
+                  {facilities.length > 1 && (
+                    <button type="button" onClick={() => handleDeleteFacility(index)}>×</button>
+                  )}
                 </div>
               ))}
             </div>
@@ -958,31 +702,10 @@ function AddEvent() {
           {/* PERIZINAN */}
           <section className="form-card">
             <h2>Perizinan Event</h2>
-
-            <label
-              className={`upload-box permission-upload ${
-                permissionFile ? "has-file" : ""
-              }`}
-            >
-              <input
-                type="file"
-                accept=".pdf,.zip"
-                onChange={handlePermissionChange}
-              />
-
+            <label className="upload-box">
+              <input type="file" accept=".pdf,.zip" onChange={handlePermissionChange} />
               <div className="upload-icon">📄</div>
-
-              {permissionFile ? (
-                <>
-                  <strong>{permissionFile.name}</strong>
-                  <span>Klik untuk mengganti dokumen</span>
-                </>
-              ) : (
-                <>
-                  <strong>Upload Dokumen Perizinan</strong>
-                  <span>Format .PDF atau .ZIP (Max 10MB)</span>
-                </>
-              )}
+              <strong>{permissionFile ? permissionFile.name : "Upload Dokumen Perizinan (.PDF / .ZIP)"}</strong>
             </label>
           </section>
         </div>
