@@ -18,6 +18,7 @@ function EditProfileCustomer() {
     phone: "",
     nik: "",
   });
+  const [originalNik, setOriginalNik] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -26,13 +27,15 @@ function EditProfileCustomer() {
         const res = await getProfile();
         const data = res?.data || {};
         if (cancelled) return;
+        const nikValue = data.nik || "";
         setFormData({
           name: data.name || "",
           email: data.email || "",
           username: data.username || "",
           phone: data.phone || "",
-          nik: data.nik || "",
+          nik: nikValue,
         });
+        setOriginalNik(nikValue);
         if (data.avatarUrl) {
           setAvatarPreview(data.avatarUrl);
         } else {
@@ -128,6 +131,58 @@ function EditProfileCustomer() {
         icon: "warning",
         title: "Data Belum Lengkap",
         text: "Nama dan No WhatsApp wajib diisi.",
+        confirmButtonColor: "#5143e6",
+      });
+      return;
+    }
+
+    // Validasi: NIK hanya divalidasi jika user mencoba MENGUBAHnya
+    if (originalNik && originalNik.trim() !== "" && formData.nik !== originalNik) {
+      Swal.fire({
+        icon: "warning",
+        title: "NIK Tidak Bisa Diubah",
+        text: "NIK sudah terdaftar dan tidak dapat diubah.",
+        confirmButtonColor: "#5143e6",
+      });
+      return;
+    }
+
+    // Konfirmasi saat pertama kali mengisi NIK
+    const newNik = formData.nik?.trim();
+    if (newNik && !originalNik) {
+      const confirm = await Swal.fire({
+        icon: "question",
+        title: "Simpan NIK?",
+        text: "NIK hanya bisa diisi sekali dan tidak dapat diubah setelah disimpan. Yakin ingin melanjutkan?",
+        showCancelButton: true,
+        confirmButtonText: "Ya, Simpan",
+        cancelButtonText: "Batal",
+        confirmButtonColor: "#5143e6",
+        cancelButtonColor: "#6c757d",
+      });
+
+      if (!confirm.isConfirmed) {
+        return;
+      }
+    }
+
+    // Validasi: NIK maksimal 16 karakter
+    if (formData.nik && formData.nik.length > 16) {
+      Swal.fire({
+        icon: "warning",
+        title: "NIK Terlalu Panjang",
+        text: "NIK maksimal 16 karakter.",
+        confirmButtonColor: "#5143e6",
+      });
+      return;
+    }
+
+    // Validasi: Phone hanya angka
+    if (formData.phone && !/^\d+$/.test(formData.phone)) {
+      Swal.fire({
+        icon: "warning",
+        title: "Format Salah",
+        text: "Nomor WhatsApp hanya boleh berisi angka.",
         confirmButtonColor: "#5143e6",
       });
       return;
@@ -278,7 +333,11 @@ function EditProfileCustomer() {
                   type="text"
                   name="phone"
                   value={formData.phone}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    // Hanya izinkan angka
+                    const numericValue = e.target.value.replace(/\D/g, '');
+                    setFormData(prev => ({ ...prev, phone: numericValue }));
+                  }}
                   placeholder="Masukan No WhatsApp"
                   inputMode="numeric"
                 />
@@ -289,11 +348,20 @@ function EditProfileCustomer() {
                 <input
                   id="nik"
                   type="text"
+                  name="nik"
                   value={formData.nik}
-                  disabled
-                  style={{ opacity: 0.6, cursor: "not-allowed" }}
+                  onChange={handleChange}
+                  disabled={originalNik && originalNik.trim() !== ""}
+                  placeholder="Masukan NIK"
+                  inputMode="numeric"
+                  maxLength={16}
                 />
-                <small style={{ color: "#888", fontSize: "0.75rem" }}>NIK tidak dapat diubah</small>
+                <small style={{ color: "#888", fontSize: "0.75rem" }}>
+                  {originalNik && originalNik.trim() !== ""
+                    ? "NIK tidak dapat diubah"
+                    : "NIK hanya bisa diisi sekali"
+                  }
+                </small>
               </div>
             </div>
 
