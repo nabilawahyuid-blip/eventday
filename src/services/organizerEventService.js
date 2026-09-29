@@ -1,6 +1,16 @@
 import { apiFetch } from "./api";
 
 // =====================================================
+// GET EVENT CATEGORIES (FIXED: GUNAKAN ENDPOINT PUBLIC)
+// GET /api/events/categories
+// =====================================================
+
+export const getEventCategories = async () => {
+  // Menggunakan endpoint publik agar tidak error 400
+  return apiFetch("/api/events/categories");
+};
+
+// =====================================================
 // GET SEMUA EVENT ORGANIZER
 // GET /api/organizer/events
 // =====================================================
@@ -31,7 +41,7 @@ export const createOrganizerEvent = async (data) => {
 };
 
 // =====================================================
-// UPDATE EVENT (PERBAIKAN)
+// UPDATE EVENT
 // PUT /api/organizer/events/update/{eventId}
 // =====================================================
 
@@ -40,7 +50,6 @@ export const updateOrganizerEvent = async (eventId, data) => {
     throw new Error("Event ID wajib diisi untuk memperbarui event");
   }
 
-  // Menggabungkan eventId ke dalam payload body
   const payload = {
     eventId,
     ...data,
@@ -75,7 +84,6 @@ export const publishOrganizerEvent = async (data) => {
 
 export const uploadOrganizerEventBanner = async (file) => {
   const formData = new FormData();
-
   formData.append("file", file);
 
   return apiFetch("/api/organizer/events/banner", {
@@ -95,9 +103,7 @@ export const getOrganizerEventSalesSummary = async (eventId) => {
   }
 
   return apiFetch(
-    `/api/organizer/events/${encodeURIComponent(
-      eventId
-    )}/sales-summary`
+    `/api/organizer/events/${encodeURIComponent(eventId)}/sales-summary`
   );
 };
 
@@ -111,14 +117,12 @@ export const getPublicEventDetail = async (eventId) => {
     throw new Error("Event ID wajib diisi");
   }
 
-  return apiFetch(
-    `/api/events/${encodeURIComponent(eventId)}`
-  );
+  return apiFetch(`/api/events/${encodeURIComponent(eventId)}`);
 };
 
 // =====================================================
-// GET EVENT DETAIL
-// Alias untuk getPublicEventDetail
+// GET ORGANIZER EVENT DETAIL (FIXED: GUNAKAN ENDPOINT ORGANIZER)
+// GET /api/organizer/events/{eventId}
 // =====================================================
 
 export const getOrganizerEventDetail = async (eventId) => {
@@ -126,5 +130,8 @@ export const getOrganizerEventDetail = async (eventId) => {
     throw new Error("Event ID wajib diisi");
   }
 
-  return getPublicEventDetail(eventId);
+  // Diubah ke endpoint organizer agar membawa data lengkap (seperti lineup & tiket)
+  return apiFetch(
+    `/api/organizer/events/${encodeURIComponent(eventId)}`
+  );
 };

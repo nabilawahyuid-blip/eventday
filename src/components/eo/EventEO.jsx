@@ -104,7 +104,6 @@ function EventEO() {
 
     // Jika format tanggal di DB invalid
     if (Number.isNaN(eventTime)) {
-
       return false;
     }
 
@@ -244,12 +243,14 @@ function EventEO() {
   };
 
   // =====================================================
-  // FILTER EVENT (DENGAN REAL-TIME DATES)
+  // FILTER EVENT (DENGAN REAL-TIME DATES & STATUS DELETED)
   // =====================================================
 
   const filteredEvents =
     activeTab === "Semua"
-      ? events
+      ? events.filter(
+          (event) => String(event?.status).toUpperCase() !== "DELETED"
+        )
       : activeTab === "Aktif"
       ? events.filter(
           (event) =>
@@ -257,7 +258,15 @@ function EventEO() {
             !isEventEnded(event)
         )
       : activeTab === "Berakhir"
-      ? events.filter((event) => isEventEnded(event))
+      ? events.filter(
+          (event) =>
+            String(event?.status).toUpperCase() !== "DELETED" &&
+            isEventEnded(event)
+        )
+      : activeTab === "Sampah"
+      ? events.filter(
+          (event) => String(event?.status).toUpperCase() === "DELETED"
+        )
       : [];
 
   // =====================================================
@@ -311,6 +320,10 @@ function EventEO() {
   const getStatusText = (event) => {
     const normalized = String(event?.status || "").toUpperCase();
 
+    if (normalized === "DELETED") {
+      return "Dihapus Admin";
+    }
+
     if (isEventEnded(event)) {
       return "Event Berakhir";
     }
@@ -323,10 +336,6 @@ function EventEO() {
       return "Draft";
     }
 
-    if (normalized === "DELETED") {
-      return "Deleted";
-    }
-
     return event?.status || "-";
   };
 
@@ -336,6 +345,10 @@ function EventEO() {
 
   const getStatusClass = (event) => {
     const normalized = String(event?.status || "").toUpperCase();
+
+    if (normalized === "DELETED") {
+      return "deleted";
+    }
 
     if (isEventEnded(event)) {
       return "finished";
@@ -468,6 +481,16 @@ function EventEO() {
             >
               Draft
             </button>
+
+            <button
+              type="button"
+              className={`event-eo-tab ${
+                activeTab === "Sampah" ? "active" : ""
+              }`}
+              onClick={() => setActiveTab("Sampah")}
+            >
+              Sampah
+            </button>
           </div>
 
           {/* ERROR EVENT */}
@@ -477,14 +500,20 @@ function EventEO() {
           {activeTab !== "Draft" && (
             <section className="event-eo-section">
               <div className="event-eo-section-header">
-                <h2>Daftar Event</h2>
-                <button
-                  type="button"
-                  className="event-eo-see-all"
-                  onClick={() => setActiveTab("Semua")}
-                >
-                  Lihat Semua
-                </button>
+                <h2>
+                  {activeTab === "Sampah"
+                    ? "Daftar Event Dihapus (Admin)"
+                    : "Daftar Event"}
+                </h2>
+                {activeTab !== "Sampah" && (
+                  <button
+                    type="button"
+                    className="event-eo-see-all"
+                    onClick={() => setActiveTab("Semua")}
+                  >
+                    Lihat Semua
+                  </button>
+                )}
               </div>
 
               {/* LOADING */}
@@ -559,7 +588,7 @@ function EventEO() {
                             </div>
                           </div>
 
-                          {/* DETAIL */}
+                          {/* DETAIL BUTTON */}
                           <button
                             type="button"
                             className="event-eo-detail-button"
@@ -573,7 +602,11 @@ function EventEO() {
                   ) : (
                     <div className="event-eo-empty">
                       <h3>Tidak ada event</h3>
-                      <p>Belum ada event pada kategori ini.</p>
+                      <p>
+                        {activeTab === "Sampah"
+                          ? "Tidak ada event yang dihapus oleh admin."
+                          : "Belum ada event pada kategori ini."}
+                      </p>
                     </div>
                   )}
                 </div>
