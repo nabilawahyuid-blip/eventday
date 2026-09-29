@@ -1,33 +1,46 @@
 // src/utils/bannerUrl.js
-// Helper penyusun URL banner event.
-//
-// Kenapa relatif (bukan ngrok absolut)?
-// ngrok free-tier mengecek header "ngrok-skip-browser-warning".
-// API lewat Vite proxy yang menyisipkan header itu, tapi tag
-// <img>/background-image TIDAK bisa mengirim header custom —
-// request langsung ke URL ngrok dicegat halaman interstitial
-// (ERR_NGROK_6024) sehingga gambar blank.
-//
-// Solusi: path relatif "/uploads/..." → browser meminta ke
-// origin yang sama → Vite proxy meneruskan ke backend dengan
-// header skip-warning (lihat vite.config.js, aturan "/uploads").
+// Helper penyusun URL banner event multienvironment (Dev, Ngrok, & VPS Production).
+
 export const resolveBannerUrl = (url) => {
   if (!url) return null;
 
-  const s = String(url).trim();
+  let s = String(url).trim();
   if (!s) return null;
 
-  // URL absolut dari host backend sendiri (mis. banner lama yang
-  // tersimpan dengan prefix ngrok) → "relatif-kan" agar lewat proxy.
-  const apiBase = (import.meta.env.VITE_NGROK_URL || "").replace(/\/$/, "");
-  if (apiBase && s.startsWith(apiBase + "/")) {
-    return s.slice(apiBase.length) || "/";
+  // 1. Jika URL sudah berupa CDN / External Link / Data-URI, biarkan apa adanya.
+  if (/^(data:)/i.test(s)) return s;
+
+  // 2. Bersihkan path jika backend mengembalikan path disk server lokal (Linux/Windows)
+  if (s.includes("/uploads/")) {
+    s = "/uploads/" + s.split("/uploads/")[1];
+  } else if (s.includes("\\uploads\\")) {
+    s = "/uploads/" + s.split("\\uploads\\")[1].replace(/\\/g, "/");
   }
 
-  // URL absolut dari domain lain (mis. CDN) atau data-URI → biarkan apa adanya.
-  if (/^(https?:|data:)/i.test(s)) return s;
+  // 3. Ambil Base URL API dari environment variable (Vite .env)
+  const ngrokUrl = (import.meta.env.VITE_NGROK_URL || "").replace(/\/$/, "");
+  const apiUrl = (import.meta.env.VITE_API_URL || "https://api-eventday.dnabisa.tech").replace(/\/$/, "");
 
-  // Relatif (dengan atau tanpa leading slash) → pastikan dimulai "/",
-  // nanti di-proxy ke backend oleh Vite.
-  return s.startsWith("/") ? s : `/${s}`;
+  // Jika URL dari backend mengandung prefix Ngrok lama, bersihkan
+  if (ngrokUrl && s.startsWith(ngrokUrl + "/")) {
+    s = s.slice(ngrokUrl.length);
+  }
+
+  // 4. PENANGANAN ENVIRONMENT (LOKAL vs PRODUKSI/VPS)
+  // Di mode Development (npm run dev), gunakan path relatif agar lewat Vite Proxy
+  if (import.meta.env.DEV) {
+    if (/^https?:\/\//i.test(s)) return s;
+    return s.startsWith("/") ? s : `/${s}`;
+  }
+
+  // Di mode Production (VPS/Build), jika path relatif, WAJIB gabungkan dengan API_URL
+  if (s.startsWith("/")) {
+    return `${apiUrl}${s}`;
+  }
+
+  if (!/^https?:\/\//i.test(s)) {
+    return `${apiUrl}/${s}`;
+  }
+
+  return s;
 };
