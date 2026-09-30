@@ -130,7 +130,7 @@ function DetailEvent() {
         );
 
         setError(
-          err?.message ||
+          err?.data?.msg || err?.message ||
             "Gagal mengambil detail event."
         );
       } finally {
@@ -355,7 +355,7 @@ function DetailEvent() {
     try {
       await deleteAdminEvent(eventId);
       setEvent(null);
-      navigate("/event-management");
+      navigate("/admin/event-management");
       showSuccess("Event dihapus (soft delete).");
       setDeleting(false);
     } catch (err) {
@@ -402,6 +402,38 @@ function DetailEvent() {
   const description =
     event?.description ||
     "Belum ada deskripsi event.";
+
+  // Lineup: BE mengirim array objek {name, image} (API.md §9) atau
+  // string koma ("A, B") seperti EO — samakan seperti customer.
+  const lineupList = (() => {
+    const raw =
+      event?.lineup ?? event?.lineups ?? event?.artists ?? event?.performers ?? event?.line_up;
+    if (!raw) return [];
+    const toItem = (item, idx) => {
+      if (typeof item === "string") {
+        const name = item.trim();
+        return name ? { name, image: "" } : null;
+      }
+      if (item && typeof item === "object") {
+        const name = String(
+          item.name || item.artist || item.artist_name || item.title || item.performer || ""
+        ).trim();
+        if (!name) return null;
+        const image = String(
+          item.image || item.photo || item.picture || item.avatar || item.avatarUrl || item.imageUrl || item.img || ""
+        ).trim();
+        return { name, image, id: item.id || idx };
+      }
+      return null;
+    };
+    if (Array.isArray(raw)) {
+      return raw.map(toItem).filter(Boolean);
+    }
+    if (typeof raw === "string") {
+      return raw.split(",").map((s) => toItem(s)).filter(Boolean);
+    }
+    return [];
+  })();
 
   const location =
     event?.venue_name ||
@@ -874,6 +906,34 @@ function DetailEvent() {
                 </p>
 
               </section>
+
+              {lineupList.length > 0 && (
+                <section className="description-section lineup-section">
+
+                  <h3>
+                    Line Up
+                  </h3>
+
+                  <div className="lineup-grid">
+                    {lineupList.map((person, idx) => {
+                      const img = resolveBannerUrl(person.image);
+                      return (
+                        <div className="lineup-item" key={person.id ?? idx}>
+                          <div className="lineup-avatar">
+                            {img ? (
+                              <img src={img} alt={person.name} />
+                            ) : (
+                              <span>{person.name.charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          <span className="lineup-name">{person.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                </section>
+              )}
 
               {/* =================================================
                   TICKET SALES

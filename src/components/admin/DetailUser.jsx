@@ -50,7 +50,7 @@ function DetailUser() {
       console.error("Gagal mengambil detail user:", err);
 
       setError(
-        err?.message || "Gagal mengambil data user."
+        err?.data?.msg || err?.message || "Gagal mengambil data user."
       );
     } finally {
       setLoading(false);
@@ -113,7 +113,7 @@ function DetailUser() {
 
       await showError(
         "Gagal Memperbarui Status User",
-        err?.message ||
+        err?.data?.msg || err?.message ||
           "Gagal mengubah status user."
       );
     } finally {
@@ -159,7 +159,7 @@ function DetailUser() {
 
       await showError(
         "Gagal Menonaktifkan User",
-        err?.message ||
+        err?.data?.msg || err?.message ||
           "Gagal suspend user."
       );
     } finally {

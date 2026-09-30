@@ -15,6 +15,8 @@ import { resolveBannerUrl } from "../../utils/bannerUrl";
 
 import "./AddEvent.css";
 
+import { VALID_CATEGORIES, CATEGORY_LABELS, normalizeCategoryForBackend } from "../../constants/categories";
+
 function EditEventEO() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -132,7 +134,7 @@ function EditEventEO() {
         setEventName(
           event.title || event.event_name || event.name || event.eventName || ""
         );
-        setCategory(event.category || event.event_category || "");
+        setCategory(normalizeCategoryForBackend(event.category || event.event_category) || "");
         setDescription(event.description || event.event_description || "");
         setLocation(
           event.venue_name || event.location || event.venue || event.address || ""
@@ -727,14 +729,9 @@ function EditEventEO() {
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   <option value="">Pilih Kategori...</option>
-                  <option value="Konser">Konser</option>
-                  <option value="Musik">Musik</option>
-                  <option value="Seminar">Seminar</option>
-                  <option value="Workshop">Workshop</option>
-                  <option value="Festival">Festival</option>
-                  <option value="Olahraga">Olahraga</option>
-                  <option value="Komunitas">Komunitas</option>
-                  <option value="Lainnya">Lainnya</option>
+                  {VALID_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
+                  ))}
                 </select>
 
                 {category && (

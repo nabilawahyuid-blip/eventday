@@ -10,7 +10,7 @@ import { downloadFromEndpoint } from "./downloadExport";
 // LIST EVENTS (paginated + filter)
 // GET /api/admin/events?status=&category=&organizerId=&dateFrom=&dateTo=&search=&page=0&size=20
 // status: DRAFT/PUBLISHED/CANCELLED/DELETED — kosong = semua
-// category: MUSIC_FESTIVAL/SEMINAR/dll (BE pakai underscore)
+// category: hanya 4 enum valid BE (MUSIC_FESTIVAL/CONFERENCE/EXHIBITION/CULINARY)
 // ==========================================
 export const getAdminEvents = async (params = {}) => {
   const {
@@ -186,8 +186,68 @@ export const exportAdminEvents = async (params = {}) => {
   );
 };
 
+// Backend kadang 400 "No enum constant ...Category.X" karena ada row
+// events.category di DB yang tidak cocok enum Java (mis. "Musik",
+// "ENTERTAINMENT"). Satu row busuk membuat satu halaman gagal total.
+// Helper ini mendeteksi error tersebut agar service bisa fallback
+// halaman-per-halaman dan melewati halaman yang busuk.
+export const isCategoryEnumError = (err) => {
+  const msg = String(err?.data?.msg || err?.message || "");
+  return /no enum constant.*category\./i.test(msg);
+};
+
+const extractPageContent = (res) => {
+  const raw = res?.data ?? res;
+  if (Array.isArray(raw)) return { content: raw, totalPages: 1 };
+  if (Array.isArray(raw?.content))
+    return { content: raw.content, totalPages: raw.totalPages ?? 1 };
+  return { content: [], totalPages: 1 };
+};
+
+// Versi toleran: coba bulk dulu, kalau gagal karena enum Category,
+// ambil halaman kecil satu-per-satu dan lewati halaman yang busuk.
+// Mengembalikan bentuk Page yang sama {content,...} + flag _partial.
+export const getAdminEventsTolerant = async (params = {}) => {
+  const { page = 0, size = 20, ...filters } = params;
+  try {
+    return await getAdminEvents({ ...filters, page, size });
+  } catch (err) {
+    if (!isCategoryEnumError(err)) throw err;
+  }
+
+  // Fallback: scan halaman kecil, kumpulkan yang berhasil.
+  const CHUNK = 10;
+  const MAX_PAGES = 20;
+  const collected = [];
+  let skippedPages = 0;
+  for (let p = 0; p < MAX_PAGES; p++) {
+    try {
+      const res = await getAdminEvents({ ...filters, page: p, size: CHUNK });
+      const { content, totalPages } = extractPageContent(res);
+      collected.push(...content);
+      if (p + 1 >= (totalPages || 1)) break;
+      if (content.length === 0) break;
+    } catch (err) {
+      if (isCategoryEnumError(err)) {
+        skippedPages += 1;
+        continue;
+      }
+      throw err;
+    }
+  }
+  return {
+    msg: "Data sebagian (beberapa halaman dilewati karena kategori tidak valid di DB)",
+    status: 200,
+    data: { content: collected, page: 0, size: collected.length, totalElements: collected.length, totalPages: 1 },
+    _partial: true,
+    _skippedPages: skippedPages,
+  };
+};
+
 export const adminEventService = {
   getAdminEvents,
+  getAdminEventsTolerant,
+  isCategoryEnumError,
   getAdminEventDetail,
   createAdminEvent,
   updateAdminEvent,

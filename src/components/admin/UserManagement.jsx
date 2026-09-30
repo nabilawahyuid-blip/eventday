@@ -90,7 +90,7 @@ function UserManagement() {
       );
 
       setError(
-        err?.message ||
+        err?.data?.msg || err?.message ||
           "Gagal mengambil data users."
       );
 

@@ -13,6 +13,8 @@ import {
 
 import "./AddEvent.css";
 
+import { VALID_CATEGORIES, CATEGORY_LABELS } from "../../constants/categories";
+
 function AddEvent() {
   const navigate = useNavigate();
 
@@ -279,6 +281,16 @@ function AddEvent() {
         icon: "warning",
         title: "Form Belum Lengkap",
         text: "Kategori event wajib dipilih.",
+        confirmButtonColor: "#6256e8",
+      });
+      return false;
+    }
+
+    if (!VALID_CATEGORIES.includes(String(category).trim())) {
+      Swal.fire({
+        icon: "warning",
+        title: "Kategori Tidak Valid",
+        text: `Kategori "${category}" ditolak backend. Pilih: ${VALID_CATEGORIES.join(", ")}.`,
         confirmButtonColor: "#6256e8",
       });
       return false;
@@ -656,14 +668,9 @@ function AddEvent() {
                   onChange={(e) => setCategory(e.target.value)}
                 >
                   <option value="">Pilih Kategori...</option>
-                  <option value="Konser">Konser</option>
-                  <option value="Musik">Musik</option>
-                  <option value="Seminar">Seminar</option>
-                  <option value="Workshop">Workshop</option>
-                  <option value="Festival">Festival</option>
-                  <option value="Olahraga">Olahraga</option>
-                  <option value="Komunitas">Komunitas</option>
-                  <option value="Lainnya">Lainnya</option>
+                  {VALID_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
+                  ))}
                 </select>
 
                 {category && (

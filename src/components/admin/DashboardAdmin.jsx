@@ -5,7 +5,7 @@ import {
   getAdminRecentEvents, 
   getAdminRecentTransactions 
 } from '../../services/adminDashboardService';
-import { getAdminTransactions } from '../../services/adminTransactionService';
+import { getAdminTransactions, getAdminTransactionsTolerant } from '../../services/adminTransactionService';
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
@@ -25,6 +25,7 @@ export default function DashboardAdmin() {
   const [events, setEvents] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dataWarning, setDataWarning] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -33,27 +34,53 @@ export default function DashboardAdmin() {
     async function loadDashboardData() {
       try {
         setLoading(true);
+        setDataWarning("");
+        // Jangan Promise.all mentah: satu endpoint 400 (mis. enum
+        // Category busuk "Musik"/"ENTERTAINMENT" di DB) membuat semua
+        // ikut gagal. Tiap request ditoleransi satu-per-satu.
         const [metricsRes, eventsRes, transactionsRes, trxListRes] = await Promise.all([
-          getAdminDashboardMetrics(),
-          getAdminRecentEvents(),
-          getAdminRecentTransactions(),
+          getAdminDashboardMetrics().catch((e) => ({ _error: e })),
+          getAdminRecentEvents().catch((e) => ({ _error: e })),
+          getAdminRecentTransactions().catch((e) => ({ _error: e })),
           // Daftar transaksi dipakai untuk MENGISI nama customer:
           // endpoint /recent-transactions TIDAK mengirim nama customer,
           // jadi kita samakan lewat orderNumber orderId → customerName.
-          getAdminTransactions({ page: 0, size: 100 }).catch(() => null)
+          // size dikecilkan 100 → 20 agar peluang kena row berkategori
+          // busuk lebih kecil; bila tetap 400, coba versi toleran.
+          getAdminTransactions({ page: 0, size: 20 }).catch(() =>
+            getAdminTransactionsTolerant({ page: 0, size: 20 }).catch(() => null)
+          ),
         ]);
 
-        const metricsData = metricsRes?.data || metricsRes;
-        if (metricsData) setMetrics(metricsData);
+        const warnings = [];
+        const pickData = (res, label) => {
+          if (!res || res._error) {
+            const e = res?._error;
+            const backendMsg = e?.data?.msg || e?.message || "";
+            if (backendMsg) warnings.push(`${label}: ${backendMsg}`);
+            return null;
+          }
+          if (res._partial) warnings.push(`${label}: data sebagian (ada kategori event tidak valid di DB, minta BE rapikan).`);
+          return res?.data ?? res;
+        };
 
-        const eventsData = eventsRes?.data || eventsRes;
+        const metricsData = pickData(metricsRes, "Metrics");
+        if (metricsData && typeof metricsData === "object") setMetrics(metricsData);
+
+        const eventsData = pickData(eventsRes, "Event");
         setEvents(Array.isArray(eventsData) ? eventsData : (eventsData?.content || []));
 
-        const trxData = transactionsRes?.data || transactionsRes;
+        const trxData = pickData(transactionsRes, "Transaksi");
         const rawTrx = Array.isArray(trxData) ? trxData : (trxData?.content || []);
 
         // Bangun lookup nama customer dari daftar transaksi admin
-        const trxListData = trxListRes?.data || trxListRes;
+        const trxListData = trxListRes?._error ? null : (trxListRes?.data ?? trxListRes);
+        if (trxListRes?._partial) warnings.push("Daftar transaksi: data sebagian.");
+        if (trxListRes?._error) {
+          const e = trxListRes._error;
+          const backendMsg = e?.data?.msg || e?.message || "";
+          if (backendMsg) warnings.push(`Daftar transaksi: ${backendMsg}`);
+        }
         const trxList = Array.isArray(trxListData) ? trxListData : (trxListData?.content || []);
         const customerLookup = {};
         trxList.forEach((t) => {
@@ -104,9 +131,10 @@ export default function DashboardAdmin() {
         const activity = (recentWindow.length >= ACTIVITY_LIMIT ? recentWindow : sorted).slice(0, ACTIVITY_LIMIT);
 
         setTransactions(activity);
+        setDataWarning(warnings.length ? warnings.join(" | ") : "");
 
       } catch (error) {
-        console.error("Gagal memuat data dashboard:", error.message);
+        console.error("Gagal memuat data dashboard:", error?.data || error);
       } finally {
         setLoading(false);
       }
@@ -122,11 +150,11 @@ export default function DashboardAdmin() {
   const currentTransactions = transactions.slice(indexOfFirstItem, indexOfLastItem);
 
   const handleViewAllEvents = () => {
-    navigate("/event-management");
+    navigate("/admin/event-management");
   };
 
   const handleViewAllTransactions = () => {
-    navigate("/admin/users");
+    navigate("/admin/transaksi");
   };
 
   const handleEventClick = (eventId) => {
@@ -146,6 +174,12 @@ export default function DashboardAdmin() {
 
         <main className="dashboard-main">
           <div className="dashboard-content">
+
+            {dataWarning && (
+              <div style={{ background: "#fff8e1", border: "1px solid #ffe082", color: "#795548", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 13 }}>
+                Data sebagian: {dataWarning} Minta tim backend rapikan <code>events.category</code> ke enum valid (MUSIC_FESTIVAL/CONFERENCE/EXHIBITION/CULINARY).
+              </div>
+            )}
 
             {/* STATISTICS */}
             <section className="stats-grid">

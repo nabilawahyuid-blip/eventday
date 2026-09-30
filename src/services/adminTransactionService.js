@@ -67,8 +67,61 @@ export const exportAdminTransactions = async (params = {}) => {
   );
 };
 
+// Transaksi ikut 400 bila join event-nya kena enum Category busuk
+// ("Musik"/"ENTERTAINMENT"). Deteksi + ambil toleran halaman-per-halaman.
+export const isCategoryEnumError = (err) => {
+  const msg = String(err?.data?.msg || err?.message || "");
+  return /no enum constant.*category\./i.test(msg);
+};
+
+const extractTrxContent = (res) => {
+  const raw = res?.data ?? res;
+  if (Array.isArray(raw)) return { content: raw, totalPages: 1 };
+  if (Array.isArray(raw?.content))
+    return { content: raw.content, totalPages: raw.totalPages ?? 1 };
+  return { content: [], totalPages: 1 };
+};
+
+export const getAdminTransactionsTolerant = async (params = {}) => {
+  const { page = 0, size = 20, ...filters } = params;
+  try {
+    return await getAdminTransactions({ ...filters, page, size });
+  } catch (err) {
+    if (!isCategoryEnumError(err)) throw err;
+  }
+
+  const CHUNK = 10;
+  const MAX_PAGES = 20;
+  const collected = [];
+  let skippedPages = 0;
+  for (let p = 0; p < MAX_PAGES; p++) {
+    try {
+      const res = await getAdminTransactions({ ...filters, page: p, size: CHUNK });
+      const { content, totalPages } = extractTrxContent(res);
+      collected.push(...content);
+      if (p + 1 >= (totalPages || 1)) break;
+      if (content.length === 0) break;
+    } catch (err) {
+      if (isCategoryEnumError(err)) {
+        skippedPages += 1;
+        continue;
+      }
+      throw err;
+    }
+  }
+  return {
+    msg: "Data sebagian (beberapa halaman dilewati karena kategori tidak valid di DB)",
+    status: 200,
+    data: { content: collected, page: 0, size: collected.length, totalElements: collected.length, totalPages: 1 },
+    _partial: true,
+    _skippedPages: skippedPages,
+  };
+};
+
 export const adminTransactionService = {
   getAdminTransactions,
+  getAdminTransactionsTolerant,
+  isCategoryEnumError,
   getAdminTransactionDetail,
   updateAdminTransactionStatus,
   exportAdminTransactions,

@@ -4,7 +4,7 @@ import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
 import "./Transaksi.css";
 import {
-  getAdminTransactions,
+  getAdminTransactionsTolerant,
   updateAdminTransactionStatus,
   exportAdminTransactions,
 } from "../../services/adminTransactionService";
@@ -125,6 +125,7 @@ function Transaksi() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [dataWarning, setDataWarning] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [updatingId, setUpdatingId] = useState(null);
 
@@ -133,11 +134,17 @@ function Transaksi() {
   const loadTransactions = async () => {
     try {
       setLoading(true);
-      const res = await getAdminTransactions({ page: 0, size: 100 });
+      setDataWarning("");
+      const res = await getAdminTransactionsTolerant({ page: 0, size: 20 });
       const data = res?.data || res;
       setTransactions(
         Array.isArray(data) ? data : data?.content || []
       );
+      if (res?._partial) {
+        setDataWarning(
+          "Data sebagian: ada transaksi yang event-nya berkategori tidak valid di DB sehingga dilewati. Minta BE rapikan events.category."
+        );
+      }
       setError("");
     } catch (err) {
       console.error("Gagal memuat transaksi:", err);
@@ -222,7 +229,7 @@ function Transaksi() {
     } catch (err) {
       await showError(
         "Gagal Mengekspor Transaksi",
-        err?.message || "Gagal export transaksi."
+        err?.data?.msg || err?.message || "Gagal export transaksi."
       );
     }
   };
@@ -453,6 +460,12 @@ function Transaksi() {
               </div>
 
             </div>
+
+            {dataWarning && !loading && (
+              <p style={{ background: "#fff8e1", border: "1px solid #ffe082", color: "#795548", borderRadius: 8, padding: "10px 14px", margin: "0 0 16px", fontSize: 13 }}>
+                {dataWarning}
+              </p>
+            )}
 
             {/* TABLE */}
             <div className="transaction-table-wrapper">

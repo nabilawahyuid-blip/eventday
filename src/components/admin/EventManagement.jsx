@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Calendar, Clock, MapPin } from "lucide-react";
 
-import { getAdminEvents } from "../../services/adminEventService";
+import { getAdminEventsTolerant } from "../../services/adminEventService";
 import { getAdminRecentEvents } from "../../services/adminDashboardService";
 import { resolveBannerUrl } from "../../utils/bannerUrl";
 
@@ -19,6 +19,7 @@ export default function EventManagement() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [dataWarning, setDataWarning] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -38,7 +39,7 @@ export default function EventManagement() {
   // untuk SEARCH + fetch 1x (FETCH_SIZE), sisa filter & paginasi
   // dilakukan client-side dengan PAGE_SIZE TETAP per halaman.
   const PAGE_SIZE = 12;
-  const FETCH_SIZE = 100;
+  const FETCH_SIZE = 20;
   const [page, setPage] = useState(0);
 
   // ==========================================
@@ -130,7 +131,7 @@ export default function EventManagement() {
 
   // ==========================================
   // AMBIL DATA EVENT DARI BACKEND
-  // GET /api/admin/events?search=&page=0&size=100
+  // GET /api/admin/events?search=&page=0&size=20
   // Halaman & filter ditangani client-side (lihat blok SORT & PAGINASI).
   // Fallback: /api/admin/dashboard/recent-events bila backend
   // belum punya AdminEventController (Phase 1 belum deploy →
@@ -140,14 +141,20 @@ export default function EventManagement() {
     try {
       setLoading(true);
       setError(null);
+      setDataWarning("");
 
       let response;
       try {
-        response = await getAdminEvents({
+        response = await getAdminEventsTolerant({
           search,
           page: 0,
           size: FETCH_SIZE,
         });
+        if (response?._partial) {
+          setDataWarning(
+            "Data sebagian: ada event berkategori tidak valid di DB (mis. \"Musik\"/\"ENTERTAINMENT\") yang dilewati. Minta BE rapikan ke MUSIC_FESTIVAL/CONFERENCE/EXHIBITION/CULINARY."
+          );
+        }
       } catch (phase1Err) {
         const m =
           phase1Err?.data?.msg || phase1Err?.message || "";
@@ -453,25 +460,15 @@ export default function EventManagement() {
                   Culinary
                 </option>
 
-                <option value="Konser">
-                  Konser
-                </option>
-
-                <option value="Seminar">
-                  Seminar
-                </option>
-
-                <option value="Workshop">
-                  Workshop
-                </option>
-
-                <option value="Technology">
-                  Technology
-                </option>
-
               </select>
 
             </div>
+
+            {dataWarning && !loading && (
+              <p style={{ background: "#fff8e1", border: "1px solid #ffe082", color: "#795548", borderRadius: 8, padding: "10px 14px", margin: "0 0 16px", fontSize: 13 }}>
+                {dataWarning}
+              </p>
+            )}
 
             {/* ==================================
                 EVENT GRID
