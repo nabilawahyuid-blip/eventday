@@ -67,7 +67,7 @@ function PengajuanAkunEO() {
       );
 
       setError(
-        error?.message ||
+        error?.data?.msg || error?.message ||
           "Gagal mengambil data pengajuan EO."
       );
 

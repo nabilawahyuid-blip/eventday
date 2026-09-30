@@ -19,10 +19,9 @@ import {
   FiSearch, FiUploadCloud, FiTrash2, FiPlus, FiX
 } from "react-icons/fi";
 
-// Kategori event diambil dari data backend (GET /api/events):
-// MUSIC_FESTIVAL / CONFERENCE / EXHIBITION / CULINARY / Konser / Seminar /
-// Workshop / TECHNOLOGY. Nilai dikirim apa adanya (exact) agar tersimpan
-// identik dengan yang sudah ada di backend.
+// Kategori event: hanya 4 enum valid BE (Category.java strict valueOf).
+// Nilai lain → 400 "No enum constant Category.X".
+import { isValidCategory, normalizeCategoryForBackend } from "../../constants/categories";
 
 function EditEvent() {
   const navigate = useNavigate();
@@ -56,10 +55,9 @@ function EditEvent() {
       setNamaEvent(ev.title || "");
       setDeskripsi(ev.description || "");
       setLokasi(ev.venueName || "");
-      // Nilai kategori dikirim apa adanya dari backend (bisa "MUSIC_FESTIVAL"
-      // atau "Seminar"/"Konser"/dst) — jangan ganti _ jadi spasi agar tetap
-      // cocok dengan <option> di bawah.
-      setKategori(String(ev.category || "MUSIC_FESTIVAL"));
+      // Normalisasi kategori lama busuk ("Musik"/"Konser"/...) ke enum valid
+      // agar dropdown selalu berisi nilai yang bisa disimpan kembali.
+      setKategori(normalizeCategoryForBackend(ev.category) || "MUSIC_FESTIVAL");
       setBannerUrl(ev.bannerUrl || "");
       if (ev.startDate) {
         const d = new Date(ev.startDate);
@@ -125,6 +123,15 @@ function EditEvent() {
 
   const handleSave = async (e) => {
     e.preventDefault();
+    // Guard kategori: cegah 400 "No enum constant Category.X".
+    const normalizedKategori = String(kategori || "").trim() || "MUSIC_FESTIVAL";
+    if (!isValidCategory(normalizedKategori)) {
+      await showError(
+        "Kategori Tidak Valid",
+        `Kategori "${kategori}" ditolak backend. Pilih: MUSIC_FESTIVAL, CONFERENCE, EXHIBITION, CULINARY.`
+      );
+      return;
+    }
     try {
       setSaving(true);
       const eventDate = `${tanggal || new Date().toISOString().slice(0, 10)}T${(jamMulai || "10:00").length === 5 ? jamMulai + ":00" : jamMulai}`;
@@ -139,12 +146,14 @@ function EditEvent() {
       const payload = {
         title: namaEvent.trim(),
         description: deskripsi.trim() || namaEvent.trim(),
-        category: kategori.trim() || "MUSIC_FESTIVAL",
+        category: normalizedKategori,
         location: lokasi.trim(),
         venueName: lokasi.trim(),
         eventDate,
         endDate,
         bannerUrl: bannerUrl.trim() || null,
+        // Lineup format string koma (sama seperti EO) agar tampil di detail.
+        lineup: lineups.map((s) => String(s || "").trim()).filter(Boolean).join(", ") || null,
         ticketTiers: tickets
           .filter((t) => t.name && Number(t.quota) > 0)
           .map((t) => ({ name: t.name, price: Number(t.price) || 0, quota: Number(t.quota) || 0 })),
@@ -247,10 +256,6 @@ function EditEvent() {
                     <option value="CONFERENCE">Conference</option>
                     <option value="EXHIBITION">Exhibition</option>
                     <option value="CULINARY">Culinary</option>
-                    <option value="Konser">Konser</option>
-                    <option value="Seminar">Seminar</option>
-                    <option value="Workshop">Workshop</option>
-                    <option value="TECHNOLOGY">Technology</option>
                   </select>
                 </div>
               </div>

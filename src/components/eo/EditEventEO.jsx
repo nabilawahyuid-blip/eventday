@@ -17,6 +17,8 @@ import {
 import { resolveBannerUrl } from "../../utils/bannerUrl";
 import "./AddEvent.css";
 
+import { VALID_CATEGORIES, CATEGORY_LABELS, normalizeCategoryForBackend } from "../../constants/categories";
+
 function EditEventEO() {
   const navigate = useNavigate();
   const { id } = useParams();

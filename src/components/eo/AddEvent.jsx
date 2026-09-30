@@ -16,6 +16,8 @@ import {
 
 import "./AddEvent.css";
 
+import { VALID_CATEGORIES, CATEGORY_LABELS } from "../../constants/categories";
+
 function AddEvent() {
   const navigate = useNavigate();
 

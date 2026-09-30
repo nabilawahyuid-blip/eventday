@@ -11,7 +11,7 @@ import {
   revokeAdminTicket,
   getAdminTicketInventory,
 } from "../../services/adminTicketService";
-import { getAdminTransactions } from "../../services/adminTransactionService";
+import { getAdminTransactionsTolerant } from "../../services/adminTransactionService";
 import {
   showSuccess,
   showError,
@@ -52,6 +52,7 @@ function Tiket() {
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [dataWarning, setDataWarning] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   // Ringkasan stok per event dari BE (GET /tickets/inventory) — dipakai
   // untuk kartu statistik bila tersedia, fallback ke snapshot tiket.
@@ -62,10 +63,14 @@ function Tiket() {
   const loadTickets = async () => {
     try {
       setLoading(true);
-      const [res, invRes] = await Promise.all([
-        getAdminTickets({ page: 0, size: 100 }),
+      setDataWarning("");
+      // Tiket dipecah: kegagalan tiket tidak menutupi inventory dan sebaliknya.
+      const [ticketsRes, invRes] = await Promise.all([
+        getAdminTickets({ page: 0, size: 20 }).catch((e) => ({ _error: e })),
         getAdminTicketInventory().catch(() => null),
       ]);
+      if (ticketsRes?._error) throw ticketsRes._error;
+      const res = ticketsRes;
       const data = res?.data || res;
       setTickets(
         Array.isArray(data) ? data : data?.content || []
@@ -200,7 +205,7 @@ function Tiket() {
       await exportAdminTickets();
       showSuccess("Export tiket berhasil diunduh.");
     } catch (err) {
-      showError(err?.message || "Gagal export tiket.");
+      showError(err?.data?.msg || err?.message || "Gagal export tiket.");
     }
   };
 
@@ -208,7 +213,7 @@ function Tiket() {
     // Ambil daftar order terbaru agar admin tinggal pilih (tanpa ketik UUID)
     let options = {};
     try {
-      const res = await getAdminTransactions({ page: 0, size: 50 });
+      const res = await getAdminTransactionsTolerant({ page: 0, size: 20 });
       const data = res?.data ?? res;
       const list = Array.isArray(data) ? data : data?.content || [];
       list.forEach((o) => {
@@ -415,6 +420,12 @@ function Tiket() {
             </div>
 
           </div>
+
+          {dataWarning && !loading && (
+            <p style={{ background: "#fff8e1", border: "1px solid #ffe082", color: "#795548", borderRadius: 8, padding: "10px 14px", margin: "0 0 16px", fontSize: 13 }}>
+              {dataWarning}
+            </p>
+          )}
 
           {/* = STATISTICS = */}
           <div className="ticket-statistics">

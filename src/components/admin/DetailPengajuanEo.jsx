@@ -71,7 +71,7 @@ export default function DetailPengajuanEo() {
       );
 
       setError(
-        err?.message ||
+        err?.data?.msg || err?.message ||
           "Gagal mengambil detail pengajuan EO."
       );
     } finally {
@@ -240,7 +240,7 @@ export default function DetailPengajuanEo() {
 
       await showError(
         "Gagal Memperbarui Status Pengajuan EO",
-        err?.message ||
+        err?.data?.msg || err?.message ||
           "Gagal mengubah status pengajuan EO."
       );
     } finally {
@@ -298,7 +298,7 @@ export default function DetailPengajuanEo() {
 
       await showError(
         "Gagal Mengambil Dokumen",
-        err?.message ||
+        err?.data?.msg || err?.message ||
           "Dokumen tidak dapat dibuka."
       );
     }

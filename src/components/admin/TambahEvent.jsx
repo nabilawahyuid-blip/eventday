@@ -14,10 +14,9 @@ import Navbar from "../shared/Navbar";
 
 import "./TambahEvent.css";
 
-// Kategori event diambil dari data backend (GET /api/events):
-// MUSIC_FESTIVAL / CONFERENCE / EXHIBITION / CULINARY / Konser / Seminar /
-// Workshop / TECHNOLOGY. Nilai dikirim apa adanya (exact) agar tersimpan
-// identik dengan yang sudah ada di backend.
+// Kategori event: hanya 4 enum valid BE (Category.java strict valueOf).
+// Nilai lain → 400 "No enum constant Category.X".
+import { VALID_CATEGORIES, isValidCategory } from "../../constants/categories";
 
 function TambahEvent() {
   const navigate = useNavigate();
@@ -101,6 +100,16 @@ function TambahEvent() {
       return;
     }
 
+    // Guard kategori: cegah 400 "No enum constant Category.X".
+    const normalizedCategory = String(kategoriEvent || "").trim() || "MUSIC_FESTIVAL";
+    if (!isValidCategory(normalizedCategory)) {
+      await showWarning(
+        "Kategori Tidak Valid",
+        `Kategori "${kategoriEvent}" ditolak backend. Pilih: ${VALID_CATEGORIES.join(", ")}.`
+      );
+      return;
+    }
+
     // Tolak URL yang terbukti rusak (hanya bila tanpa file — file selalu menang)
     if (!banner.file && banner.url && !banner.urlValid) {
       await showWarning(
@@ -126,13 +135,16 @@ function TambahEvent() {
     const payload = {
       title: namaEvent.trim(),
       description: deskripsi.trim() || namaEvent.trim(),
-      category: kategoriEvent.trim() || "MUSIC_FESTIVAL",
+      category: normalizedCategory,
       location: lokasi.trim() || "Lokasi Belum Ditentukan",
       venueName: lokasi.trim() || "Lokasi Belum Ditentukan",
       eventDate,
       endDate,
       bannerUrl: banner.url || null,
       facilities: [],
+      // Lineup dikirim sebagai string koma (format sama seperti EO) agar
+      // tersimpan di kolom yang sama dan tampil di semua halaman detail.
+      lineup: lineUpList.map((s) => String(s || "").trim()).filter(Boolean).join(", ") || null,
       ticketTiers: tiketList
         .filter((t) => t.namaKategori && Number(t.kuota) > 0)
         .map((t) => ({
@@ -272,10 +284,6 @@ function TambahEvent() {
                       <option value="CONFERENCE">Conference</option>
                       <option value="EXHIBITION">Exhibition</option>
                       <option value="CULINARY">Culinary</option>
-                      <option value="Konser">Konser</option>
-                      <option value="Seminar">Seminar</option>
-                      <option value="Workshop">Workshop</option>
-                      <option value="TECHNOLOGY">Technology</option>
                     </select>
                   </div>
                 </div>
