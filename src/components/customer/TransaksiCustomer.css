@@ -88,7 +88,7 @@
 .rl-card {
   min-width: 0;
   width: 100%;
-  background: #ffffff;
+  background: #f5f4f4;
   border-radius: 11px;
   overflow: hidden;
   box-shadow: 0 6px 18px rgba(28, 39, 70, 0.07);
@@ -303,7 +303,9 @@
 }
 
 @keyframes refundListSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* GRID LAYOUT */
