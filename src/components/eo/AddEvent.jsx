@@ -9,6 +9,8 @@ import {
   createOrganizerEvent,
   publishOrganizerEvent,
   uploadOrganizerEventBanner,
+  uploadOrganizerLineupImage,
+  extractUploadedImageUrl,
   getEventCategories,
 } from "../../services/organizerEventService";
 
@@ -50,9 +52,14 @@ function AddEvent() {
   ]);
 
   // =====================================================
-  // LINEUP (NAME & LINK FOTO)
+  // LINEUP (NAME + GAMBAR)
   // =====================================================
-  const [lineups, setLineups] = useState([{ name: "", image: "" }]);
+  // `file` = File lokal yang dipilih user, akan diupload ke
+  // backend sebelum event disimpan. `image` = fallback kalau
+  // user memilih menempelkan URL secara manual.
+  const [lineups, setLineups] = useState([
+    { name: "", image: "", file: null },
+  ]);
 
   // =====================================================
   // FACILITIES
@@ -205,12 +212,40 @@ function AddEvent() {
   // LINEUP HANDLERS
   // =====================================================
   const handleAddLineup = () => {
-    setLineups([...lineups, { name: "", image: "" }]);
+    setLineups([...lineups, { name: "", image: "", file: null }]);
   };
 
   const handleLineupChange = (index, field, value) => {
     const updated = [...lineups];
-    updated[index] = { ...updated[index], [field]: value };
+    // Kalau user mengetik URL manual, file yang sudah dipilih
+    // dibuang supaya tidak ada dua sumber gambar yang bertabrakan.
+    updated[index] =
+      field === "image"
+        ? { ...updated[index], image: value, file: null }
+        : { ...updated[index], [field]: value };
+    setLineups(updated);
+  };
+
+  const handleLineupFileChange = (index, file) => {
+    if (!file) {
+      const cleared = [...lineups];
+      cleared[index] = { ...cleared[index], file: null };
+      setLineups(cleared);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({
+        icon: "error",
+        title: "Ukuran File Terlalu Besar",
+        text: `Ukuran foto ${lineups[index]?.name || "artis"} maksimal 5MB.`,
+        confirmButtonColor: "#6256e8",
+      });
+      return;
+    }
+
+    const updated = [...lineups];
+    updated[index] = { ...updated[index], file, image: "" };
     setLineups(updated);
   };
 
@@ -226,6 +261,22 @@ function AddEvent() {
     }
     setLineups(lineups.filter((_, i) => i !== index));
   };
+
+  // Upload semua gambar lineup yang dipilih user. Backend
+  // membuang nilai URL eksternal pada field lineup, jadi gambar
+  // harus berupa hasil upload (dikembalikan sebagai path relatif
+  // /uploads/... , bukan URL absolut).
+  const uploadLineupImages = async () =>
+    Promise.all(
+      lineups.map(async (item) => {
+        if (!item.file) {
+          return String(item.image || "").trim() || null;
+        }
+
+        const response = await uploadOrganizerLineupImage(item.file);
+        return extractUploadedImageUrl(response);
+      }),
+    );
 
   // =====================================================
   // FACILITY HANDLERS
@@ -313,17 +364,18 @@ function AddEvent() {
     return true;
   };
 
-  const buildEventPayload = (bannerUrl = null) => {
+  const buildEventPayload = (bannerUrl = null, lineupImages = []) => {
     const firstSchedule = schedules[0];
     const startDate = `${firstSchedule?.date}T${firstSchedule?.startTime}:00`;
     const endDate = `${firstSchedule?.date}T${firstSchedule?.endTime}:00`;
 
-    // Format LineUp hemat karakter: "Nama|LinkFoto"
+    // Format LineUp hemat karakter: "Nama|PathGambar"
     const lineupString = lineups
-      .filter((item) => item.name.trim() !== "")
-      .map((item) => {
+      .map((item, index) => ({ item, image: lineupImages[index] }))
+      .filter(({ item }) => item.name.trim() !== "")
+      .map(({ item, image }) => {
         const name = item.name.trim();
-        const img = item.image.trim();
+        const img = String(image || "").trim();
         return img ? `${name}|${img}` : name;
       })
       .join(", ");
@@ -356,6 +408,26 @@ function AddEvent() {
     };
   };
 
+  // Upload banner + gambar lineup, lalu susun payload event.
+  // Dipakai oleh "Buat Event" maupun "Simpan Draft" supaya
+  // keduanya konsisten.
+  const prepareEventPayload = async () => {
+    let bannerUrl = null;
+
+    if (banner) {
+      const bannerResponse = await uploadOrganizerEventBanner(banner);
+      bannerUrl =
+        bannerResponse?.data?.banner_url ||
+        bannerResponse?.data?.image ||
+        bannerResponse?.banner_url ||
+        null;
+    }
+
+    const lineupImages = await uploadLineupImages();
+
+    return buildEventPayload(bannerUrl, lineupImages);
+  };
+
   const handleCreateEvent = async () => {
     if (!validateForm(false)) return;
 
@@ -363,13 +435,7 @@ function AddEvent() {
       setSubmitting(true);
       setError("");
 
-      let bannerUrl = null;
-      if (banner) {
-        const bannerResponse = await uploadOrganizerEventBanner(banner);
-        bannerUrl = bannerResponse?.data?.banner_url || bannerResponse?.data?.image || bannerResponse?.banner_url || null;
-      }
-
-      const payload = buildEventPayload(bannerUrl);
+      const payload = await prepareEventPayload();
       const response = await createOrganizerEvent(payload);
       const eventId = response?.data?.id || response?.data?.event_id || response?.id;
 
@@ -385,7 +451,7 @@ function AddEvent() {
       }).then(() => navigate("/eo/event"));
     } catch (err) {
       console.error("ERROR CREATE EVENT:", err);
-      const message = err?.response?.data?.msg || err?.message || "Gagal membuat event.";
+      const message = err?.data?.msg || err?.message || "Gagal membuat event.";
       setError(message);
       Swal.fire({ icon: "error", title: "Gagal Membuat Event", text: message, confirmButtonColor: "#6256e8" });
     } finally {
@@ -400,13 +466,7 @@ function AddEvent() {
       setSubmitting(true);
       setError("");
 
-      let bannerUrl = null;
-      if (banner) {
-        const bannerResponse = await uploadOrganizerEventBanner(banner);
-        bannerUrl = bannerResponse?.data?.banner_url || bannerResponse?.data?.image || bannerResponse?.banner_url || null;
-      }
-
-      const payload = buildEventPayload(bannerUrl);
+      const payload = await prepareEventPayload();
       await createOrganizerEvent(payload);
 
       Swal.fire({
@@ -416,7 +476,7 @@ function AddEvent() {
         confirmButtonColor: "#6256e8",
       }).then(() => navigate("/eo/event"));
     } catch (err) {
-      const message = err?.response?.data?.msg || err?.message || "Gagal menyimpan draft.";
+      const message = err?.data?.msg || err?.message || "Gagal menyimpan draft.";
       setError(message);
       Swal.fire({ icon: "error", title: "Gagal Menyimpan", text: message, confirmButtonColor: "#6256e8" });
     } finally {
@@ -638,7 +698,7 @@ function AddEvent() {
             <div style={{ marginTop: "10px", fontWeight: "600" }}>Total Kuota: {totalQuota}</div>
           </section>
 
-          {/* LINE UP (NAME + LINK FOTO) */}
+          {/* LINE UP (NAME + FOTO) */}
           <section className="form-card">
             <div className="section-header">
               <h2>Line Up Event</h2>
@@ -649,7 +709,7 @@ function AddEvent() {
 
             <div className="lineup-list">
               {lineups.map((lineup, index) => (
-                <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
                   <input
                     type="text"
                     value={lineup.name}
@@ -658,9 +718,15 @@ function AddEvent() {
                     style={{ flex: 1 }}
                   />
                   <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleLineupFileChange(index, e.target.files?.[0] || null)}
+                    style={{ flex: 1.5 }}
+                  />
+                  <input
                     type="url"
                     value={lineup.image}
-                    placeholder="Link Foto Artis (https://...)"
+                    placeholder="atau tempel URL foto"
                     onChange={(e) => handleLineupChange(index, "image", e.target.value)}
                     style={{ flex: 1.5 }}
                   />
@@ -670,6 +736,11 @@ function AddEvent() {
                 </div>
               ))}
             </div>
+
+            <p style={{ fontSize: "12px", color: "#6f7482", margin: "4px 0 0" }}>
+              Upload foto artis di sini. Backend mengosongkan kolom lineup yang berisi
+              URL eksternal, jadi foto wajib berupa file yang diupload.
+            </p>
           </section>
 
           {/* FASILITAS EVENT */}

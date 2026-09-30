@@ -231,6 +231,32 @@
   font-weight: 600;
 }
 
+/* AVATAR LINEUP
+   .lineup-item di halaman ini berbentuk pill, jadi avatar harus
+   dibatasi 32px agar tidak merusak layout badge. */
+.lineup-item .lineup-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  margin-right: 10px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd6fe;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.lineup-item .lineup-avatar--empty {
+  color: #7c6fe0;
+}
+
+.lineup-item .lineup-avatar--empty svg {
+  width: 18px;
+  height: 18px;
+}
+
 /* =========================================================
    KATEGORI TIKET
 ========================================================= */

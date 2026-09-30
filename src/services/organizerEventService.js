@@ -93,6 +93,47 @@ export const uploadOrganizerEventBanner = async (file) => {
 };
 
 // =====================================================
+// UPLOAD GAMBAR LINEUP
+// POST /api/organizer/events/lineup-image
+// Content-Type: multipart/form-data (part: "file")
+//
+// Backend menghapus nilai URL eksternal pada field lineup,
+// jadi gambar WAJIB hasil upload (dikembalikan sebagai path
+// relatif /uploads/... , bukan URL absolut).
+// =====================================================
+
+export const uploadOrganizerLineupImage = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return apiFetch("/api/organizer/events/lineup-image", {
+    method: "POST",
+    body: formData,
+  });
+};
+
+// Field name pada response upload berbeda-beda antar endpoint
+// (banner -> banner_url, dokumen -> document_url), jadi ambil
+// kandidat-kandidat di bawah ini.
+export const extractUploadedImageUrl = (res) => {
+  const payload = res?.data ?? res;
+
+  if (!payload || typeof payload !== "object") return null;
+
+  return (
+    payload.lineup_image_url ||
+    payload.lineupImageUrl ||
+    payload.image_url ||
+    payload.imageUrl ||
+    payload.banner_url ||
+    payload.document_url ||
+    payload.url ||
+    payload.file_url ||
+    null
+  );
+};
+
+// =====================================================
 // GET SALES SUMMARY EVENT
 // GET /api/organizer/events/{eventId}/sales-summary
 // =====================================================

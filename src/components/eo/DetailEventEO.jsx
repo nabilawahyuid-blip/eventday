@@ -23,6 +23,8 @@ function DetailEventEO() {
   const [loadingSales, setLoadingSales] = useState(true);
   const [error, setError] = useState("");
   const [salesError, setSalesError] = useState("");
+  // Kunci foto lineup yang gagal dimuat -> pakai ikon avatar.
+  const [brokenLineupImages, setBrokenLineupImages] = useState(() => new Set());
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -167,7 +169,10 @@ function DetailEventEO() {
       return raw
         .map((item) => {
           if (typeof item === "string") {
-            return { name: item.trim(), image: null };
+            // Backend bisa mengirim lineup sebagai string "Nama|PathGambar"
+            // di dalam array, jadi tetap dipecah di sini.
+            const [name, image] = item.split("|");
+            return { name: (name || "").trim(), image: (image || "").trim() || null };
           }
           if (typeof item === "object" && item !== null) {
             return {
@@ -183,7 +188,12 @@ function DetailEventEO() {
     if (typeof raw === "string") {
       return raw
         .split(/[,;\n]+/)
-        .map((s) => ({ name: s.trim(), image: null }))
+        .map((s) => {
+          // Format simpanan frontend: "Nama|PathGambar". Tanpa split "|"
+          // nama ikut tercemar URL dan image selalu null.
+          const [name, image] = s.split("|");
+          return { name: (name || "").trim(), image: (image || "").trim() || null };
+        })
         .filter((item) => item.name !== "");
     }
 
@@ -320,18 +330,46 @@ function DetailEventEO() {
                 <h2>LineUp</h2>
                 <div className="lineup-grid">
                   {lineupList.length > 0 ? (
-                    lineupList.map((artist, index) => (
-                      <div className="lineup-item" key={index}>
-                        {artist.image && (
-                          <img
-                            src={artist.image}
-                            alt={artist.name}
-                            className="lineup-avatar"
-                          />
-                        )}
-                        <span>{artist.name}</span>
-                      </div>
-                    ))
+                    lineupList.map((artist, index) => {
+                      const key = `${artist.name}-${index}`;
+                      const src = getImageUrl(artist.image);
+
+                      // Path /uploads bisa 404 (file terhapus, atau env
+                      // belum di-build) -> fallback ke ikon, jangan
+                      // tampilkan kotak gambar rusak.
+                      const showImage = src && !brokenLineupImages.has(key);
+
+                      return (
+                        <div className="lineup-item" key={key}>
+                          {showImage ? (
+                            <img
+                              src={src}
+                              alt={artist.name}
+                              className="lineup-avatar"
+                              onError={() =>
+                                setBrokenLineupImages((prev) =>
+                                  new Set(prev).add(key),
+                                )
+                              }
+                            />
+                          ) : (
+                            <span className="lineup-avatar lineup-avatar--empty">
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                aria-hidden="true"
+                              >
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                              </svg>
+                            </span>
+                          )}
+                          <span>{artist.name}</span>
+                        </div>
+                      );
+                    })
                   ) : (
                     <p>Belum ada lineup.</p>
                   )}
