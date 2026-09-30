@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import SidebarEO from "../shared/SidebarEO";
@@ -23,6 +23,8 @@ function DetailEventEO() {
   const [loadingSales, setLoadingSales] = useState(true);
   const [error, setError] = useState("");
   const [salesError, setSalesError] = useState("");
+  // Kunci foto lineup yang gagal dimuat -> pakai ikon avatar.
+  const [brokenLineupImages, setBrokenLineupImages] = useState(() => new Set());
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -83,7 +85,7 @@ function DetailEventEO() {
   }, [id]);
 
   const handleBack = () => navigate("/eo/event");
-  const handleEdit = () => navigate(`/eo/event/${id}/edit`);
+  const handleEdit = () => navigate(`/eo/event/edit/${id}`);
 
   const formatDate = (dateValue) => {
     if (!dateValue) return "-";
@@ -94,18 +96,6 @@ function DetailEventEO() {
       day: "2-digit",
       month: "long",
       year: "numeric",
-    });
-  };
-
-  const formatTime = (dateValue) => {
-    if (!dateValue) return "";
-    const date = new Date(dateValue);
-    if (Number.isNaN(date.getTime())) return "";
-
-    return date.toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
     });
   };
 
@@ -128,13 +118,13 @@ function DetailEventEO() {
     if (normalized === "DRAFT") return "Draft";
     if (normalized === "CANCELLED") return "Dibatalkan";
     if (["COMPLETED", "FINISHED", "ENDED"].includes(normalized)) return "Selesai";
-    return status;
+    return event?.statusLabel || status;
   };
 
   const getImageUrl = (image) => resolveBannerUrl(image) || "";
 
   const getBanner = () => {
-    const image = event?.banner_url || event?.bannerUrl || event?.image || event?.banner;
+    const image = event?.image || event?.banner_url || event?.bannerUrl || event?.banner;
     return getImageUrl(image);
   };
 
@@ -144,22 +134,18 @@ function DetailEventEO() {
     return String(event.description).split("\n").filter((item) => item.trim() !== "");
   };
 
-  // =====================================================
-  // PARSER FASILITAS (TOLERAN TERHADAP SEMUA PENAMAAN)
-  // =====================================================
+  // PARSER FASILITAS
   const getFacilities = () => {
-    const facilityRaw = event?.facilities || event?.facility || event?.facility_list;
+    const rawFacilities = event?.facilities || event?.facility;
 
-    if (!facilityRaw) return [];
-
-    if (Array.isArray(facilityRaw)) {
-      return facilityRaw
-        .map((item) => (typeof item === "string" ? item : item?.name))
+    if (Array.isArray(rawFacilities)) {
+      return rawFacilities
+        .map((f) => (typeof f === "string" ? f.trim() : f?.name || ""))
         .filter(Boolean);
     }
 
-    if (typeof facilityRaw === "string") {
-      return facilityRaw
+    if (typeof rawFacilities === "string" && rawFacilities.trim() !== "") {
+      return rawFacilities
         .split(",")
         .map((item) => item.trim())
         .filter(Boolean);
@@ -168,47 +154,65 @@ function DetailEventEO() {
     return [];
   };
 
-  // =====================================================
-  // PARSER LINEUP (TOLERAN TERHADAP SEMUA PENAMAAN)
-  // =====================================================
-  const getLineup = () => {
-    const lineupRaw = event?.lineup || event?.lineups || event?.line_up;
+  // PARSER LINEUP (IDENTIK DENGAN LOGIKA ADMIN TEMANMU)
+  const lineupList = useMemo(() => {
+    const raw =
+      event?.lineup ??
+      event?.lineups ??
+      event?.lineupData ??
+      event?.guestStars ??
+      event?.guest_stars ??
+      event?.artists ??
+      null;
 
-    if (!lineupRaw) return [];
-
-    if (Array.isArray(lineupRaw)) {
-      return lineupRaw.map((item) => {
-        if (typeof item === "string") return { name: item };
-        return {
-          name: item?.name || item?.artist_name || item?.title || "Bintang Tamu",
-        };
-      });
+    if (Array.isArray(raw)) {
+      return raw
+        .map((item) => {
+          if (typeof item === "string") {
+            // Backend bisa mengirim lineup sebagai string "Nama|PathGambar"
+            // di dalam array, jadi tetap dipecah di sini.
+            const [name, image] = item.split("|");
+            return { name: (name || "").trim(), image: (image || "").trim() || null };
+          }
+          if (typeof item === "object" && item !== null) {
+            return {
+              name: String(item?.name ?? item?.artistName ?? item?.title ?? "").trim(),
+              image: item?.image ?? item?.photo ?? item?.avatar ?? null,
+            };
+          }
+          return null;
+        })
+        .filter((item) => item && item.name !== "");
     }
 
-    if (typeof lineupRaw === "string") {
-      return lineupRaw
-        .split(",")
-        .map((item) => item.trim())
-        .filter(Boolean)
-        .map((item) => ({ name: item }));
+    if (typeof raw === "string") {
+      return raw
+        .split(/[,;\n]+/)
+        .map((s) => {
+          // Format simpanan frontend: "Nama|PathGambar". Tanpa split "|"
+          // nama ikut tercemar URL dan image selalu null.
+          const [name, image] = s.split("|");
+          return { name: (name || "").trim(), image: (image || "").trim() || null };
+        })
+        .filter((item) => item.name !== "");
     }
 
     return [];
-  };
+  }, [event]);
 
   const getTickets = () => {
-    const tickets = event?.tickets || event?.ticket_categories || event?.ticket_tiers || [];
+    const tickets = event?.tickets || [];
     if (!Array.isArray(tickets)) return [];
 
     return tickets.map((ticket, index) => {
-      const quota = Number(ticket?.total_quota ?? ticket?.quota ?? 0) || 0;
-      const remaining = Number(ticket?.available_quota ?? ticket?.remaining ?? 0) || 0;
-      const sold = ticket?.sold !== undefined ? Number(ticket.sold) || 0 : Math.max(quota - remaining, 0);
+      const quota = Number(ticket?.quota ?? ticket?.total_quota ?? 0) || 0;
+      const remaining = Number(ticket?.remaining ?? ticket?.available_quota ?? 0) || 0;
+      const sold = ticket?.sold !== undefined ? Number(ticket.sold) : Math.max(quota - remaining, 0);
       const price = Number(ticket?.price ?? 0) || 0;
 
       return {
         id: ticket?.id || `ticket-${index}`,
-        name: ticket?.tier_name || ticket?.name || "Tiket",
+        name: ticket?.name || ticket?.label || ticket?.tier_name || "Tiket",
         price,
         quota,
         remaining,
@@ -219,7 +223,6 @@ function DetailEventEO() {
 
   const tickets = getTickets();
   const facilities = getFacilities();
-  const lineup = getLineup();
 
   if (loading) {
     return (
@@ -243,8 +246,9 @@ function DetailEventEO() {
           <NavbarEO />
           <div className="detail-event-eo-content">
             <p>{error || "Event tidak ditemukan."}</p>
-            <button type="button" className="back-button" onClick={handleBack}>
-              Kembali
+            <button type="button" className="btn-back-eo" onClick={handleBack}>
+              <span className="btn-back-icon">←</span>
+              <span>Kembali</span>
             </button>
           </div>
         </main>
@@ -264,13 +268,15 @@ function DetailEventEO() {
             <h1>Detail Event</h1>
           </div>
 
+          {/* TOP NAV TOMBOL KEMBALI */}
           <div className="detail-event-eo-top-nav">
-            <button type="button" className="back-button" onClick={handleBack}>
-              ← Kembali ke Kelola Event
+            <button type="button" className="btn-back-eo" onClick={handleBack}>
+              <span className="btn-back-icon">←</span>
+              <span>Kembali ke Kelola Event</span>
             </button>
           </div>
 
-          {/* HERO */}
+          {/* HERO CARD */}
           <section className="detail-event-eo-hero-card">
             <div className="banner-wrapper">
               {getBanner() ? (
@@ -282,10 +288,13 @@ function DetailEventEO() {
             </div>
             <div className="hero-info">
               <h2>{event.title || "Tanpa Judul"}</h2>
+              <p style={{ marginTop: "8px", color: "#666" }}>
+                📍 {event.location || event.venue_name || "Lokasi belum ditentukan"} | 📅 {event.dateDisplay || formatDate(event.date || event.start_date)}
+              </p>
             </div>
           </section>
 
-          {/* GRID */}
+          {/* CONTENT GRID */}
           <div className="detail-event-eo-content-grid">
             <div className="detail-event-left-column">
               {/* DESKRIPSI */}
@@ -316,16 +325,51 @@ function DetailEventEO() {
                 </div>
               </section>
 
-              {/* LINEUP */}
+              {/* LINEUP (MENGGUNAKAN LINEUPLIST HASIL PARSING USEMEMO) */}
               <section className="detail-card lineup-card">
                 <h2>LineUp</h2>
                 <div className="lineup-grid">
-                  {lineup.length > 0 ? (
-                    lineup.map((person, index) => (
-                      <div className="lineup-item" key={index}>
-                        <span>{person.name}</span>
-                      </div>
-                    ))
+                  {lineupList.length > 0 ? (
+                    lineupList.map((artist, index) => {
+                      const key = `${artist.name}-${index}`;
+                      const src = getImageUrl(artist.image);
+
+                      // Path /uploads bisa 404 (file terhapus, atau env
+                      // belum di-build) -> fallback ke ikon, jangan
+                      // tampilkan kotak gambar rusak.
+                      const showImage = src && !brokenLineupImages.has(key);
+
+                      return (
+                        <div className="lineup-item" key={key}>
+                          {showImage ? (
+                            <img
+                              src={src}
+                              alt={artist.name}
+                              className="lineup-avatar"
+                              onError={() =>
+                                setBrokenLineupImages((prev) =>
+                                  new Set(prev).add(key),
+                                )
+                              }
+                            />
+                          ) : (
+                            <span className="lineup-avatar lineup-avatar--empty">
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                aria-hidden="true"
+                              >
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                              </svg>
+                            </span>
+                          )}
+                          <span>{artist.name}</span>
+                        </div>
+                      );
+                    })
                   ) : (
                     <p>Belum ada lineup.</p>
                   )}

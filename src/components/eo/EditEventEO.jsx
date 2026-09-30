@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -6,13 +6,15 @@ import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
 
 import {
-  getPublicEventDetail,
+  getOrganizerEventDetail,
   updateOrganizerEvent,
   uploadOrganizerEventBanner,
+  uploadOrganizerLineupImage,
+  extractUploadedImageUrl,
+  getEventCategories,
 } from "../../services/organizerEventService";
 
 import { resolveBannerUrl } from "../../utils/bannerUrl";
-
 import "./AddEvent.css";
 
 import { VALID_CATEGORIES, CATEGORY_LABELS, normalizeCategoryForBackend } from "../../constants/categories";
@@ -22,641 +24,431 @@ function EditEventEO() {
   const { id } = useParams();
 
   // =====================================================
-  // BASIC EVENT DATA
+  // BASIC EVENT DATA & CATEGORIES STATE
   // =====================================================
   const [eventName, setEventName] = useState("");
   const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
 
   // =====================================================
-  // SCHEDULE
+  // DYNAMIC LISTS (SCHEDULES, TICKETS, LINEUPS, FACILITIES)
   // =====================================================
-  const [schedules, setSchedules] = useState([
-    {
-      date: "",
-      startTime: "",
-      endTime: "",
-    },
-  ]);
+  const [schedules, setSchedules] = useState([{ date: "", startTime: "", endTime: "" }]);
+  const [tickets, setTickets] = useState([{ id: null, name: "", price: "", quota: "" }]);
+  // `file` = File baru yang dipilih user (akan diupload saat submit).
+  // `image` = path/URL yang sudah tersimpan di backend.
+  const [lineups, setLineups] = useState([{ name: "", image: "", file: null }]);
+  const [facilities, setFacilities] = useState([""]);
 
   // =====================================================
-  // TICKETS
-  // =====================================================
-  const [tickets, setTickets] = useState([]);
-
-  // =====================================================
-  // LINEUP
-  // =====================================================
-  const [lineups, setLineups] = useState([""]);
-
-  // =====================================================
-  // BANNER & PREVIEW STATE
+  // BANNER & FILE STATE
   // =====================================================
   const [banner, setBanner] = useState(null);
-  const [existingBannerUrl, setExistingBannerUrl] = useState("");
-  const [bannerPreview, setBannerPreview] = useState("");
+  const [bannerPreview, setBannerPreview] = useState(null);
+  const [existingBannerUrl, setExistingBannerUrl] = useState(null);
 
   // =====================================================
-  // PERMISSION FILE
+  // LOADING & ERROR STATE
   // =====================================================
-  const [permissionFile, setPermissionFile] = useState(null);
-  const [existingPermissionName, setExistingPermissionName] = useState("");
-
-  // =====================================================
-  // STATE LOADING & SUBMIT
-  // =====================================================
-  const [loading, setLoading] = useState(true);
+  const [fetchingData, setFetchingData] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  const getImageUrl = (url) => resolveBannerUrl(url) || "";
-
   // =====================================================
-  // HELPER FORMAT TANGGAL & JAM (SAFETY PARSER)
-  // =====================================================
-  const parseDateAndFormat = (dateInput) => {
-    if (!dateInput) return "";
-    try {
-      if (typeof dateInput === "string" && dateInput.includes("T")) {
-        return dateInput.split("T")[0];
-      }
-      const d = new Date(dateInput);
-      if (!Number.isNaN(d.getTime())) {
-        return d.toISOString().split("T")[0];
-      }
-      return String(dateInput).slice(0, 10);
-    } catch {
-      return "";
-    }
-  };
-
-  const parseTimeAndFormat = (timeInput, fullDateFallback) => {
-    if (timeInput) {
-      if (typeof timeInput === "string" && timeInput.includes(":")) {
-        const parts = timeInput.split(":");
-        return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
-      }
-    }
-    if (fullDateFallback) {
-      try {
-        const d = new Date(fullDateFallback);
-        if (!Number.isNaN(d.getTime())) {
-          return d.toTimeString().slice(0, 5);
-        }
-      } catch {
-        // do nothing
-      }
-    }
-    return "";
-  };
-
-  // =====================================================
-  // GET EVENT DATA DENGAN FALLBACK MAPPING
+  // FETCH CATEGORIES & AUTO-FILL EVENT DATA
   // =====================================================
   useEffect(() => {
-    const fetchEvent = async () => {
+    const initData = async () => {
       try {
-        setLoading(true);
+        setFetchingData(true);
         setError("");
 
-        if (!id) throw new Error("ID event tidak ditemukan.");
-
-        const response = await getPublicEventDetail(id);
-        
-        console.log("--> GET EVENT RESPONSE DETAIL:", response);
-
-        const event = response?.data || response?.event || response;
-
-        if (!event) throw new Error("Data event tidak ditemukan dari server.");
-
-        // --- 1. BASIC DATA ---
-        setEventName(
-          event.title || event.event_name || event.name || event.eventName || ""
-        );
-        setCategory(normalizeCategoryForBackend(event.category || event.event_category) || "");
-        setDescription(event.description || event.event_description || "");
-        setLocation(
-          event.venue_name || event.location || event.venue || event.address || ""
-        );
-
-        // --- 2. BANNER ---
-        const rawBanner =
-          event.banner_url ||
-          event.bannerUrl ||
-          event.image ||
-          event.banner ||
-          "";
-
-        setExistingBannerUrl(rawBanner);
-        if (rawBanner) {
-          setBannerPreview(getImageUrl(rawBanner));
+        if (!id || id === "undefined") {
+          throw new Error("ID event tidak valid di URL.");
         }
 
-        // --- 3. DOKUMEN PERIZINAN (FILE) ---
-        const rawFile =
-          event.permission_file ||
-          event.permissionFile ||
-          event.document ||
-          event.proposal_url ||
-          "";
+        // 1. Fetch Categories
+        try {
+          const catRes = await getEventCategories();
+          let catList = [];
 
-        if (rawFile) {
-          const fileName = String(rawFile).split("/").pop() || "Dokumen_Perizinan.pdf";
-          setExistingPermissionName(fileName);
-        }
-
-        // --- 4. LINEUP ---
-        const rawLineup = event.lineup || event.lineups || event.artists || event.performers;
-        if (rawLineup) {
-          if (Array.isArray(rawLineup)) {
-            const formattedLineup = rawLineup.map((item) =>
-              typeof item === "object" ? item.name || item.artist_name || "" : String(item)
-            );
-            setLineups(formattedLineup.length ? formattedLineup : [""]);
-          } else if (typeof rawLineup === "string") {
-            const parsedArray = rawLineup
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean);
-            setLineups(parsedArray.length ? parsedArray : [""]);
+          if (Array.isArray(catRes)) {
+            catList = catRes;
+          } else if (Array.isArray(catRes?.data)) {
+            catList = catRes.data;
+          } else if (Array.isArray(catRes?.data?.data)) {
+            catList = catRes.data.data;
           }
-        } else {
-          setLineups([""]);
-        }
 
-        // --- 5. JADWAL (SCHEDULE) ---
-        const rawSchedules = event.schedules || event.schedule_list || event.schedules_data;
-
-        if (Array.isArray(rawSchedules) && rawSchedules.length > 0) {
-          const parsedSchedules = rawSchedules.map((sch) => ({
-            date: parseDateAndFormat(sch.date || sch.event_date || sch.start_date),
-            startTime: parseTimeAndFormat(sch.start_time || sch.startTime, sch.start_date),
-            endTime: parseTimeAndFormat(sch.end_time || sch.endTime, sch.end_date),
-          }));
-          setSchedules(parsedSchedules);
-        } else {
-          const startDateRaw = event.start_date || event.startDate || event.date;
-          const endDateRaw = event.end_date || event.endDate || startDateRaw;
-
-          const parsedDate = parseDateAndFormat(startDateRaw);
-          const parsedStart = parseTimeAndFormat(event.start_time, startDateRaw);
-          const parsedEnd = parseTimeAndFormat(event.end_time, endDateRaw);
-
-          setSchedules([
-            {
-              date: parsedDate,
-              startTime: parsedStart,
-              endTime: parsedEnd,
-            },
+          if (catList.length === 0) {
+            catList = [
+              "MUSIC_FESTIVAL",
+              "CONFERENCE",
+              "EXHIBITION",
+              "CULINARY",
+              "TECHNOLOGY",
+              "ENTERTAINMENT",
+              "SEMINAR_WORKSHOP",
+              "COMMUNITY",
+            ];
+          }
+          setCategories(catList);
+        } catch (cErr) {
+          console.warn("Fallback Kategori digunakan:", cErr);
+          setCategories([
+            "MUSIC_FESTIVAL",
+            "CONFERENCE",
+            "EXHIBITION",
+            "CULINARY",
+            "TECHNOLOGY",
+            "ENTERTAINMENT",
+            "SEMINAR_WORKSHOP",
+            "COMMUNITY",
           ]);
+        } finally {
+          setLoadingCategories(false);
         }
 
-        // --- 6. TIKET & KUOTA ---
+        // 2. Fetch Detail Event
+        const eventRes = await getOrganizerEventDetail(id);
+        const eventData = eventRes?.data?.data || eventRes?.data || eventRes;
+
+        if (!eventData) {
+          throw new Error("Data event tidak ditemukan dari server.");
+        }
+
+        // AUTO-FILL INFORMASI DASAR
+        setEventName(eventData.title || "");
+        setCategory(eventData.category || "");
+        setDescription(eventData.description || "");
+        setLocation(eventData.location || eventData.venue_name || "");
+
+        // AUTO-FILL BANNER
+        const bannerPath = eventData.image || eventData.banner_url || eventData.banner;
+        if (bannerPath) {
+          const fullUrl = resolveBannerUrl(bannerPath);
+          setExistingBannerUrl(fullUrl);
+          setBannerPreview(fullUrl);
+        }
+
+        // AUTO-FILL JADWAL
+        if (eventData.date || eventData.start_date) {
+          const rawStart = new Date(eventData.date || eventData.start_date);
+          const rawEnd = eventData.end_date ? new Date(eventData.end_date) : rawStart;
+
+          if (!isNaN(rawStart.getTime())) {
+            const dateStr = rawStart.toISOString().split("T")[0];
+            const startTimeStr = rawStart.toTimeString().substring(0, 5);
+            const endTimeStr = !isNaN(rawEnd.getTime())
+              ? rawEnd.toTimeString().substring(0, 5)
+              : startTimeStr;
+
+            setSchedules([{ date: dateStr, startTime: startTimeStr, endTime: endTimeStr }]);
+          }
+        }
+
+        // AUTO-FILL TIKET (ROBUST MAPPING)
         const rawTickets =
-          event.tickets ||
-          event.ticket_tiers ||
-          event.ticketTiers ||
-          event.tiers ||
+          eventData.tickets ||
+          eventData.ticket_categories ||
+          eventData.ticketCategories ||
           [];
 
         if (Array.isArray(rawTickets) && rawTickets.length > 0) {
-          setTickets(
-            rawTickets.map((ticket) => {
-              const quotaVal =
-                ticket.total_quota ??
-                ticket.quota ??
-                ticket.totalQuota ??
-                ticket.quantity ??
-                "";
+          const mappedTickets = rawTickets.map((t) => ({
+            id: t.id || t.ticket_id || null,
+            name: t.name || t.label || t.tier_name || t.ticket_name || "",
+            price: t.price !== undefined && t.price !== null ? t.price : "",
+            quota:
+              t.quota !== undefined && t.quota !== null
+                ? t.quota
+                : t.total_quota !== undefined && t.total_quota !== null
+                ? t.total_quota
+                : "",
+          }));
 
-              const priceVal =
-                ticket.price ??
-                ticket.ticket_price ??
-                "";
-
-              return {
-                id: ticket.tier_id || ticket.tierId || ticket.id || null,
-                name: ticket.tier_name || ticket.tierName || ticket.name || ticket.title || "",
-                price: priceVal !== "" && priceVal !== null ? String(priceVal) : "",
-                quota: quotaVal !== "" && quotaVal !== null ? String(quotaVal) : "",
-              };
-            })
-          );
+          setTickets(mappedTickets);
         } else {
-          setTickets([{ name: "", price: "", quota: "" }]);
+          setTickets([{ id: null, name: "", price: "", quota: "" }]);
         }
 
+        // AUTO-FILL LINEUP (Format "Nama|PathGambar" atau array object)
+        const rawLineup = eventData.lineup || eventData.lineups;
+        if (typeof rawLineup === "string" && rawLineup.trim() !== "") {
+          const parsed = rawLineup.split(",").map((s) => {
+            const parts = s.split("|");
+            return {
+              name: parts[0]?.trim() || "",
+              image: parts[1]?.trim() || "",
+              file: null,
+            };
+          });
+          setLineups(parsed);
+        } else if (Array.isArray(rawLineup) && rawLineup.length > 0) {
+          setLineups(
+            rawLineup.map((item) =>
+              typeof item === "string"
+                ? {
+                    name: item.split("|")[0]?.trim() || "",
+                    image: item.split("|")[1]?.trim() || "",
+                    file: null,
+                  }
+                : {
+                    name: item?.name || "",
+                    image: item?.image || "",
+                    file: null,
+                  }
+            )
+          );
+        }
+
+        // AUTO-FILL FASILITAS
+        const rawFacilities = eventData.facilities || eventData.facility;
+        if (Array.isArray(rawFacilities) && rawFacilities.length > 0) {
+          setFacilities(rawFacilities.map((f) => (typeof f === "string" ? f : f.name || "")));
+        } else if (typeof rawFacilities === "string" && rawFacilities.trim() !== "") {
+          setFacilities(rawFacilities.split(",").map((f) => f.trim()));
+        }
       } catch (err) {
-        console.error("Gagal mengambil detail event:", err);
-        const message = err?.message || "Gagal mengambil data event.";
-        setError(message);
-        Swal.fire({
-          icon: "error",
-          title: "Gagal Memuat Data",
-          text: message,
-          confirmColor: "#6256e8",
-        });
+        console.error("Gagal memuat detail event:", err);
+        setError(err?.message || "Gagal memuat data event.");
       } finally {
-        setLoading(false);
+        setFetchingData(false);
       }
     };
 
-    fetchEvent();
+    initData();
   }, [id]);
 
-  // =====================================================
-  // HANDLERS JADWAL, TIKET, & LINEUP
-  // =====================================================
-  const handleAddSchedule = () => {
-    setSchedules([...schedules, { date: "", startTime: "", endTime: "" }]);
+  // Helper Kategori
+  const getCategoryValue = (cat) => {
+    if (!cat) return "";
+    if (typeof cat === "object" && cat !== null) {
+      return cat.code || cat.value || cat.id || cat.name || "";
+    }
+    return String(cat);
   };
 
+  const formatCategoryLabel = (cat) => {
+    if (!cat) return "";
+    const raw = typeof cat === "object" && cat !== null ? (cat.name || cat.label || cat.code) : cat;
+    return String(raw)
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  // =====================================================
+  // DYNAMIC LIST HANDLERS
+  // =====================================================
+  // SCHEDULES
+  const handleAddSchedule = () => setSchedules([...schedules, { date: "", startTime: "", endTime: "" }]);
   const handleScheduleChange = (index, field, value) => {
     const updated = [...schedules];
     updated[index] = { ...updated[index], [field]: value };
     setSchedules(updated);
   };
-
   const handleDeleteSchedule = (index) => {
-    if (schedules.length === 1) {
-      Swal.fire({
-        icon: "warning",
-        title: "Perhatian",
-        text: "Minimal harus ada satu jadwal event.",
-        confirmColor: "#6256e8",
-      });
-      return;
-    }
+    if (schedules.length === 1) return;
     setSchedules(schedules.filter((_, i) => i !== index));
   };
 
-  const handleAddTicket = () => {
-    setTickets([...tickets, { name: "", price: "", quota: "" }]);
-  };
-
+  // TICKETS HANDLER
+  const handleAddTicket = () => setTickets([...tickets, { id: null, name: "", price: "", quota: "" }]);
   const handleTicketChange = (index, field, value) => {
     const updated = [...tickets];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+    };
     setTickets(updated);
   };
-
   const handleDeleteTicket = (index) => {
-    if (tickets.length === 1) {
-      Swal.fire({
-        icon: "warning",
-        title: "Perhatian",
-        text: "Minimal harus ada satu kategori tiket.",
-        confirmColor: "#6256e8",
-      });
-      return;
-    }
+    if (tickets.length === 1) return;
     setTickets(tickets.filter((_, i) => i !== index));
   };
 
-  const handleAddLineup = () => {
-    setLineups([...lineups, ""]);
-  };
-
-  const handleLineupChange = (index, value) => {
+  // LINEUPS HANDLER
+  const handleAddLineup = () =>
+    setLineups([...lineups, { name: "", image: "", file: null }]);
+  const handleLineupChange = (index, field, value) => {
     const updated = [...lineups];
-    updated[index] = value;
+    // Mengetik URL manual membuang File yang sudah dipilih supaya
+    // tidak ada dua sumber gambar yang bertabrakan.
+    updated[index] =
+      field === "image"
+        ? { ...updated[index], image: value, file: null }
+        : { ...updated[index], [field]: value };
     setLineups(updated);
   };
-
-  const handleDeleteLineup = (index) => {
-    if (lineups.length === 1) {
-      Swal.fire({
-        icon: "warning",
-        title: "Perhatian",
-        text: "Minimal harus ada satu pengisi acara (lineup).",
-        confirmColor: "#6256e8",
-      });
+  const handleLineupFileChange = (index, file) => {
+    if (!file) {
+      const cleared = [...lineups];
+      cleared[index] = { ...cleared[index], file: null };
+      setLineups(cleared);
       return;
     }
-    setLineups(lineups.filter((_, i) => i !== index));
-  };
-
-  // =====================================================
-  // BANNER & PERMISSION FILE HANDLERS
-  // =====================================================
-  const handleBannerChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
       Swal.fire({
         icon: "error",
         title: "Ukuran File Terlalu Besar",
-        text: "Ukuran banner maksimal 5MB.",
-        confirmColor: "#6256e8",
+        text: `Ukuran foto ${lineups[index]?.name || "artis"} maksimal 5MB.`,
       });
-      e.target.value = "";
       return;
     }
 
-    if (!file.type.startsWith("image/")) {
-      Swal.fire({
-        icon: "error",
-        title: "Format Tidak Sesuai",
-        text: "File banner harus berupa gambar (JPG, PNG, WebP).",
-        confirmColor: "#6256e8",
-      });
-      e.target.value = "";
-      return;
-    }
-
-    setBanner(file);
-    const objectUrl = URL.createObjectURL(file);
-    setBannerPreview(objectUrl);
+    const updated = [...lineups];
+    updated[index] = { ...updated[index], file, image: "" };
+    setLineups(updated);
+  };
+  const handleDeleteLineup = (index) => {
+    if (lineups.length === 1) return;
+    setLineups(lineups.filter((_, i) => i !== index));
   };
 
-  const handleRemoveBanner = () => {
-    setBanner(null);
-    if (existingBannerUrl) {
-      setBannerPreview(getImageUrl(existingBannerUrl));
-    } else {
-      setBannerPreview("");
-    }
+  // Upload hanya foto yang BARU dipilih user; baris tanpa file baru
+  // tetap memakai path yang sudah tersimpan di backend.
+  const uploadLineupImages = async () =>
+    Promise.all(
+      lineups.map(async (item) => {
+        if (!item.file) {
+          return item.image || null;
+        }
+
+        const response = await uploadOrganizerLineupImage(item.file);
+        return extractUploadedImageUrl(response);
+      }),
+    );
+
+  // FACILITIES HANDLER
+  const handleAddFacility = () => setFacilities([...facilities, ""]);
+  const handleFacilityChange = (index, value) => {
+    const updated = [...facilities];
+    updated[index] = value;
+    setFacilities(updated);
+  };
+  const handleDeleteFacility = (index) => {
+    if (facilities.length === 1) return;
+    setFacilities(facilities.filter((_, i) => i !== index));
   };
 
-  const handlePermissionChange = (e) => {
+  // BANNER CHANGE
+  const handleBannerChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-      Swal.fire({
-        icon: "error",
-        title: "Ukuran File Terlalu Besar",
-        text: "Ukuran dokumen perizinan maksimal 10MB.",
-        confirmColor: "#6256e8",
-      });
-      e.target.value = "";
-      return;
-    }
-
-    const allowedTypes = [
-      "application/pdf",
-      "application/zip",
-      "application/x-zip-compressed",
-    ];
-
-    const fileName = file.name.toLowerCase();
-    const validExtension = fileName.endsWith(".pdf") || fileName.endsWith(".zip");
-
-    if (!allowedTypes.includes(file.type) && !validExtension) {
-      Swal.fire({
-        icon: "error",
-        title: "Format Tidak Sesuai",
-        text: "Dokumen perizinan harus berupa file PDF atau ZIP.",
-        confirmColor: "#6256e8",
-      });
-      e.target.value = "";
-      return;
-    }
-
-    setPermissionFile(file);
+    setBanner(file);
+    setBannerPreview(URL.createObjectURL(file));
   };
 
   // =====================================================
-  // VALIDASI FORM
-  // =====================================================
-  const validateForm = () => {
-    if (!eventName.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Nama event wajib diisi.",
-        confirmColor: "#6256e8",
-      });
-      return false;
-    }
-
-    if (!category) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Kategori event wajib dipilih.",
-        confirmColor: "#6256e8",
-      });
-      return false;
-    }
-
-    if (!description.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Deskripsi event wajib diisi.",
-        confirmColor: "#6256e8",
-      });
-      return false;
-    }
-
-    if (!location.trim()) {
-      Swal.fire({
-        icon: "warning",
-        title: "Form Belum Lengkap",
-        text: "Lokasi / venue event wajib diisi.",
-        confirmColor: "#6256e8",
-      });
-      return false;
-    }
-
-    for (let i = 0; i < schedules.length; i++) {
-      const schedule = schedules[i];
-      if (!schedule.date) {
-        Swal.fire({
-          icon: "warning",
-          title: "Jadwal Belum Lengkap",
-          text: `Tanggal jadwal ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-      if (!schedule.startTime) {
-        Swal.fire({
-          icon: "warning",
-          title: "Jadwal Belum Lengkap",
-          text: `Jam mulai jadwal ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-      if (!schedule.endTime) {
-        Swal.fire({
-          icon: "warning",
-          title: "Jadwal Belum Lengkap",
-          text: `Jam selesai jadwal ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-      if (schedule.endTime <= schedule.startTime) {
-        Swal.fire({
-          icon: "error",
-          title: "Waktu Tidak Valid",
-          text: `Jam selesai jadwal ke-${i + 1} harus lebih besar dari jam mulai.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-    }
-
-    for (let i = 0; i < tickets.length; i++) {
-      const ticket = tickets[i];
-      if (!ticket.name.trim()) {
-        Swal.fire({
-          icon: "warning",
-          title: "Tiket Belum Lengkap",
-          text: `Nama kategori tiket ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-      if (ticket.price === "" || Number(ticket.price) < 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Tiket Belum Lengkap",
-          text: `Harga tiket ke-${i + 1} tidak valid.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-      if (ticket.quota === "" || Number(ticket.quota) <= 0) {
-        Swal.fire({
-          icon: "warning",
-          title: "Tiket Belum Lengkap",
-          text: `Kuota tiket ke-${i + 1} harus lebih dari 0.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-    }
-
-    for (let i = 0; i < lineups.length; i++) {
-      if (!lineups[i].trim()) {
-        Swal.fire({
-          icon: "warning",
-          title: "Lineup Belum Lengkap",
-          text: `Nama pengisi acara (lineup) ke-${i + 1} wajib diisi.`,
-          confirmColor: "#6256e8",
-        });
-        return false;
-      }
-    }
-
-    return true;
-  };
-
-  // =====================================================
-  // BUILD PAYLOAD
-  // =====================================================
-  const buildDateTime = (date, time) => {
-    if (!date || !time) return null;
-    return `${date}T${time}:00`;
-  };
-
-  const buildEventPayload = (bannerUrl) => {
-    const firstSchedule = schedules[0];
-    const startDate = buildDateTime(firstSchedule?.date, firstSchedule?.startTime);
-    const endDate = buildDateTime(firstSchedule?.date, firstSchedule?.endTime);
-
-    const lineupData = lineups
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .join(", ");
-
-    const ticketData = tickets.map((ticket) => ({
-      ...(ticket.id ? { tier_id: Number(ticket.id) || ticket.id } : {}),
-      tier_name: ticket.name.trim(),
-      price: Number(ticket.price) || 0,
-      total_quota: Number(ticket.quota) || 0,
-    }));
-
-    return {
-      eventId: id,
-      event_id: id,
-      title: eventName.trim(),
-      description: description.trim(),
-      category,
-      venue_name: location.trim(),
-      start_date: startDate,
-      end_date: endDate,
-      lineup: lineupData || null,
-      banner_url: bannerUrl,
-      tickets: ticketData,
-      ticket_tiers: ticketData,
-    };
-  };
-
-  // =====================================================
-  // UPDATE EVENT ACTION
+  // SUBMIT UPDATE EVENT
   // =====================================================
   const handleUpdateEvent = async () => {
-    if (!validateForm()) return;
+    if (!eventName.trim() || !category || !description.trim() || !location.trim()) {
+      Swal.fire({ icon: "warning", title: "Form Belum Lengkap", text: "Mohon isi semua data yang wajib." });
+      return;
+    }
 
     try {
       setSubmitting(true);
       setError("");
 
-      let bannerUrl = existingBannerUrl || null;
-
+      let bannerUrl = existingBannerUrl;
       if (banner) {
         const bannerResponse = await uploadOrganizerEventBanner(banner);
         bannerUrl =
           bannerResponse?.data?.banner_url ||
+          bannerResponse?.data?.image ||
           bannerResponse?.banner_url ||
+          bannerResponse?.image ||
           bannerUrl;
       }
 
-      const payload = buildEventPayload(bannerUrl);
-      console.log("--> SUBMITTING PAYLOAD TO SERVER FOR EVENT ID:", id, payload);
+      const lineupImages = await uploadLineupImages();
 
-      // PANGGILAN DENGAN ID DAN PAYLOAD TERPISAH (Sesuai Service)
-      const response = await updateOrganizerEvent(id, payload);
-      console.log("--> SERVER UPDATE RESPONSE:", response);
+      const firstSchedule = schedules[0];
+      const startDate = `${firstSchedule?.date}T${firstSchedule?.startTime}:00`;
+      const endDate = `${firstSchedule?.date}T${firstSchedule?.endTime}:00`;
+
+      // Simpan Format LineUp: "Nama|PathGambar"
+      const lineupString = lineups
+        .map((item, index) => ({ item, image: lineupImages[index] }))
+        .filter(({ item }) => item.name.trim() !== "")
+        .map(({ item, image }) => {
+          const name = item.name.trim();
+          const img = String(image || "").trim();
+          return img ? `${name}|${img}` : name;
+        })
+        .join(", ");
+
+      const facilityArray = facilities.map((i) => i.trim()).filter(Boolean);
+
+      // Payload Tiket Presisi dengan Menjaga ID
+      const ticketPayload = tickets
+        .filter((t) => String(t.name).trim() !== "")
+        .map((t) => {
+          const item = {
+            name: String(t.name).trim(),
+            label: String(t.name).trim(),
+            tier_name: String(t.name).trim(),
+            ticket_name: String(t.name).trim(),
+            price: Number(t.price),
+            quota: Number(t.quota),
+          };
+
+          if (t.id && t.id !== "null" && t.id !== "undefined") {
+            item.id = t.id;
+          }
+
+          return item;
+        });
+
+      const payload = {
+        title: eventName.trim(),
+        description: description.trim(),
+        category,
+        location: location.trim(),
+        venue_name: location.trim(),
+        date: startDate,
+        start_date: startDate,
+        end_date: endDate,
+        lineup: lineupString,
+        facilities: facilityArray,
+        image: bannerUrl,
+        banner_url: bannerUrl,
+        tickets: ticketPayload,
+      };
+
+      await updateOrganizerEvent(id, payload);
 
       Swal.fire({
         icon: "success",
-        title: "Perubahan Tersimpan!",
-        text: "Detail event Anda berhasil diperbarui.",
-        confirmColor: "#6256e8",
-      }).then(() => {
-        navigate(`/eo/event/${id}`, { replace: true, state: { updated: Date.now() } });
-      });
+        title: "Perubahan Disimpan!",
+        text: "Event berhasil diperbarui.",
+        confirmButtonColor: "#6256e8",
+      }).then(() => navigate(`/eo/event/${id}`));
     } catch (err) {
       console.error("Gagal memperbarui event:", err);
-      const message = err?.response?.data?.message || err?.message || "Gagal memperbarui event.";
-      setError(message);
-      Swal.fire({
-        icon: "error",
-        title: "Gagal Memperbarui",
-        text: message,
-        confirmColor: "#6256e8",
-      });
+      const msg = err?.data?.msg || err?.message || "Gagal memperbarui event.";
+      setError(msg);
+      Swal.fire({ icon: "error", title: "Gagal Update", text: msg });
     } finally {
       setSubmitting(false);
     }
   };
 
-  // =====================================================
-  // TOTAL KUOTA
-  // =====================================================
-  const totalQuota = tickets.reduce((total, ticket) => {
-    return total + (Number(ticket.quota) || 0);
-  }, 0);
-
-  if (loading) {
+  if (fetchingData) {
     return (
       <div className="add-event-page">
         <SidebarEO />
         <main className="add-event-main">
           <NavbarEO />
-          <div
-            className="add-event-content"
-            style={{ textAlign: "center", paddingTop: "100px", color: "#777" }}
-          >
-            Memuat data event...
+          <div className="add-event-content">
+            <p>Memuat data event untuk diedit...</p>
           </div>
         </main>
       </div>
@@ -671,18 +463,14 @@ function EditEventEO() {
         <NavbarEO />
 
         <div className="add-event-content">
-          {error && (
-            <div className="dashboard-error" style={{ marginBottom: "20px" }}>
-              {error}
-            </div>
-          )}
+          {error && <div className="dashboard-error" style={{ marginBottom: "20px" }}>{error}</div>}
 
           {/* HEADER */}
           <div className="add-event-header">
             <div className="add-event-title">
               <span className="add-event-small-title">Event</span>
               <h1>Edit Event</h1>
-              <p>Perbarui detail event Anda di bawah ini.</p>
+              <p>Perbarui informasi event Anda di bawah ini.</p>
             </div>
 
             <div className="add-event-header-actions">
@@ -690,19 +478,16 @@ function EditEventEO() {
                 type="button"
                 className="draft-button"
                 onClick={() => navigate(`/eo/event/${id}`)}
-                disabled={submitting}
               >
                 Batal
               </button>
-
               <button
                 type="button"
                 className="create-event-button"
                 onClick={handleUpdateEvent}
                 disabled={submitting}
               >
-                <span>✓</span>
-                {submitting ? "Menyimpan..." : "Simpan Perubahan"}
+                {submitting ? "Memproses..." : "Simpan Perubahan"}
               </button>
             </div>
           </div>
@@ -710,7 +495,6 @@ function EditEventEO() {
           {/* INFORMASI DASAR */}
           <section className="form-card">
             <h2>Informasi Dasar</h2>
-
             <div className="form-grid">
               <div className="form-field">
                 <label>NAMA EVENT</label>
@@ -718,7 +502,6 @@ function EditEventEO() {
                   type="text"
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
-                  placeholder="Contoh: Sedih Fest 2024"
                 />
               </div>
 
@@ -727,30 +510,37 @@ function EditEventEO() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
+                  disabled={loadingCategories}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: "8px",
+                    border: "1px solid #ccc",
+                    backgroundColor: "#ffffff",
+                    cursor: "pointer",
+                  }}
                 >
-                  <option value="">Pilih Kategori...</option>
-                  {VALID_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{CATEGORY_LABELS[c]}</option>
-                  ))}
+                  <option value="">
+                    {loadingCategories ? "Memuat Kategori..." : "-- Pilih Kategori Event --"}
+                  </option>
+                  {categories.map((cat, idx) => {
+                    const val = getCategoryValue(cat);
+                    const label = formatCategoryLabel(cat);
+                    return (
+                      <option key={idx} value={val}>
+                        {label}
+                      </option>
+                    );
+                  })}
                 </select>
-
-                {category && (
-                  <span className="category-tag">
-                    {category}
-                    <button type="button" onClick={() => setCategory("")}>
-                      ×
-                    </button>
-                  </span>
-                )}
               </div>
             </div>
 
-            <div className="form-field description-field">
+            <div className="form-field description-field" style={{ marginTop: "16px" }}>
               <label>DESKRIPSI EVENT</label>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Ceritakan detail menarik tentang event Anda..."
               />
             </div>
           </section>
@@ -758,70 +548,33 @@ function EditEventEO() {
           {/* LOKASI EVENT */}
           <section className="form-card">
             <h2>Lokasi Event</h2>
-
             <div className="form-field">
               <label>DETAIL LOKASI / VENUE</label>
-              <div className="input-with-icon">
-                <span className="search-icon">🔍</span>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Cari gedung, stadion, atau alamat lengkap..."
-                />
-              </div>
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+              />
             </div>
           </section>
 
           {/* BANNER EVENT */}
           <section className="form-card">
             <h2>Banner Event</h2>
-
             {bannerPreview ? (
               <div className="banner-preview-wrapper">
-                <img
-                  src={bannerPreview}
-                  alt="Banner Event"
-                  className="banner-preview-img"
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none";
-                  }}
-                />
-                <div className="banner-preview-overlay">
-                  <span className="banner-filename">
-                    {banner ? banner.name : "Banner Aktif Saat Ini"}
-                  </span>
-                  <div className="banner-action-buttons">
-                    <label className="change-banner-btn">
-                      Ganti Gambar
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleBannerChange}
-                      />
-                    </label>
-                    {banner && (
-                      <button
-                        type="button"
-                        className="remove-banner-btn"
-                        onClick={handleRemoveBanner}
-                      >
-                        Batal
-                      </button>
-                    )}
-                  </div>
+                <img src={bannerPreview} alt="Preview Banner" className="banner-preview-img" style={{ maxHeight: "200px", borderRadius: "8px" }} />
+                <div className="banner-preview-overlay" style={{ marginTop: "10px" }}>
+                  <label className="change-banner-btn">
+                    Ganti Gambar
+                    <input type="file" accept="image/*" onChange={handleBannerChange} />
+                  </label>
                 </div>
               </div>
             ) : (
               <label className="upload-box">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBannerChange}
-                />
-                <div className="upload-icon">☁</div>
-                <strong>Upload / Ganti Banner Event (16:9)</strong>
-                <span>Klik untuk memilih banner (Max 5MB)</span>
+                <input type="file" accept="image/*" onChange={handleBannerChange} />
+                <strong>Upload Banner Event</strong>
               </label>
             )}
           </section>
@@ -830,206 +583,157 @@ function EditEventEO() {
           <section className="form-card">
             <div className="section-header">
               <h2>Jadwal Event</h2>
-              <button
-                type="button"
-                className="add-small-button"
-                onClick={handleAddSchedule}
-              >
-                + Tambah Jadwal
-              </button>
             </div>
-
-            <div className="schedule-list">
-              {schedules.map((schedule, index) => (
-                <div className="schedule-row" key={index}>
-                  <div className="schedule-field">
-                    <label>TANGGAL</label>
-                    <input
-                      type="date"
-                      value={schedule.date}
-                      onChange={(e) =>
-                        handleScheduleChange(index, "date", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <div className="schedule-field">
-                    <label>JAM MULAI</label>
-                    <input
-                      type="time"
-                      value={schedule.startTime}
-                      onChange={(e) =>
-                        handleScheduleChange(
-                          index,
-                          "startTime",
-                          e.target.value
-                        )
-                      }
-                    />
-                  </div>
-
-                  <div className="schedule-field">
-                    <label>JAM SELESAI</label>
-                    <input
-                      type="time"
-                      value={schedule.endTime}
-                      onChange={(e) =>
-                        handleScheduleChange(index, "endTime", e.target.value)
-                      }
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    className="delete-row-button"
-                    onClick={() => handleDeleteSchedule(index)}
-                  >
-                    🗑
-                  </button>
+            {schedules.map((schedule, index) => (
+              <div className="schedule-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                <div className="schedule-field" style={{ flex: 1 }}>
+                  <label>TANGGAL</label>
+                  <input
+                    type="date"
+                    value={schedule.date}
+                    onChange={(e) => handleScheduleChange(index, "date", e.target.value)}
+                  />
                 </div>
-              ))}
-            </div>
+                <div className="schedule-field" style={{ flex: 1 }}>
+                  <label>JAM MULAI</label>
+                  <input
+                    type="time"
+                    value={schedule.startTime}
+                    onChange={(e) => handleScheduleChange(index, "startTime", e.target.value)}
+                  />
+                </div>
+                <div className="schedule-field" style={{ flex: 1 }}>
+                  <label>JAM SELESAI</label>
+                  <input
+                    type="time"
+                    value={schedule.endTime}
+                    onChange={(e) => handleScheduleChange(index, "endTime", e.target.value)}
+                  />
+                </div>
+                {schedules.length > 1 && (
+                  <button type="button" onClick={() => handleDeleteSchedule(index)}>×</button>
+                )}
+              </div>
+            ))}
           </section>
 
-          {/* KATEGORI TIKET & KUOTA */}
+          {/* KATEGORI TIKET */}
           <section className="form-card">
             <div className="section-header">
               <h2>Kategori Tiket</h2>
-              <button
-                type="button"
-                className="add-small-button"
-                onClick={handleAddTicket}
-              >
+              <button type="button" className="add-small-button" onClick={handleAddTicket}>
                 + Tambah Kategori
               </button>
             </div>
-
             <div className="ticket-table">
-              <div className="ticket-header">
-                <span>NAMA KATEGORI</span>
-                <span>HARGA TIKET (RP)</span>
-                <span>KUOTA</span>
-                <span></span>
-              </div>
-
               {tickets.map((ticket, index) => (
-                <div className="ticket-row" key={ticket.id || index}>
+                <div className="ticket-row" key={ticket.id || index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
                   <input
                     type="text"
-                    value={ticket.name}
-                    placeholder="Nama kategori"
-                    onChange={(e) =>
-                      handleTicketChange(index, "name", e.target.value)
-                    }
+                    placeholder="Nama Kategori (misal: VIP)"
+                    value={ticket.name ?? ""}
+                    onChange={(e) => handleTicketChange(index, "name", e.target.value)}
+                    style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
                   />
-
                   <input
                     type="number"
-                    value={ticket.price}
-                    placeholder="Harga"
-                    min="0"
-                    onChange={(e) =>
-                      handleTicketChange(index, "price", e.target.value)
-                    }
+                    placeholder="Harga (Rp)"
+                    value={ticket.price ?? ""}
+                    onChange={(e) => handleTicketChange(index, "price", e.target.value)}
+                    style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
                   />
-
                   <input
                     type="number"
-                    value={ticket.quota}
                     placeholder="Kuota"
-                    min="1"
-                    onChange={(e) =>
-                      handleTicketChange(index, "quota", e.target.value)
-                    }
+                    value={ticket.quota ?? ""}
+                    onChange={(e) => handleTicketChange(index, "quota", e.target.value)}
+                    style={{ flex: 1, padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
                   />
-
-                  <button
-                    type="button"
-                    className="delete-ticket-button"
-                    onClick={() => handleDeleteTicket(index)}
-                  >
-                    ×
-                  </button>
+                  {tickets.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteTicket(index)}
+                      style={{
+                        background: "#fee2e2",
+                        color: "#ef4444",
+                        border: "none",
+                        borderRadius: "6px",
+                        padding: "0 12px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
-
-            <div className="total-quota">
-              <span>Total Kuota:</span>
-              <strong>{totalQuota}</strong>
-            </div>
           </section>
 
-          {/* LINEUP EVENT */}
+          {/* LINE UP EVENT */}
           <section className="form-card">
             <div className="section-header">
               <h2>Line Up Event</h2>
-              <button
-                type="button"
-                className="add-small-button"
-                onClick={handleAddLineup}
-              >
+              <button type="button" className="add-small-button" onClick={handleAddLineup}>
                 + Tambah LineUp
               </button>
             </div>
+            {lineups.map((lineup, index) => (
+              <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
+                <input
+                  type="text"
+                  placeholder="Nama Artis"
+                  value={lineup.name || ""}
+                  onChange={(e) => handleLineupChange(index, "name", e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleLineupFileChange(index, e.target.files?.[0] || null)}
+                  style={{ flex: 1.5 }}
+                />
+                <input
+                  type="url"
+                  placeholder={lineup.image ? lineup.image : "atau tempel URL foto"}
+                  value={lineup.image || ""}
+                  onChange={(e) => handleLineupChange(index, "image", e.target.value)}
+                  style={{ flex: 1.5 }}
+                />
+                {lineups.length > 1 && (
+                  <button type="button" onClick={() => handleDeleteLineup(index)}>×</button>
+                )}
+              </div>
+            ))}
 
-            <div className="lineup-list">
-              {lineups.map((lineup, index) => (
-                <div className="lineup-row" key={index}>
-                  <input
-                    type="text"
-                    value={lineup}
-                    placeholder="Nama artis / pengisi acara"
-                    onChange={(e) =>
-                      handleLineupChange(index, e.target.value)
-                    }
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteLineup(index)}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+            <p style={{ fontSize: "12px", color: "#6f7482", margin: "4px 0 0" }}>
+              Kosongkan kolom URL lalu pilih file untuk mengganti foto. Baris tanpa file
+              baru akan memakai foto yang sudah tersimpan.
+            </p>
           </section>
 
-          {/* PERIZINAN */}
+          {/* FASILITAS EVENT */}
           <section className="form-card">
-            <h2>Perizinan Event</h2>
-
-            <label
-              className={`upload-box permission-upload ${
-                permissionFile || existingPermissionName ? "has-file" : ""
-              }`}
-            >
-              <input
-                type="file"
-                accept=".pdf,.zip"
-                onChange={handlePermissionChange}
-              />
-
-              <div className="upload-icon">📄</div>
-
-              {permissionFile ? (
-                <>
-                  <strong>{permissionFile.name}</strong>
-                  <span>Klik untuk mengganti dokumen</span>
-                </>
-              ) : existingPermissionName ? (
-                <>
-                  <strong>{existingPermissionName} (Tersimpan)</strong>
-                  <span>Klik jika ingin mengganti dokumen perizinan</span>
-                </>
-              ) : (
-                <>
-                  <strong>Ganti Dokumen Perizinan (Opsional)</strong>
-                  <span>Format .PDF atau .ZIP (Max 10MB)</span>
-                </>
-              )}
-            </label>
+            <div className="section-header">
+              <h2>Fasilitas Event</h2>
+              <button type="button" className="add-small-button" onClick={handleAddFacility}>
+                + Tambah Fasilitas
+              </button>
+            </div>
+            {facilities.map((facility, index) => (
+              <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                <input
+                  type="text"
+                  placeholder="Contoh: Free Parking, Food Court"
+                  value={facility || ""}
+                  onChange={(e) => handleFacilityChange(index, e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                {facilities.length > 1 && (
+                  <button type="button" onClick={() => handleDeleteFacility(index)}>×</button>
+                )}
+              </div>
+            ))}
           </section>
         </div>
       </main>

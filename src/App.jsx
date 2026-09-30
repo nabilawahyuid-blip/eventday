@@ -204,11 +204,8 @@ function App() {
             path="/eo/event/:id"
             element={<DetailEventEO />}
           />
-
-          <Route
-            path="/eo/event/:id/edit"
-            element={<EditEventEO />}
-          />
+<Route path="/eo/event/edit/:id" element={<EditEventEO />} />
+          
 
           <Route
             path="/eo/transaksi"
