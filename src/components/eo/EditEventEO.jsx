@@ -9,6 +9,8 @@ import {
   getOrganizerEventDetail,
   updateOrganizerEvent,
   uploadOrganizerEventBanner,
+  uploadOrganizerLineupImage,
+  extractUploadedImageUrl,
   getEventCategories,
 } from "../../services/organizerEventService";
 
@@ -34,7 +36,9 @@ function EditEventEO() {
   // =====================================================
   const [schedules, setSchedules] = useState([{ date: "", startTime: "", endTime: "" }]);
   const [tickets, setTickets] = useState([{ id: null, name: "", price: "", quota: "" }]);
-  const [lineups, setLineups] = useState([{ name: "", image: "" }]);
+  // `file` = File baru yang dipilih user (akan diupload saat submit).
+  // `image` = path/URL yang sudah tersimpan di backend.
+  const [lineups, setLineups] = useState([{ name: "", image: "", file: null }]);
   const [facilities, setFacilities] = useState([""]);
 
   // =====================================================
@@ -169,7 +173,7 @@ function EditEventEO() {
           setTickets([{ id: null, name: "", price: "", quota: "" }]);
         }
 
-        // AUTO-FILL LINEUP (Format Nama|LinkGambar)
+        // AUTO-FILL LINEUP (Format "Nama|PathGambar" atau array object)
         const rawLineup = eventData.lineup || eventData.lineups;
         if (typeof rawLineup === "string" && rawLineup.trim() !== "") {
           const parsed = rawLineup.split(",").map((s) => {
@@ -177,6 +181,7 @@ function EditEventEO() {
             return {
               name: parts[0]?.trim() || "",
               image: parts[1]?.trim() || "",
+              file: null,
             };
           });
           setLineups(parsed);
@@ -184,8 +189,16 @@ function EditEventEO() {
           setLineups(
             rawLineup.map((item) =>
               typeof item === "string"
-                ? { name: item.split("|")[0]?.trim() || "", image: item.split("|")[1]?.trim() || "" }
-                : { name: item.name || "", image: item.image || "" }
+                ? {
+                    name: item.split("|")[0]?.trim() || "",
+                    image: item.split("|")[1]?.trim() || "",
+                    file: null,
+                  }
+                : {
+                    name: item?.name || "",
+                    image: item?.image || "",
+                    file: null,
+                  }
             )
           );
         }
@@ -257,16 +270,57 @@ function EditEventEO() {
   };
 
   // LINEUPS HANDLER
-  const handleAddLineup = () => setLineups([...lineups, { name: "", image: "" }]);
+  const handleAddLineup = () =>
+    setLineups([...lineups, { name: "", image: "", file: null }]);
   const handleLineupChange = (index, field, value) => {
     const updated = [...lineups];
-    updated[index] = { ...updated[index], [field]: value };
+    // Mengetik URL manual membuang File yang sudah dipilih supaya
+    // tidak ada dua sumber gambar yang bertabrakan.
+    updated[index] =
+      field === "image"
+        ? { ...updated[index], image: value, file: null }
+        : { ...updated[index], [field]: value };
+    setLineups(updated);
+  };
+  const handleLineupFileChange = (index, file) => {
+    if (!file) {
+      const cleared = [...lineups];
+      cleared[index] = { ...cleared[index], file: null };
+      setLineups(cleared);
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({
+        icon: "error",
+        title: "Ukuran File Terlalu Besar",
+        text: `Ukuran foto ${lineups[index]?.name || "artis"} maksimal 5MB.`,
+      });
+      return;
+    }
+
+    const updated = [...lineups];
+    updated[index] = { ...updated[index], file, image: "" };
     setLineups(updated);
   };
   const handleDeleteLineup = (index) => {
     if (lineups.length === 1) return;
     setLineups(lineups.filter((_, i) => i !== index));
   };
+
+  // Upload hanya foto yang BARU dipilih user; baris tanpa file baru
+  // tetap memakai path yang sudah tersimpan di backend.
+  const uploadLineupImages = async () =>
+    Promise.all(
+      lineups.map(async (item) => {
+        if (!item.file) {
+          return item.image || null;
+        }
+
+        const response = await uploadOrganizerLineupImage(item.file);
+        return extractUploadedImageUrl(response);
+      }),
+    );
 
   // FACILITIES HANDLER
   const handleAddFacility = () => setFacilities([...facilities, ""]);
@@ -312,16 +366,19 @@ function EditEventEO() {
           bannerUrl;
       }
 
+      const lineupImages = await uploadLineupImages();
+
       const firstSchedule = schedules[0];
       const startDate = `${firstSchedule?.date}T${firstSchedule?.startTime}:00`;
       const endDate = `${firstSchedule?.date}T${firstSchedule?.endTime}:00`;
 
-      // Simpan Format LineUp: Nama|LinkFoto
+      // Simpan Format LineUp: "Nama|PathGambar"
       const lineupString = lineups
-        .filter((item) => item.name.trim() !== "")
-        .map((item) => {
+        .map((item, index) => ({ item, image: lineupImages[index] }))
+        .filter(({ item }) => item.name.trim() !== "")
+        .map(({ item, image }) => {
           const name = item.name.trim();
-          const img = item.image.trim();
+          const img = String(image || "").trim();
           return img ? `${name}|${img}` : name;
         })
         .join(", ");
@@ -374,7 +431,7 @@ function EditEventEO() {
       }).then(() => navigate(`/eo/event/${id}`));
     } catch (err) {
       console.error("Gagal memperbarui event:", err);
-      const msg = err?.response?.data?.msg || err?.message || "Gagal memperbarui event.";
+      const msg = err?.data?.msg || err?.message || "Gagal memperbarui event.";
       setError(msg);
       Swal.fire({ icon: "error", title: "Gagal Update", text: msg });
     } finally {
@@ -620,7 +677,7 @@ function EditEventEO() {
               </button>
             </div>
             {lineups.map((lineup, index) => (
-              <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+              <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
                 <input
                   type="text"
                   placeholder="Nama Artis"
@@ -629,8 +686,14 @@ function EditEventEO() {
                   style={{ flex: 1 }}
                 />
                 <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleLineupFileChange(index, e.target.files?.[0] || null)}
+                  style={{ flex: 1.5 }}
+                />
+                <input
                   type="url"
-                  placeholder="Link Foto Artis (https://...)"
+                  placeholder={lineup.image ? lineup.image : "atau tempel URL foto"}
                   value={lineup.image || ""}
                   onChange={(e) => handleLineupChange(index, "image", e.target.value)}
                   style={{ flex: 1.5 }}
@@ -640,6 +703,11 @@ function EditEventEO() {
                 )}
               </div>
             ))}
+
+            <p style={{ fontSize: "12px", color: "#6f7482", margin: "4px 0 0" }}>
+              Kosongkan kolom URL lalu pilih file untuk mengganti foto. Baris tanpa file
+              baru akan memakai foto yang sudah tersimpan.
+            </p>
           </section>
 
           {/* FASILITAS EVENT */}
