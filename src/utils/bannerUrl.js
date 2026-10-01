@@ -21,9 +21,13 @@ export const resolveBannerUrl = (url) => {
   const ngrokUrl = (import.meta.env.VITE_NGROK_URL || "").replace(/\/$/, "");
   const apiUrl = (import.meta.env.VITE_API_URL || "https://api-eventday.dnabisa.tech").replace(/\/$/, "");
 
-  // Jika URL dari backend mengandung prefix Ngrok lama, bersihkan
+  // Jika URL dari backend mengandung prefix Ngrok/API lama, bersihkan
+  // agar di DEV bisa lewat Vite proxy sebagai path relatif.
   if (ngrokUrl && s.startsWith(ngrokUrl + "/")) {
     s = s.slice(ngrokUrl.length);
+  }
+  if (apiUrl && s.startsWith(apiUrl + "/")) {
+    s = s.slice(apiUrl.length);
   }
 
   // 4. PENANGANAN ENVIRONMENT (LOKAL vs PRODUKSI/VPS)

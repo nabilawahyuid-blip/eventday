@@ -135,7 +135,12 @@ export default function EventManagement() {
       statusClass,
       tickets: item?.tickets || "0 / 0",
       imageClass: item?.imageClass || "event-purple",
-      bannerUrl: item?.bannerUrl || item?.image || null,
+      bannerUrl:
+        item?.bannerUrl ||
+        item?.banner_url ||
+        item?.banner ||
+        item?.image ||
+        null,
       // Timestamp untuk sorting terbaru-dibuat → terlama-dibuat
       // (pakai createdAt; startDate hanya fallback bila createdAt tak ada)
       timestamp: (() => {
@@ -572,22 +577,12 @@ export default function EventManagement() {
                       >
 
                         {/* EVENT COVER */}
-                        <div
-                          className={`event-cover ${imageClass}`}
-                          style={
-                            bannerImage
-                              ? {
-                                  backgroundImage: `url("${bannerImage}")`,
-                                  backgroundSize: "cover",
-                                  backgroundPosition: "center",
-                                }
-                              : undefined
-                          }
-                        >
-                          <span>
-                            {category}
-                          </span>
-                        </div>
+                        <EventCover
+                          imageClass={imageClass}
+                          bannerImage={bannerImage}
+                          category={category}
+                          title={title}
+                        />
 
                         {/* EVENT CONTENT */}
                         <div className="event-card-content">
@@ -751,6 +746,36 @@ export default function EventManagement() {
 
       </div>
 
+    </div>
+  );
+}
+
+// Cover event dengan fallback gradient.
+// Pakai <img> (bukan background-image) agar URL rusak terdeteksi via
+// onError dan otomatis kembali ke gradient, bukan kotak hitam/putih.
+function EventCover({ imageClass, bannerImage, category, title }) {
+  const [broken, setBroken] = useState(false);
+  const showImage = Boolean(bannerImage) && !broken;
+
+  return (
+    <div className={`event-cover ${imageClass}`} style={{ position: "relative" }}>
+      {showImage && (
+        <img
+          src={bannerImage}
+          alt={title}
+          onError={() => setBroken(true)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      )}
+      <span>
+        {category}
+      </span>
     </div>
   );
 }
