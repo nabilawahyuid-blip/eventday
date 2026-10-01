@@ -77,9 +77,9 @@ function ProfileCustomer() {
     localStorage.removeItem("name");
     localStorage.removeItem("username");
     localStorage.removeItem("email");
-    localStorage.removeItem("role");
-    navigate("/");
-  };
+      localStorage.removeItem("role");
+      navigate("/login");
+    };
 
   return (
     <div className="profile-mobile-page">

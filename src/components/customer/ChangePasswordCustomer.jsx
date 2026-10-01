@@ -77,8 +77,8 @@ function ChangePasswordCustomer() {
       localStorage.removeItem("name");
       localStorage.removeItem("username");
       localStorage.removeItem("email");
-      localStorage.removeItem("role");
-      navigate("/");
+        localStorage.removeItem("role");
+        navigate("/login");
     } catch (err) {
       console.error("Gagal ubah password:", err);
       Swal.fire({

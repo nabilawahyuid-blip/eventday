@@ -18,49 +18,89 @@ function NavbarCustomer() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  // Default: BELUM login. Status login hanya jadi true setelah getProfile()
+  // sukses — jangan pernah simpulkan dari sisa localStorage, karena storage
+  // bisa basi (sesi kedaluwarsa / logout tak tuntas) dan bikin UI seolah
+  // sudah login sebagai user.
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    name: localStorage.getItem("name") || "USER",
-    email: localStorage.getItem("email") || "",
+    name: "",
+    email: "",
     username: "",
     avatarUrl: null,
-    initials: "U",
-    role: localStorage.getItem("role") || "CUSTOMER",
+    initials: "",
+    role: "",
   });
 
   const searchRef = useRef(null);
   const debounceRef = useRef(null);
+
+  // Kunci identitas yang wajib dibersihkan saat backend bilang sesi tidak
+  // valid (401/403) — kalau dibiarkan, navbar menampilkan nama/foto user
+  // lama seolah masih login.
+  const AUTH_STORAGE_KEYS = [
+    "token",
+    "eventday_token",
+    "userId",
+    "name",
+    "username",
+    "email",
+    "role",
+    "avatarUrl",
+  ];
+
+  const purgeStaleAuthStorage = () => {
+    try {
+      AUTH_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    } catch {
+      // storage tak tersedia — abaikan, UI tetap mode logged-out
+    }
+  };
+
+  const resetProfileToLoggedOut = () => {
+    setIsLoggedIn(false);
+    setUserProfile({
+      name: "",
+      email: "",
+      username: "",
+      avatarUrl: null,
+      initials: "",
+      role: "",
+    });
+  };
 
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const res = await getProfile();
         const data = res?.data || {};
-        const name = data.name || localStorage.getItem("name") || "USER";
+        const name = data.name || "USER";
         const initials = name
           .split(" ")
           .map((w) => w[0])
           .join("")
           .toUpperCase()
           .slice(0, 2);
-        const role = data.role || localStorage.getItem("role") || "CUSTOMER";
+        const role = data.role || "CUSTOMER";
         localStorage.setItem("role", role);
+        if (data.name) localStorage.setItem("name", data.name);
+        if (data.email) localStorage.setItem("email", data.email);
+        setIsLoggedIn(true);
         setUserProfile({
           name,
-          email: data.email || localStorage.getItem("email") || "",
+          email: data.email || "",
           username: data.username || "",
-          avatarUrl: data.avatarUrl || localStorage.getItem("avatarUrl") || null,
+          avatarUrl: data.avatarUrl || null,
           initials,
           role,
         });
-      } catch {
-        const name = localStorage.getItem("name") || "USER";
-        const initials = name
-          .split(" ")
-          .map((w) => w[0])
-          .join("")
-          .toUpperCase()
-          .slice(0, 2);
-        setUserProfile((prev) => ({ ...prev, name, initials, avatarUrl: localStorage.getItem("avatarUrl") || null }));
+      } catch (err) {
+        // 401/403 = sesi tidak valid → paksa logged-out + buang sisa storage.
+        // Error lain (backend mati / offline) = belum terbukti login.
+        if (err?.status === 401 || err?.status === 403) {
+          purgeStaleAuthStorage();
+        }
+        resetProfileToLoggedOut();
       }
     };
     loadProfile();
@@ -266,7 +306,7 @@ function NavbarCustomer() {
           <button
             className={`nav-link ${location.pathname.startsWith("/register-eo") || location.pathname.startsWith("/eo/dashboard") ? "active" : ""}`}
             onClick={() => {
-              const role = userProfile.role || localStorage.getItem("role") || "CUSTOMER";
+              const role = isLoggedIn ? userProfile.role : "CUSTOMER";
               if (role === "ORGANIZER") {
                 navigate("/eo/dashboard");
               } else {
@@ -283,22 +323,41 @@ function NavbarCustomer() {
             Transaksi
           </button>
 
-          <button
-            className={`profile-button ${profileOpen || isProfilePage ? "active" : ""}`}
-            onClick={handleProfileClick}
-          >
-            <span className="profile-avatar">
-              {userProfile.avatarUrl ? (
-                <img src={userProfile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-              ) : (
-                userProfile.initials
-              )}
-            </span>
-            <span>{userProfile.name}</span>
-            <svg className="profile-chevron" viewBox="0 0 24 24">
-              <path d="m6 9 6 6 6-6" />
-            </svg>
-          </button>
+          {isLoggedIn ? (
+            <button
+              className={`profile-button ${profileOpen || isProfilePage ? "active" : ""}`}
+              onClick={handleProfileClick}
+            >
+              <span className="profile-avatar">
+                {userProfile.avatarUrl ? (
+                  <img src={userProfile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                ) : (
+                  userProfile.initials
+                )}
+              </span>
+              <span>{userProfile.name}</span>
+              <svg className="profile-chevron" viewBox="0 0 24 24">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          ) : (
+            <div className="navbar-auth-buttons">
+              <button
+                type="button"
+                className="navbar-login-button"
+                onClick={() => navigate("/login")}
+              >
+                Masuk
+              </button>
+              <button
+                type="button"
+                className="navbar-register-button"
+                onClick={() => navigate("/register")}
+              >
+                Daftar
+              </button>
+            </div>
+          )}
         </nav>
 
         <div className="mobile-header-icons">
@@ -373,23 +432,46 @@ function NavbarCustomer() {
         {menuOpen && (
           <div className="mobile-hamburger-menu">
             <div className="hamburger-profile">
-              <div className="hamburger-avatar">
-                {userProfile.avatarUrl ? (
-                  <img src={userProfile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                ) : (
-                  userProfile.initials
-                )}
-              </div>
-              <div className="hamburger-profile-text">
-                <span className="hamburger-name">{userProfile.name}</span>
-                <span className="hamburger-email">{userProfile.email}</span>
-              </div>
-              <button
-                className="hamburger-edit-btn"
-                onClick={() => handleMobileMenu("/customer/profile/edit")}
-              >
-                Edit Profil
-              </button>
+              {isLoggedIn ? (
+                <>
+                  <div className="hamburger-avatar">
+                    {userProfile.avatarUrl ? (
+                      <img src={userProfile.avatarUrl} alt="Foto Profil" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
+                    ) : (
+                      userProfile.initials
+                    )}
+                  </div>
+                  <div className="hamburger-profile-text">
+                    <span className="hamburger-name">{userProfile.name}</span>
+                    <span className="hamburger-email">{userProfile.email}</span>
+                  </div>
+                  <button
+                    className="hamburger-edit-btn"
+                    onClick={() => handleMobileMenu("/customer/profile/edit")}
+                  >
+                    Edit Profil
+                  </button>
+                </>
+              ) : (
+                <div className="hamburger-auth-box">
+                  <div className="hamburger-auth-buttons">
+                    <button
+                      type="button"
+                      className="hamburger-login-btn"
+                      onClick={() => handleMobileMenu("/login")}
+                    >
+                      Masuk
+                    </button>
+                    <button
+                      type="button"
+                      className="hamburger-register-btn"
+                      onClick={() => handleMobileMenu("/register")}
+                    >
+                      Daftar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {mobileMenuSections.map((section) => (
@@ -431,9 +513,8 @@ function NavbarCustomer() {
                       )}
                       {item.type === "refund" && (
                         <svg viewBox="0 0 24 24">
-                          <path d="M20 7v5h-5" />
-                          <path d="M20 12a8 8 0 1 0 2 5" />
-                          <path d="M12 8v4l3 2" />
+                          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                          <path d="M3 3v5h5" />
                         </svg>
                       )}
                     </span>
@@ -474,19 +555,21 @@ function NavbarCustomer() {
                 </span>
               </button>
 
-              <button className="hamburger-menu-item hamburger-logout" onClick={() => handleMobileMenu("/")}>
-                <span className="hamburger-icon">
-                  <svg viewBox="0 0 24 24">
-                    <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4" />
-                    <path d="M14 8l4 4-4 4" />
-                    <path d="M18 12H9" />
-                  </svg>
-                </span>
-                <span className="hamburger-label">Keluar</span>
-                <span className="hamburger-arrow">
-                  <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg>
-                </span>
-              </button>
+              {isLoggedIn && (
+                <button className="hamburger-menu-item hamburger-logout" onClick={() => handleMobileMenu("/login")}>
+                  <span className="hamburger-icon">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4" />
+                      <path d="M14 8l4 4-4 4" />
+                      <path d="M18 12H9" />
+                    </svg>
+                  </span>
+                  <span className="hamburger-label">Keluar</span>
+                  <span className="hamburger-arrow">
+                    <svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" /></svg>
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         )}

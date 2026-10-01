@@ -61,6 +61,9 @@ import StatusRegisterEO from "./components/eo/StatusRegisterEO";
 import PayoutEO from "./components/eo/PayoutEO";
 import PengajuanPayoutEO from "./components/eo/PengajuanPayoutEO";
 
+// ==================== SHARED ====================
+import ProtectedRoute from "./components/shared/ProtectedRoute";
+
 function App() {
   const GOOGLE_CLIENT_ID =
     "875040780549-1jq8bicaq1ne1ltjt7bfjcfjo82e5dj0.apps.googleusercontent.com";
@@ -70,8 +73,11 @@ function App() {
       <BrowserRouter>
         <Routes>
 
+          {/* ============ LANDING PUBLIK (tanpa login) ============ */}
+          <Route path="/" element={<CustomerDashboard />} />
+
           {/* ==================== AUTH ==================== */}
-          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route
             path="/forgot-password"
@@ -83,7 +89,8 @@ function App() {
           />
           <Route path="/otp" element={<OTP />} />
 
-          {/* ==================== ADMIN ==================== */}
+          {/* ==================== ADMIN (wajib login + role ADMIN) ==================== */}
+          <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
           <Route
             path="/admin/dashboard"
             element={<DashboardAdmin />}
@@ -173,6 +180,7 @@ function App() {
             path="/admin/pengajuan-payout/:id"
             element={<DetailPengajuanPayout />}
           />
+          </Route>
 
           {/* ==================== EO ==================== */}
           <Route
@@ -185,6 +193,9 @@ function App() {
             element={<StatusRegisterEO />}
           />
 
+          {/* Portal EO (wajib login + role ORGANIZER).
+              /register-eo dan /register-eo/status tetap publik. */}
+          <Route element={<ProtectedRoute allowedRoles={["ORGANIZER"]} />}>
           <Route
             path="/eo/dashboard"
             element={<DashboardEO />}
@@ -241,8 +252,10 @@ function App() {
             path="/eo/payout/pengajuan"
             element={<PengajuanPayoutEO />}
           />
+          </Route>
 
           {/* ==================== CUSTOMER ==================== */}
+          {/* Publik: dashboard, detail event, privacy, terms. */}
           <Route
             path="/customer/dashboard"
             element={<CustomerDashboard />}
@@ -253,6 +266,8 @@ function App() {
             element={<DetailEventCustomer />}
           />
 
+          {/* Halaman customer yang butuh akun (wajib login, semua role). */}
+          <Route element={<ProtectedRoute />}>
           <Route
             path="/checkout/:id"
             element={<Checkout />}
@@ -297,6 +312,7 @@ function App() {
             path="/customer/profile"
             element={<ProfileCustomer />}
           />
+          </Route>
 
           <Route
             path="/customer/privacy"
@@ -308,6 +324,7 @@ function App() {
             element={<SyaratKetentuan />}
           />
 
+          <Route element={<ProtectedRoute />}>
           <Route
             path="/customer/profile/edit"
             element={<EditProfileCustomer />}
@@ -317,6 +334,7 @@ function App() {
             path="/customer/change-password"
             element={<ChangePasswordCustomer />}
           />
+          </Route>
 
         </Routes>
       </BrowserRouter>

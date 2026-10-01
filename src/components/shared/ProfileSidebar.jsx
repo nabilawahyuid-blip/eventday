@@ -115,9 +115,9 @@ function ProfileSidebar({ open, onClose }) {
     localStorage.removeItem("name");
     localStorage.removeItem("username");
     localStorage.removeItem("email");
-    localStorage.removeItem("role");
-    navigate("/");
-  };
+      localStorage.removeItem("role");
+      navigate("/login");
+    };
 
   if (!open) {
     return null;

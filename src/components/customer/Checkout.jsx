@@ -551,7 +551,7 @@ function Checkout() {
           title: "Sesi Habis",
           text: "Silakan login kembali.",
           confirmButtonColor: "#5548dc",
-        }).then(() => navigate("/"));
+          }).then(() => navigate("/login"));
         return;
       }
       Swal.fire({

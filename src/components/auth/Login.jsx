@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
 
 import {
@@ -16,6 +16,7 @@ import "./Login.css";
 
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -52,7 +53,38 @@ function Login() {
     }
   };
 
+  // Rute tujuan yang disimpan ProtectedRoute / halaman detail
+  // (state: { from: location }). Hanya dipakai bila aman: path internal
+  // dan bukan halaman auth (mencegah loop redirect login → login).
+  const getReturnPath = () => {
+    const pathname = location.state?.from?.pathname;
+    if (typeof pathname !== "string" || !pathname.startsWith("/")) {
+      return null;
+    }
+    if (
+      pathname === "/" ||
+      pathname === "/login" ||
+      pathname.startsWith("/register") ||
+      pathname.startsWith("/otp") ||
+      pathname.startsWith("/forgot-password")
+    ) {
+      return null;
+    }
+    return pathname;
+  };
+
   const redirectByRole = async (role) => {
+    const returnPath = getReturnPath();
+    if (returnPath) {
+      await showSuccess(
+        "Login Berhasil!",
+        "Selamat datang kembali di EventDay."
+      );
+
+      navigate(returnPath, { replace: true });
+      return;
+    }
+
     if (role === "ADMIN") {
       await showSuccess(
         "Login Berhasil!",

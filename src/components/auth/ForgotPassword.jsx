@@ -103,9 +103,9 @@ function ForgotPassword() {
     }
   };
 
-  const handleBack = () => {
-    navigate("/");
-  };
+    const handleBack = () => {
+      navigate("/login");
+    };
 
   return (
     <div className="forgot-page">

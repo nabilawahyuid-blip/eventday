@@ -30,7 +30,7 @@ function SidebarEO() {
     } finally {
       localStorage.clear();
       sessionStorage.clear();
-      navigate("/", { replace: true });
+      navigate("/login", { replace: true });
     }
   };
 

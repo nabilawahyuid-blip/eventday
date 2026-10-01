@@ -183,8 +183,8 @@ function ResetPassword() {
       "otpFlow"
     );
 
-    navigate("/");
-  };
+      navigate("/login");
+    };
 
   
   // TOGGLE PASSWORD

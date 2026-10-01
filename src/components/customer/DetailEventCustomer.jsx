@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import { getEventDetail } from "../../services/eventService";
 import "./DetailEventCustomer.css";
@@ -30,6 +34,7 @@ const FALLBACK_EVENT = {
 
 function DetailEventCustomer() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
 
   const [event, setEvent] = useState(null);
@@ -109,6 +114,15 @@ function DetailEventCustomer() {
   const handleBuyTicket = () => {
     if (quantity === 0) {
       alert("Silakan pilih jumlah tiket terlebih dahulu.");
+      return;
+    }
+
+    // Pengecekan auth hanya saat checkout ditekan — halaman detail
+    // tetap bisa dibaca pengunjung tanpa login.
+    if (!localStorage.getItem("role")) {
+      navigate("/login", {
+        state: { from: location },
+      });
       return;
     }
 

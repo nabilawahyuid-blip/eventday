@@ -401,9 +401,9 @@ function Register() {
     );
   };
 
-  const handleLogin = () => {
-    navigate("/");
-  };
+    const handleLogin = () => {
+      navigate("/login");
+    };
 
   return (
     <div className="register-page">

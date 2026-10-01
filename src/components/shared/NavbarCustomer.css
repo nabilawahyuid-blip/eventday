@@ -288,6 +288,47 @@
   stroke-linejoin: round;
 }
 
+/* Tombol auth saat pengunjung belum login. */
+.navbar-auth-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-login-button {
+  height: 36px;
+  padding: 0 18px;
+  border: 1px solid #e5e9f2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #4938df;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.navbar-login-button:hover {
+  background: #f5f3ff;
+}
+
+.navbar-register-button {
+  height: 36px;
+  padding: 0 18px;
+  border: 1px solid #4938df;
+  border-radius: 8px;
+  background: #4938df;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.navbar-register-button:hover {
+  background: #3a2cb8;
+}
+
 /* ==================== MOBILE HEADER ICONS ==================== */
 
 .mobile-header-icons {
@@ -454,6 +495,7 @@
   top: calc(100% + 8px);
   right: 20px;
   width: 300px;
+  max-width: calc(100vw - 32px);
   max-height: 75vh;
   overflow-y: auto;
   background: #fff;
@@ -462,6 +504,7 @@
   box-shadow: 0 16px 48px rgba(30, 40, 70, 0.16);
   z-index: 1500;
   padding: 16px;
+  box-sizing: border-box;
 }
 
 .hamburger-profile {
@@ -519,6 +562,51 @@
 
 .hamburger-edit-btn:hover {
   background: #f5f3ff;
+}
+
+.hamburger-auth-box {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  background: #f0f2f7;
+  box-sizing: border-box;
+}
+
+.hamburger-auth-buttons {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+}
+
+.hamburger-login-btn,
+.hamburger-register-btn {
+  flex: 1;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hamburger-login-btn {
+  border: 1px solid #e5e9f2;
+  background: #ffffff;
+  color: #4938df;
+}
+
+.hamburger-login-btn:hover {
+  background: #f5f3ff;
+}
+
+.hamburger-register-btn {
+  border: 1px solid #4938df;
+  background: #4938df;
+  color: #ffffff;
+}
+
+.hamburger-register-btn:hover {
+  background: #3a2cb8;
 }
 
 .hamburger-section {

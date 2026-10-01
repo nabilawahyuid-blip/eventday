@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 
 import {
@@ -14,12 +14,16 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
-  Ticket,
   CalendarPlus,
   CircleCheck,
-  LogIn,
-  RotateCcw,
   UserRound,
+  ShieldCheck,
+  CreditCard,
+  ClipboardList,
+  UserCheck,
+  Wallet,
+  Settings,
+  ScanLine,
 } from "lucide-react";
 
 import Sidebar from "../shared/Sidebar";
@@ -27,13 +31,203 @@ import Navbar from "../shared/Navbar";
 
 import "./AuditLog.css";
 
+/* =========================================================
+   TAKSONOMI KATEGORI AUDIT
+   Nilai `value` dikirim apa adanya sebagai query `category`
+   ke backend — harus cocok dengan enum/kategori backend.
+   ========================================================= */
+
+const AUDIT_CATEGORIES = [
+  { value: "", label: "Semua Kategori" },
+  { value: "AUTH", label: "Autentikasi" },
+  { value: "EVENT", label: "Event" },
+  { value: "TRANSACTION", label: "Transaksi" },
+  { value: "ORDER", label: "Order" },
+  { value: "EO_APPROVAL", label: "Persetujuan EO" },
+  { value: "PAYOUT", label: "Payout" },
+  { value: "SYSTEM", label: "Sistem" },
+  { value: "GATE_SCAN", label: "Scan Tiket" },
+];
+
+/* Pencocokan EXACT action backend → kategori.
+   Dipakai sebagai fallback client-side bila backend belum mendukung
+   param `category` (Spring mengabaikan query param yang tidak dikenal).
+   Jangan tambah pencocokan substring di sini — itu yang dulu membuat
+   "REJECTED" lolos dari filter dan login sukses masuk kategori gagal. */
+const ACTION_CATEGORY_MAP = {
+  // AUTH
+  REGISTER: "AUTH",
+  LOGIN: "AUTH",
+  LOGIN_GOOGLE: "AUTH",
+  REGISTER_GOOGLE: "AUTH",
+  LOGOUT: "AUTH",
+  VERIFY_OTP: "AUTH",
+  RESEND_OTP: "AUTH",
+  RESET_PASSWORD: "AUTH",
+  // EVENT
+  CREATE_EVENT: "EVENT",
+  UPDATE_EVENT: "EVENT",
+  DELETE_EVENT: "EVENT",
+  APPROVE_EVENT: "EVENT",
+  REJECT_EVENT: "EVENT",
+  CANCEL_EVENT: "EVENT",
+  // TRANSACTION (pembayaran)
+  PAYMENT_SUCCESS: "TRANSACTION",
+  PAYMENT_FAILED: "TRANSACTION",
+  PAYMENT_EXPIRED: "TRANSACTION",
+  UPDATE_TRANSACTION_STATUS: "TRANSACTION",
+  // ORDER (siklus order)
+  CREATE_ORDER: "ORDER",
+  UPDATE_ORDER: "ORDER",
+  CANCEL_ORDER: "ORDER",
+  // EO_APPROVAL
+  APPROVE_EO: "EO_APPROVAL",
+  REJECT_EO: "EO_APPROVAL",
+  VERIFY_EO: "EO_APPROVAL",
+  VERIFIED: "EO_APPROVAL",
+  REJECTED: "EO_APPROVAL",
+  // PAYOUT
+  REQUEST_PAYOUT: "PAYOUT",
+  APPROVE_PAYOUT: "PAYOUT",
+  REJECT_PAYOUT: "PAYOUT",
+  UPDATE_PAYOUT_STATUS: "PAYOUT",
+  // SYSTEM
+  UPDATE_SETTINGS: "SYSTEM",
+  CREATE_USER: "SYSTEM",
+  UPDATE_USER: "SYSTEM",
+  UPDATE_USER_STATUS: "SYSTEM",
+  SUSPEND_USER: "SYSTEM",
+  // GATE_SCAN (siklus tiket di pintu masuk / admin)
+  SCAN_TICKET: "GATE_SCAN",
+  CHECKIN_TICKET: "GATE_SCAN",
+  REVOKE_TICKET: "GATE_SCAN",
+  GENERATE_TICKET: "GATE_SCAN",
+};
+
+const categoryOfAction = (rawAction) => {
+  if (!rawAction) return "OTHER";
+  return (
+    ACTION_CATEGORY_MAP[String(rawAction).toUpperCase()] || "OTHER"
+  );
+};
+
+/* Escape untuk interpolasi ke template `html:` SweetAlert.
+   React meng-escape otomatis di JSX, tapi `html:` SweetAlert adalah
+   innerHTML mentah — tanpa ini, string dari backend = stored XSS. */
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+/* Satu baris modal detail. `valueHtml` WAJIB sudah di-escape / berupa
+   markup statis — jangan pernah teruskan string mentah dari backend. */
+const auditDetailRow = (label, valueHtml) => `
+  <div class="audit-popup-section">
+    <span class="audit-popup-label">${escapeHtml(label)}</span>
+    <span class="audit-popup-value">${valueHtml}</span>
+  </div>`;
+
+/* HTML modal detail audit log. Seluruh nilai backend lewat escapeHtml,
+   sehingga payload JSON dan user-agent jahat tampil sebagai teks. */
+const buildAuditDetailHtml = (item) => {
+  const text = (value) => escapeHtml(value ?? "-");
+
+  const categoryLabel =
+    (AUDIT_CATEGORIES.find((c) => c.value === item.category) || {}).label ||
+    item.category ||
+    "-";
+
+  const statusClass =
+    item.statusType === "success" ? "success" : "failed";
+
+  const formatJson = (value) => {
+    if (value === null || value === undefined) return "-";
+    if (typeof value === "string") return value;
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
+  };
+
+  // Blok diff lama-vs-baru, bila backend mengirim pasangan perubahan.
+  let diffHtml = "";
+  // eslint-disable-next-line eqeqeq — null DAN undefined sama-sama "tidak ada".
+  if (item.oldValue != null || item.newValue != null) {
+    diffHtml =
+      auditDetailRow(
+        "NILAI LAMA",
+        `<pre class="audit-popup-json">${escapeHtml(
+          formatJson(item.oldValue)
+        )}</pre>`
+      ) +
+      auditDetailRow(
+        "NILAI BARU",
+        `<pre class="audit-popup-json">${escapeHtml(
+          formatJson(item.newValue)
+        )}</pre>`
+      );
+  }
+
+  // Payload mentah sebagai JSON rapi (di-escape, bukan dieksekusi).
+  let payloadHtml = "";
+  if (item.payload !== null && item.payload !== undefined) {
+    payloadHtml = `
+      <div class="audit-popup-section">
+        <span class="audit-popup-label">PAYLOAD JSON</span>
+        <span class="audit-popup-value"><pre class="audit-popup-json">${escapeHtml(
+          formatJson(item.payload)
+        )}</pre></span>
+      </div>`;
+  }
+
+  return `
+    <div class="audit-popup-container">
+      ${auditDetailRow("LOG ID", text(item.id))}
+      ${auditDetailRow("TIMESTAMP", text(item.timestamp))}
+      ${auditDetailRow("WAKTU", `${text(item.date)} • ${text(item.time)}`)}
+      ${auditDetailRow("KATEGORI", text(categoryLabel))}
+      ${auditDetailRow("AKTOR", text(item.actor))}
+      ${auditDetailRow("ID AKTOR", text(item.actorId))}
+      ${auditDetailRow("TIPE AKTOR", text(item.actorType))}
+      ${auditDetailRow("IP ADDRESS", text(item.ipAddress))}
+      ${auditDetailRow("AKTIVITAS", text(item.activity))}
+      <div class="audit-popup-section audit-popup-description-row">
+        <span class="audit-popup-label">DETAIL / DESKRIPSI</span>
+        <span class="audit-popup-value">${text(item.detail)}</span>
+      </div>
+      <div class="audit-popup-section">
+        <span class="audit-popup-label">STATUS</span>
+        <span class="audit-popup-status ${statusClass}">${text(item.status)}</span>
+      </div>
+      ${auditDetailRow("TARGET ID", text(item.targetId))}
+      ${auditDetailRow("TARGET TYPE", text(item.targetType))}
+      ${auditDetailRow("AMOUNT", text(item.amount))}
+      ${auditDetailRow("CURRENCY", text(item.currency))}
+      ${auditDetailRow("PAYMENT METHOD", text(item.paymentMethod))}
+      <div class="audit-popup-section audit-popup-user-agent">
+        <span class="audit-popup-label">USER AGENT</span>
+        <span class="audit-popup-value">${text(item.userAgent)}</span>
+      </div>
+      ${diffHtml}
+      ${payloadHtml}
+    </div>`;
+};
+
 function AuditLog() {
   const [search, setSearch] = useState("");
-  const [date, setDate] = useState("");
-  const [category, setCategory] = useState("Semua Kategori");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [auditData, setAuditData] = useState([]);
   const [totalEntries, setTotalEntries] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -75,29 +269,17 @@ function AuditLog() {
         "Aktivitas"
     ).toUpperCase();
 
-    let activityType = "approval";
+    // Kategori: hormati field backend bila ada, sonst petakan exact dari action.
+    const category =
+      item.category &&
+      AUDIT_CATEGORIES.some((c) => c.value === item.category)
+        ? item.category
+        : categoryOfAction(
+            item.action || item.activity || item.event
+          );
 
-    if (rawAction.includes("TICKET")) {
-      activityType = "ticket";
-    } else if (rawAction.includes("EVENT")) {
-      activityType = "event";
-    } else if (
-      rawAction.includes("APPROV") ||
-      rawAction.includes("VERIF") ||
-      rawAction.includes("EO")
-    ) {
-      activityType = "approval";
-    } else if (
-      rawAction.includes("LOGIN") ||
-      rawAction.includes("AUTH")
-    ) {
-      activityType = "login";
-    } else if (
-      rawAction.includes("REFUND") ||
-      rawAction.includes("PAYOUT")
-    ) {
-      activityType = "refund";
-    }
+    // activityType dipakai untuk badge + ikon tabel — disamakan dengan kategori.
+    const activityType = category.toLowerCase();
 
     const rawStatus = String(
       item.status || "SUCCESS"
@@ -114,6 +296,40 @@ function AuditLog() {
       "User";
 
     const avatarUpper = String(actorType).toUpperCase();
+
+    // Payload mentah untuk modal detail: dukung beberapa nama field backend
+    // (payload / details / data / metadata), plus pasangan lama-vs-baru
+    // (oldValue/newValue, old/new, before/after, previous/current).
+    const payload =
+      item.payload ??
+      item.details ??
+      item.data ??
+      item.metadata ??
+      null;
+
+    const pickChangePair = (source) => {
+      if (!source || typeof source !== "object") {
+        return { oldValue: null, newValue: null };
+      }
+      const pairs = [
+        ["oldValue", "newValue"],
+        ["old", "new"],
+        ["before", "after"],
+        ["previous", "current"],
+      ];
+      for (const [oldKey, newKey] of pairs) {
+        if (source[oldKey] !== undefined || source[newKey] !== undefined) {
+          return {
+            oldValue: source[oldKey] ?? null,
+            newValue: source[newKey] ?? null,
+          };
+        }
+      }
+      return { oldValue: null, newValue: null };
+    };
+
+    const fromPayload = pickChangePair(payload);
+    const fromItem = pickChangePair(item);
 
     return {
       id: item.id || item.logId || "-",
@@ -140,6 +356,8 @@ function AuditLog() {
         item.description ||
         "Aktivitas",
       activityType,
+      category,
+      rawAction,
       detail:
         item.description ||
         item.detail ||
@@ -153,24 +371,41 @@ function AuditLog() {
       currency: item.currency || "IDR",
       paymentMethod: item.paymentMethod || "-",
       userAgent: item.userAgent || "-",
+      payload,
+      oldValue: fromPayload.oldValue ?? fromItem.oldValue,
+      newValue: fromPayload.newValue ?? fromItem.newValue,
     };
   };
 
   /* =========================================================
-     LOAD DARI BACKEND (fallback ke mock bila BE mati)
+     LOAD DARI BACKEND — server-side pagination + filter.
+     Search / kategori / status / rentang tanggal / halaman semuanya
+     dikirim sebagai query param. TIDAK ada lagi fallback data tiruan:
+     bila backend mati, tampilkan error + tabel kosong.
   ========================================================= */
 
   const loadAuditLogs = async () => {
     try {
       setLoading(true);
-      const res = await getAdminAuditLogs(0, 100);
-      const data = res?.data || res;
+      const res = await getAdminAuditLogs(currentPage - 1, itemsPerPage, {
+        search: debouncedSearch,
+        category,
+        status,
+        startDate,
+        endDate,
+      });
+      const data = res?.data ?? res;
       const list = Array.isArray(data)
         ? data
         : data?.content || [];
 
       setAuditData(list);
-      setTotalEntries(data?.totalElements ?? list.length);
+      setTotalEntries(
+        Number(data?.totalElements ?? list.length) || 0
+      );
+      setTotalPages(
+        Number(data?.totalPages ?? (list.length > 0 ? 1 : 0)) || 0
+      );
       setLoadError("");
     } catch (err) {
       console.error("Gagal memuat audit log:", err);
@@ -179,8 +414,9 @@ function AuditLog() {
           err?.message ||
           "Gagal memuat audit log."
       );
-      setAuditData(mockAuditData);
-      setTotalEntries(mockAuditData.length);
+      setAuditData([]);
+      setTotalEntries(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
@@ -188,293 +424,23 @@ function AuditLog() {
 
   useEffect(() => {
     loadAuditLogs();
-  }, []);
-
-  /* =========================================================
-     DATA AUDIT LOG
-  ========================================================= */
-
-  const mockAuditData = [
-    {
-      id: "aud_8f9a2b1c",
-      timestamp: "2023-10-24T14:30:15Z",
-
-      date: "24 Okt 2023",
-      time: "14:30 WIB",
-
-      actor: "Budi Santoso",
-      actorId: "U-8921",
-      actorType: "User",
-
-      avatar: "photo",
-
-      ipAddress: "114.125.x.x",
-
-      activity: "Pembelian Tiket",
-      activityType: "ticket",
-
-      detail:
-        "Berhasil memproses pembayaran untuk Tiket VIP Event A.",
-
-      status: "Berhasil",
-      statusType: "success",
-
-      targetId: "TRX-10294",
-      targetType: "transaction",
-
-      amount: "500000",
-      currency: "IDR",
-      paymentMethod: "credit_card",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-
-    {
-      id: "aud_7d8c1a2e",
-      timestamp: "2023-10-24T13:15:00Z",
-
-      date: "24 Okt 2023",
-      time: "13:15 WIB",
-
-      actor: "Maju Jaya Event",
-      actorId: "E-102",
-      actorType: "EO",
-
-      avatar: "EO",
-
-      ipAddress: "103.25.x.x",
-
-      activity: "Tambah Event",
-      activityType: "event",
-
-      detail:
-        'Membuat draft event baru "Tech Conference 2024".',
-
-      status: "Berhasil",
-      statusType: "success",
-
-      targetId: "EVT-2024-001",
-      targetType: "event",
-
-      amount: "-",
-      currency: "IDR",
-      paymentMethod: "-",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-
-    {
-      id: "aud_6c7b2d3f",
-      timestamp: "2023-10-24T11:05:00Z",
-
-      date: "24 Okt 2023",
-      time: "11:05 WIB",
-
-      actor: "Siti Rahma",
-      actorId: "SP-001",
-      actorType: "Superadmin",
-
-      avatar: "photo",
-
-      ipAddress: "103.45.x.x",
-
-      activity: "Persetujuan EO",
-      activityType: "approval",
-
-      detail:
-        'Menyetujui aplikasi akun EO untuk "Berkah Organizer".',
-
-      status: "Berhasil",
-      statusType: "success",
-
-      targetId: "EO-001",
-      targetType: "event_organizer",
-
-      amount: "-",
-      currency: "IDR",
-      paymentMethod: "-",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-
-    {
-      id: "aud_5a6b3c4d",
-      timestamp: "2023-10-24T09:45:00Z",
-
-      date: "24 Okt 2023",
-      time: "09:45 WIB",
-
-      actor: "Unknown",
-      actorId: "Unauthenticated",
-      actorType: "Unknown",
-
-      avatar: "unknown",
-
-      ipAddress: "192.168.1.1",
-
-      activity: "Percobaan Login Gagal",
-      activityType: "login",
-
-      detail:
-        "Percobaan login gagal melebihi batas (5x) dari IP 192.168.1.1.",
-
-      status: "Gagal",
-      statusType: "failed",
-
-      targetId: "-",
-      targetType: "-",
-
-      amount: "-",
-      currency: "IDR",
-      paymentMethod: "-",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-
-    {
-      id: "aud_4e5f6a7b",
-      timestamp: "2023-10-24T08:20:00Z",
-
-      date: "24 Okt 2023",
-      time: "08:20 WIB",
-
-      actor: "Alex Johnson",
-      actorId: "SP-002",
-      actorType: "Superadmin",
-
-      avatar: "unknown",
-
-      ipAddress: "114.125.x.x",
-
-      activity: "Proses Refund",
-      activityType: "refund",
-
-      detail:
-        "Refund disetujui untuk Transaksi #TRX-9921.",
-
-      status: "Berhasil",
-      statusType: "success",
-
-      targetId: "TRX-9921",
-      targetType: "transaction",
-
-      amount: "1500000",
-      currency: "IDR",
-      paymentMethod: "credit_card",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-
-    {
-      id: "aud_3d4e5f6a",
-      timestamp: "2023-10-23T16:20:00Z",
-
-      date: "23 Okt 2023",
-      time: "16:20 WIB",
-
-      actor: "Dina Putri",
-      actorId: "U-7832",
-      actorType: "User",
-
-      avatar: "unknown",
-
-      ipAddress: "103.10.x.x",
-
-      activity: "Pembelian Tiket",
-      activityType: "ticket",
-
-      detail:
-        "Berhasil memproses pembayaran untuk Tiket Regular Event B.",
-
-      status: "Berhasil",
-      statusType: "success",
-
-      targetId: "TRX-9918",
-      targetType: "transaction",
-
-      amount: "250000",
-      currency: "IDR",
-      paymentMethod: "credit_card",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-
-    {
-      id: "aud_2b3c4d5e",
-      timestamp: "2023-10-23T14:10:00Z",
-
-      date: "23 Okt 2023",
-      time: "14:10 WIB",
-
-      actor: "Nusantara Event",
-      actorId: "E-118",
-      actorType: "EO",
-
-      avatar: "EO",
-
-      ipAddress: "103.22.x.x",
-
-      activity: "Tambah Event",
-      activityType: "event",
-
-      detail:
-        'Membuat draft event baru "Music Festival 2024".',
-
-      status: "Berhasil",
-      statusType: "success",
-
-      targetId: "EVT-2024-002",
-      targetType: "event",
-
-      amount: "-",
-      currency: "IDR",
-      paymentMethod: "-",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-
-    {
-      id: "aud_1a2b3c4d",
-      timestamp: "2023-10-23T10:30:00Z",
-
-      date: "23 Okt 2023",
-      time: "10:30 WIB",
-
-      actor: "Unknown",
-      actorId: "Unauthenticated",
-      actorType: "Unknown",
-
-      avatar: "unknown",
-
-      ipAddress: "192.168.1.8",
-
-      activity: "Percobaan Login Gagal",
-      activityType: "login",
-
-      detail:
-        "Percobaan login gagal dari perangkat yang tidak dikenal.",
-
-      status: "Gagal",
-      statusType: "failed",
-
-      targetId: "-",
-      targetType: "-",
-
-      amount: "-",
-      currency: "IDR",
-      paymentMethod: "-",
-
-      userAgent:
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ...",
-    },
-  ];
+  }, [currentPage, debouncedSearch, category, status, startDate, endDate]);
+
+  // Debounce search 400ms — halaman kembali ke 1 setiap query berubah.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Jepit halaman bila total halaman menyusut akibat filter.
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   /* =========================================================
      ICON AKTIVITAS
@@ -482,20 +448,29 @@ function AuditLog() {
 
   const getActivityIcon = (type) => {
     switch (type) {
-      case "ticket":
-        return <Ticket size={12} strokeWidth={2} />;
+      case "auth":
+        return <ShieldCheck size={12} strokeWidth={2} />;
 
       case "event":
         return <CalendarPlus size={12} strokeWidth={2} />;
 
-      case "approval":
-        return <CircleCheck size={12} strokeWidth={2} />;
+      case "transaction":
+        return <CreditCard size={12} strokeWidth={2} />;
 
-      case "login":
-        return <LogIn size={12} strokeWidth={2} />;
+      case "order":
+        return <ClipboardList size={12} strokeWidth={2} />;
 
-      case "refund":
-        return <RotateCcw size={12} strokeWidth={2} />;
+      case "eo_approval":
+        return <UserCheck size={12} strokeWidth={2} />;
+
+      case "payout":
+        return <Wallet size={12} strokeWidth={2} />;
+
+      case "system":
+        return <Settings size={12} strokeWidth={2} />;
+
+      case "gate_scan":
+        return <ScanLine size={12} strokeWidth={2} />;
 
       default:
         return <CircleCheck size={12} strokeWidth={2} />;
@@ -503,13 +478,25 @@ function AuditLog() {
   };
 
   /* =========================================================
-     FILTER DATA
+     NORMALISASI + FALLBACK FILTER CLIENT-SIDE
+     Filter utama jalan di backend (lihat loadAuditLogs). Blok ini hanya
+     jaring pengaman exact-match bila backend belum mendukung query
+     search/category/status/startDate/endDate — Spring mengabaikan query
+     param tak dikenal, jadi tanpa ini filter akan terlihat tidak bekerja.
   ========================================================= */
 
-  const filteredData = useMemo(() => {
-    return auditData.map(normalizeLog).filter((item) => {
-      const searchValue = search.toLowerCase().trim();
+  const normalizedLogs = useMemo(
+    () => auditData.map(normalizeLog),
+    [auditData]
+  );
 
+  const displayedData = useMemo(() => {
+    const searchValue = debouncedSearch.toLowerCase().trim();
+
+    const startTs = startDate ? new Date(`${startDate}T00:00:00`).getTime() : null;
+    const endTs = endDate ? new Date(`${endDate}T23:59:59`).getTime() : null;
+
+    return normalizedLogs.filter((item) => {
       const matchesSearch =
         !searchValue ||
         item.actor.toLowerCase().includes(searchValue) ||
@@ -517,94 +504,73 @@ function AuditLog() {
         item.detail.toLowerCase().includes(searchValue) ||
         item.actorId.toLowerCase().includes(searchValue);
 
-      const categoryKey = {
-        "Pembelian Tiket": ["TICKET", "PEMBELIAN"],
-        "Tambah Event": ["EVENT", "TAMBAH"],
-        "Persetujuan EO": [
-          "APPROV",
-          "VERIF",
-          "PERSETUJUAN",
-          "EO",
-        ],
-        "Percobaan Login Gagal": [
-          "LOGIN",
-          "AUTH",
-          "PERCOBAAN",
-        ],
-        "Proses Refund": [
-          "REFUND",
-          "PAYOUT",
-          "PROSES",
-        ],
-      }[category];
-
+      // EXACT match — bukan substring.
       const matchesCategory =
-        category === "Semua Kategori" ||
-        !categoryKey ||
-        categoryKey.some((k) =>
-          `${item.activity} ${item.activityType}`
-            .toUpperCase()
-            .includes(k)
-        );
+        !category || item.category === category;
+
+      const matchesStatus =
+        !status ||
+        (status === "SUCCESS"
+          ? item.statusType === "success"
+          : item.statusType === "failed");
 
       let matchesDate = true;
-
-      if (date) {
-        const selectedDate = new Date(date);
-
-        const formattedDate = selectedDate.toLocaleDateString(
-          "id-ID",
-          {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          }
-        );
-
-        const normalizedSelectedDate =
-          formattedDate.replace(".", "");
-
-        matchesDate =
-          item.date.toLowerCase() ===
-          normalizedSelectedDate.toLowerCase();
+      if (startTs !== null || endTs !== null) {
+        const itemTs =
+          item.timestamp && item.timestamp !== "-"
+            ? new Date(item.timestamp).getTime()
+            : Number.NaN;
+        if (Number.isNaN(itemTs)) {
+          matchesDate = false;
+        } else {
+          if (startTs !== null && itemTs < startTs) matchesDate = false;
+          if (endTs !== null && itemTs > endTs) matchesDate = false;
+        }
       }
 
       return (
         matchesSearch &&
         matchesCategory &&
+        matchesStatus &&
         matchesDate
       );
     });
-  }, [search, category, date, auditData]);
+  }, [normalizedLogs, debouncedSearch, category, status, startDate, endDate]);
 
   /* =========================================================
-     PAGINATION
+     PAGINATION (server-side — totalPages dari backend)
   ========================================================= */
 
-  const totalPages = Math.max(
+  const safeCurrentPage = Math.max(
     1,
-    Math.ceil(filteredData.length / itemsPerPage)
-  );
-
-  const safeCurrentPage = Math.min(
-    currentPage,
-    totalPages
+    Math.min(currentPage, Math.max(totalPages, 1))
   );
 
   const startIndex =
     (safeCurrentPage - 1) * itemsPerPage;
 
-  const displayedData = filteredData.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  // Jendela maksimal 5 nomor halaman di sekitar halaman aktif.
+  const pageButtons = (() => {
+    if (totalPages <= 1) return [];
+    const maxButtons = 5;
+    let start = Math.max(
+      1,
+      safeCurrentPage - Math.floor(maxButtons / 2)
+    );
+    const end = Math.min(totalPages, start + maxButtons - 1);
+    start = Math.max(1, end - maxButtons + 1);
+    return Array.from(
+      { length: end - start + 1 },
+      (_, i) => start + i
+    );
+  })();
 
   /* =========================================================
      EXPORT CSV
   ========================================================= */
 
   const handleExportCSV = async () => {
-    if (filteredData.length === 0) {
+    if (displayedData.length === 0) {
       Swal.fire({
         icon: "info",
         title: "Tidak ada data",
@@ -616,8 +582,15 @@ function AuditLog() {
     }
 
     // Utamakan export dari backend (GET /api/admin/audit-logs/export/csv)
+    // dengan filter yang sama seperti yang tampil di layar.
     try {
-      await exportAdminAuditLogsCSV();
+      await exportAdminAuditLogsCSV({
+        search: debouncedSearch,
+        category,
+        status,
+        startDate,
+        endDate,
+      });
 
       Swal.fire({
         icon: "success",
@@ -645,6 +618,7 @@ function AuditLog() {
       "ID Aktor",
       "Tipe Aktor",
       "IP Address",
+      "Kategori",
       "Aktivitas",
       "Detail / Deskripsi",
       "Status",
@@ -656,7 +630,7 @@ function AuditLog() {
       "User Agent",
     ];
 
-    const rows = filteredData.map((item) => [
+    const rows = displayedData.map((item) => [
       item.id,
       item.timestamp,
       item.date,
@@ -665,6 +639,7 @@ function AuditLog() {
       item.actorId,
       item.actorType,
       item.ipAddress,
+      item.category,
       item.activity,
       item.detail,
       item.status,
@@ -719,7 +694,7 @@ function AuditLog() {
     Swal.fire({
       icon: "success",
       title: "CSV berhasil diekspor",
-      text: `${filteredData.length} data audit log berhasil diekspor.`,
+      text: `${displayedData.length} data audit log berhasil diekspor.`,
       confirmButtonColor: "#5546df",
       timer: 1800,
       showConfirmButton: false,
@@ -734,178 +709,7 @@ function AuditLog() {
     Swal.fire({
       title: "Detail Audit Log",
 
-      html: `
-        <div class="audit-popup-container">
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              LOG ID
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.id}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              TIMESTAMP
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.timestamp}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              WAKTU
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.date} • ${item.time}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              AKTOR
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.actor}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              ID AKTOR
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.actorId}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              TIPE AKTOR
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.actorType}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              IP ADDRESS
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.ipAddress}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              AKTIVITAS
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.activity}
-            </span>
-          </div>
-
-          <div class="audit-popup-section audit-popup-description-row">
-            <span class="audit-popup-label">
-              DETAIL / DESKRIPSI
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.detail}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              STATUS
-            </span>
-
-            <span class="
-              audit-popup-status
-              ${
-                item.statusType === "success"
-                  ? "success"
-                  : "failed"
-              }
-            ">
-              ${item.status}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              TARGET ID
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.targetId}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              TARGET TYPE
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.targetType}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              AMOUNT
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.amount}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              CURRENCY
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.currency}
-            </span>
-          </div>
-
-          <div class="audit-popup-section">
-            <span class="audit-popup-label">
-              PAYMENT METHOD
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.paymentMethod}
-            </span>
-          </div>
-
-          <div class="audit-popup-section audit-popup-user-agent">
-            <span class="audit-popup-label">
-              USER AGENT
-            </span>
-
-            <span class="audit-popup-value">
-              ${item.userAgent}
-            </span>
-          </div>
-
-        </div>
-      `,
+      html: buildAuditDetailHtml(item),
 
       width: 560,
 
@@ -1006,7 +810,7 @@ function AuditLog() {
               />
             </div>
 
-            {/* DATE */}
+            {/* DATE RANGE */}
             <div className="audit-date-box">
               <CalendarDays
                 size={16}
@@ -1015,11 +819,30 @@ function AuditLog() {
 
               <input
                 type="date"
-                value={date}
+                value={startDate}
+                max={endDate || undefined}
                 onChange={(e) => {
-                  setDate(e.target.value);
+                  setStartDate(e.target.value);
                   setCurrentPage(1);
                 }}
+                aria-label="Tanggal mulai"
+                title="Tanggal mulai"
+              />
+
+              <span className="audit-date-separator">
+                –
+              </span>
+
+              <input
+                type="date"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setCurrentPage(1);
+                }}
+                aria-label="Tanggal selesai"
+                title="Tanggal selesai"
               />
             </div>
 
@@ -1031,29 +854,44 @@ function AuditLog() {
                   setCategory(e.target.value);
                   setCurrentPage(1);
                 }}
+                aria-label="Kategori aktivitas"
               >
-                <option>
-                  Semua Kategori
+                {AUDIT_CATEGORIES.map((option) => (
+                  <option
+                    key={option.value || "all"}
+                    value={option.value}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+
+              <ChevronDown
+                size={15}
+                strokeWidth={2}
+              />
+            </div>
+
+            {/* STATUS */}
+            <div className="audit-category-box">
+              <select
+                value={status}
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+                aria-label="Status aktivitas"
+              >
+                <option value="">
+                  Semua Status
                 </option>
 
-                <option>
-                  Pembelian Tiket
+                <option value="SUCCESS">
+                  Berhasil
                 </option>
 
-                <option>
-                  Tambah Event
-                </option>
-
-                <option>
-                  Persetujuan EO
-                </option>
-
-                <option>
-                  Percobaan Login Gagal
-                </option>
-
-                <option>
-                  Proses Refund
+                <option value="FAILED">
+                  Gagal
                 </option>
               </select>
 
@@ -1080,6 +918,13 @@ function AuditLog() {
             </button>
 
           </div>
+
+          {startDate && endDate && startDate > endDate && (
+            <p className="audit-filter-warning">
+              Tanggal mulai melebihi tanggal selesai — tidak ada data yang
+              cocok dengan rentang ini.
+            </p>
+          )}
 
           {/* TABLE */}
           <section className="audit-table-card">
@@ -1133,7 +978,7 @@ function AuditLog() {
                         colSpan="6"
                         className="audit-empty"
                       >
-                        {loadError} — menampilkan data contoh.
+                        {loadError}
                       </td>
                     </tr>
                   ) : displayedData.length > 0 ? (
@@ -1281,7 +1126,7 @@ function AuditLog() {
 
                 Menampilkan{" "}
 
-                {filteredData.length === 0
+                {totalEntries === 0
                   ? 0
                   : startIndex + 1}
 
@@ -1289,7 +1134,7 @@ function AuditLog() {
 
                 {Math.min(
                   startIndex + itemsPerPage,
-                  filteredData.length
+                  totalEntries
                 )}
 
                 {" "}dari {totalEntries} entri
@@ -1317,10 +1162,7 @@ function AuditLog() {
                 </button>
 
                 {/* PAGE NUMBERS (DINAMIS) */}
-                {Array.from(
-                  { length: Math.min(totalPages, 5) },
-                  (_, i) => i + 1
-                ).map((p) => (
+                {pageButtons.map((p) => (
                   <button
                     key={p}
                     type="button"
@@ -1337,11 +1179,13 @@ function AuditLog() {
                   </button>
                 ))}
 
-                {totalPages > 5 && (
-                  <span className="pagination-dots">
-                    ...
-                  </span>
-                )}
+                {totalPages > 5 &&
+                  pageButtons[pageButtons.length - 1] <
+                    totalPages && (
+                    <span className="pagination-dots">
+                      ...
+                    </span>
+                  )}
 
                 {/* NEXT */}
                 <button

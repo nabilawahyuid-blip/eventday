@@ -423,8 +423,8 @@ function OTP() {
       "forgotName"
     );
 
-    navigate("/");
-  };
+      navigate("/login");
+    };
 
   return (
     <div className="otp-page">

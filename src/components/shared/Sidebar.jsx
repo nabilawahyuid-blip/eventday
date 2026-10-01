@@ -394,7 +394,7 @@ function Sidebar() {
           sessionStorage.clear();
 
           setOpen(false);
-          navigate("/", {
+          navigate("/login", {
             replace: true,
           });
         }}

@@ -132,7 +132,7 @@
 ========================================================= */
 
 .audit-date-box {
-  width: 168px;
+  width: 330px;
   height: 38px;
 
   display: flex;
@@ -179,6 +179,35 @@
 .audit-date-box input::-webkit-calendar-picker-indicator {
   opacity: 0;
   cursor: pointer;
+}
+
+
+/* Pemisah rentang tanggal (mulai – selesai). */
+
+.audit-date-separator {
+  flex-shrink: 0;
+
+  color: #9aa0ae;
+
+  font-size: 12px;
+}
+
+
+/* Peringatan rentang tanggal terbalik. */
+
+.audit-filter-warning {
+  margin: 0 0 16px;
+
+  padding: 10px 14px;
+
+  border: 1px solid #ffe082;
+  border-radius: 8px;
+
+  background: #fff8e1;
+
+  color: #795548;
+
+  font-size: 13px;
 }
 
 
@@ -648,7 +677,7 @@
 }
 
 
-/* REFUND */
+/* REFUND (lama — dipertahankan bila backend mengirim aksi refund) */
 
 .audit-activity-refund {
   border: 1px solid #e1e3e7;
@@ -656,6 +685,94 @@
   background: #f2f3f5;
 
   color: #606671;
+}
+
+
+/* AUTH */
+
+.audit-activity-auth {
+  border: 1px solid #ffc7c5;
+
+  background: #fff3f2;
+
+  color: #ef4444;
+}
+
+
+/* TRANSACTION */
+
+.audit-activity-transaction {
+  border: 1px solid #ddd9ff;
+
+  background: #f4f2ff;
+
+  color: #5144d7;
+}
+
+
+/* ORDER */
+
+.audit-activity-order {
+  border: 1px solid #c9e8ff;
+
+  background: #f0f8ff;
+
+  color: #1d6fd1;
+}
+
+
+/* EO_APPROVAL */
+
+.audit-activity-eo_approval {
+  border: 1px solid #bfe6c9;
+
+  background: #eefaf1;
+
+  color: #1d7a3d;
+}
+
+
+/* PAYOUT */
+
+.audit-activity-payout {
+  border: 1px solid #ffe3b3;
+
+  background: #fff8ec;
+
+  color: #b26a00;
+}
+
+
+/* SYSTEM */
+
+.audit-activity-system {
+  border: 1px solid #e1e3e7;
+
+  background: #f2f3f5;
+
+  color: #5f6570;
+}
+
+
+/* GATE_SCAN */
+
+.audit-activity-gate_scan {
+  border: 1px solid #c5ecdf;
+
+  background: #eefaf5;
+
+  color: #0e7c5b;
+}
+
+
+/* OTHER (aksi tak dikenal — netral) */
+
+.audit-activity-other {
+  border: 1px solid #e1e3e7;
+
+  background: #f2f3f5;
+
+  color: #5f6570;
 }
 
 
@@ -1060,6 +1177,39 @@
 
 
 /* =========================================================
+   POPUP JSON (payload + diff lama-vs-baru)
+   Nilai sudah di-escape di JS — <pre> hanya menampilkannya
+   sebagai teks monospace, tidak mengeksekusi apa pun.
+========================================================= */
+
+.audit-popup-json {
+  margin: 0;
+
+  padding: 10px 12px;
+
+  border: 1px solid #e7e9f0;
+  border-radius: 8px;
+
+  background: #f7f8fb;
+
+  color: #35394a;
+
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 11px;
+
+  line-height: 1.6;
+
+  text-align: left;
+
+  white-space: pre-wrap;
+  word-break: break-word;
+
+  max-height: 220px;
+  overflow: auto;
+}
+
+
+/* =========================================================
    SWEETALERT CLOSE
 ========================================================= */
 
@@ -1176,6 +1326,11 @@
   .audit-date-box,
   .audit-category-box {
     width: 100%;
+  }
+
+  /* Rentang tanggal butuh ruang dua input — selalu selebar baris. */
+  .audit-date-box {
+    grid-column: 1 / -1;
   }
 
   .audit-export-button {
