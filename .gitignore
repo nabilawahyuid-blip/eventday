@@ -4,7 +4,7 @@ node_modules/
 .pnp.js
 
 # Build & Output Directories
-dist/
+dist/index.html
 dist-ssr/
 build/
 *.local
@@ -18,7 +18,7 @@ build/
 # Environment Variables (PENTING: Mencegah file .env ter-push ke GitHub)
 .env
 .env.*
-!.env.example
+.env.example
 
 # Logs
 logs
@@ -39,3 +39,5 @@ pnpm-debug.log*
 *.sw?
 .DS_Store
 Thumbs.db
+package-lock.json
+package.json

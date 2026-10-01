@@ -60,6 +60,14 @@ function DetailEvent() {
   const [rejecting, setRejecting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  // Kalau file banner dihapus/404, background-image gagal secara sunyi.
+  // Tandai rusak agar hero kembali ke visual fallback, bukan kotak kosong.
+  const [bannerBroken, setBannerBroken] = useState(false);
+
+  useEffect(() => {
+    setBannerBroken(false);
+  }, [id]);
+
   // =====================================================
   // LOAD EVENT DETAIL
   // =====================================================
@@ -371,7 +379,9 @@ function DetailEvent() {
 
   const bannerUrl = resolveBannerUrl(
     event?.banner_url ||
-      event?.bannerUrl
+      event?.bannerUrl ||
+      event?.banner ||
+      event?.image
   );
 
   // =====================================================
@@ -403,16 +413,20 @@ function DetailEvent() {
     event?.description ||
     "Belum ada deskripsi event.";
 
-  // Lineup: BE mengirim array objek {name, image} (API.md §9) atau
-  // string koma ("A, B") seperti EO — samakan seperti customer.
+  // Lineup: BE mengirim array objek {name, image} (API.md §9), string
+  // "A, B" polos, atau format hemat EO "Nama|/uploads/xxx.jpg, Nama2".
+  // Ketiganya didukung agar foto lineup EO tetap tampil di admin.
   const lineupList = (() => {
     const raw =
       event?.lineup ?? event?.lineups ?? event?.artists ?? event?.performers ?? event?.line_up;
     if (!raw) return [];
     const toItem = (item, idx) => {
       if (typeof item === "string") {
-        const name = item.trim();
-        return name ? { name, image: "" } : null;
+        const [namePart, imagePart] = item.split("|");
+        const name = (namePart || "").trim();
+        return name
+          ? { name, image: (imagePart || "").trim(), id: idx }
+          : null;
       }
       if (item && typeof item === "object") {
         const name = String(
@@ -430,7 +444,10 @@ function DetailEvent() {
       return raw.map(toItem).filter(Boolean);
     }
     if (typeof raw === "string") {
-      return raw.split(",").map((s) => toItem(s)).filter(Boolean);
+      return raw
+        .split(/[,;\n]+/)
+        .map((s) => toItem(s))
+        .filter(Boolean);
     }
     return [];
   })();
@@ -723,23 +740,30 @@ function DetailEvent() {
 
             <div
               className={`detail-hero ${
-                bannerUrl
+                bannerUrl && !bannerBroken
                   ? "has-banner"
                   : ""
               }`}
-              style={
-                bannerUrl
-                  ? {
-                      backgroundImage: `url("${bannerUrl}")`,
-                      backgroundSize: "cover",
-                      backgroundPosition: "center",
-                    }
-                  : undefined
-              }
+              style={{ position: "relative", overflow: "hidden" }}
             >
 
+              {bannerUrl && !bannerBroken && (
+                <img
+                  src={bannerUrl}
+                  alt={title}
+                  onError={() => setBannerBroken(true)}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              )}
+
               {/* DARK OVERLAY */}
-              {bannerUrl && (
+              {bannerUrl && !bannerBroken && (
                 <div className="hero-overlay"></div>
               )}
 
@@ -759,7 +783,7 @@ function DetailEvent() {
 
               {/* FALLBACK VISUAL */}
 
-              {!bannerUrl && (
+              {(!bannerUrl || bannerBroken) && (
                 <div className="hero-visual">
 
                   <div className="hero-circle circle-one"></div>
@@ -915,21 +939,13 @@ function DetailEvent() {
                   </h3>
 
                   <div className="lineup-grid">
-                    {lineupList.map((person, idx) => {
-                      const img = resolveBannerUrl(person.image);
-                      return (
-                        <div className="lineup-item" key={person.id ?? idx}>
-                          <div className="lineup-avatar">
-                            {img ? (
-                              <img src={img} alt={person.name} />
-                            ) : (
-                              <span>{person.name.charAt(0).toUpperCase()}</span>
-                            )}
-                          </div>
-                          <span className="lineup-name">{person.name}</span>
-                        </div>
-                      );
-                    })}
+                    {lineupList.map((person, idx) => (
+                      <LineupAvatar
+                        key={person.id ?? idx}
+                        name={person.name}
+                        image={resolveBannerUrl(person.image)}
+                      />
+                    ))}
                   </div>
 
                 </section>
@@ -1242,6 +1258,27 @@ function DetailEvent() {
 
       </main>
 
+    </div>
+  );
+}
+
+// Avatar lineup dengan fallback inisial.
+// Kalau URL foto 404/diblokir, onError sembunyikan <img> agar tidak tampil
+// ikon gambar rusak — kembali ke huruf inisial seperti sebelumnya.
+function LineupAvatar({ name, image }) {
+  const [broken, setBroken] = useState(false);
+  const showImage = Boolean(image) && !broken;
+
+  return (
+    <div className="lineup-item">
+      <div className="lineup-avatar">
+        {showImage ? (
+          <img src={image} alt={name} onError={() => setBroken(true)} />
+        ) : (
+          <span>{(name || "?").charAt(0).toUpperCase()}</span>
+        )}
+      </div>
+      <span className="lineup-name">{name}</span>
     </div>
   );
 }
