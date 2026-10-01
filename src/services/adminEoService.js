@@ -1,4 +1,4 @@
-import { apiFetch } from "./api";
+import { apiFetch, toQueryString } from "./api";
 
 // ==========================================
 // GET SEMUA PENGAJUAN EO
@@ -9,6 +9,23 @@ export const getEoApplications = async (status = "") => {
     : "";
 
   return apiFetch(`/api/admin/eo-applications${query}`);
+};
+
+// ==========================================
+// GET ORGANIZER TERVERIFIKASI UNTUK DROPDOWN
+// ==========================================
+// Tidak ada endpoint daftar organizer khusus di service FE, sehingga daftar
+// EO yang dapat dipilih admin diambil dari pengajuan berstatus VERIFIED.
+// Parameter page/size diminta eksplisit supaya dropdown tidak terpotong oleh
+// pagination default backend.
+export const getVerifiedOrganizers = async ({ page = 0, size = 100 } = {}) => {
+  return apiFetch(
+    `/api/admin/eo-applications${toQueryString({
+      status: "VERIFIED",
+      page,
+      size,
+    })}`
+  );
 };
 
 // ==========================================

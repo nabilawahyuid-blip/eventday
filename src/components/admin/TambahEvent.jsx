@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { createAdminEvent, updateAdminEventStatus } from "../../services/adminEventService";
+import { getVerifiedOrganizers } from "../../services/adminEoService";
 import {
   showSuccess,
   showError,
@@ -23,6 +24,9 @@ function TambahEvent() {
 
   // State Form Utama
   const [organizer, setOrganizer] = useState("");
+  const [organizers, setOrganizers] = useState([]);
+  const [organizerLoading, setOrganizerLoading] = useState(true);
+  const [organizerError, setOrganizerError] = useState("");
   const [namaEvent, setNamaEvent] = useState("");
   const [kategoriEvent, setKategoriEvent] = useState("");
   const [deskripsi, setDeskripsi] = useState("");
@@ -86,6 +90,59 @@ function TambahEvent() {
   // Banner dari EventBannerUpload: {file: File|null, url: string, urlValid: bool}
   // file → part "file" multipart, url → field bannerUrl (dipakai bila tanpa file)
   const [banner, setBanner] = useState({ file: null, url: "", urlValid: true });
+
+  // Ambil EO terverifikasi satu kali saat form dibuka. size besar diminta
+  // eksplisit supaya dropdown tidak hanya memuat halaman pertama backend.
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadOrganizers = async () => {
+      try {
+        setOrganizerLoading(true);
+        setOrganizerError("");
+
+        const res = await getVerifiedOrganizers({ page: 0, size: 100 });
+        console.log("Daftar EO dari API:", res?.data);
+
+        const responseData = res?.data;
+        const organizerList =
+          responseData?.data?.content ||
+          responseData?.content ||
+          responseData?.data ||
+          responseData ||
+          [];
+        const allOrganizers = Array.isArray(organizerList) ? organizerList : [];
+
+        // Pengaman bila backend mengabaikan query status.
+        const verifiedOrganizers = allOrganizers.filter((item) => {
+          const status = String(item?.verificationStatus || item?.status || "").toUpperCase();
+          return !status || status === "VERIFIED";
+        });
+
+        if (!cancelled) {
+          setOrganizers(verifiedOrganizers);
+        }
+      } catch (err) {
+        console.error("Gagal memuat daftar EO:", err);
+        if (!cancelled) {
+          setOrganizers([]);
+          setOrganizerError(
+            err?.data?.msg || err?.message || "Gagal memuat daftar EO."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setOrganizerLoading(false);
+        }
+      }
+    };
+
+    loadOrganizers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Submit → POST /api/admin/events (CreateEventRequest, API.md §17.11)
   const handleSubmit = async (e) => {
@@ -258,11 +315,46 @@ function TambahEvent() {
 
                 <div className="form-group full">
                   <label>EVENT ORGANIZER</label>
-                  <select value={organizer} onChange={(e) => setOrganizer(e.target.value)}>
-                    <option value="">Dropdown Pilihan Event Organizer</option>
-                    <option value="PT Imut Entertainment">PT Imut Entertainment</option>
-                    <option value="Maju Jaya Productions">Maju Jaya Productions</option>
+                  <select
+                    value={organizer}
+                    onChange={(e) => setOrganizer(e.target.value)}
+                    disabled={organizerLoading}
+                  >
+                    <option value="">
+                      {organizerLoading
+                        ? "Memuat daftar Event Organizer..."
+                        : "Dropdown Pilihan Event Organizer"}
+                    </option>
+                    {organizers.map((eo, index) => {
+                      const id = eo?.id ?? eo?.organizerId ?? eo?.userId ?? "";
+                      const name =
+                        eo?.name ||
+                        eo?.organizerName ||
+                        eo?.nameOrganizer ||
+                        eo?.companyName ||
+                        `EO ${index + 1}`;
+                      const key = id || `${name}-${index}`;
+
+                      return (
+                        <option key={key} value={id || name}>
+                          {name}
+                        </option>
+                      );
+                    })}
                   </select>
+                  {organizerError ? (
+                    <p className="upload-subtitle" style={{ color: "#dc6868", margin: "8px 0 0" }}>
+                      {organizerError}
+                    </p>
+                  ) : (
+                    !organizerLoading && (
+                      <p className="upload-subtitle" style={{ margin: "8px 0 0" }}>
+                        {organizers.length > 0
+                          ? `${organizers.length} organizer terverifikasi dimuat.`
+                          : "Belum ada organizer terverifikasi."}
+                      </p>
+                    )
+                  )}
                 </div>
 
                 <div className="form-row">

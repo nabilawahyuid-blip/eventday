@@ -105,6 +105,8 @@ function MyTicket() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(0); // Halaman aktif, dimulai dari 0
+  const pageSize = 6;
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -287,6 +289,33 @@ function MyTicket() {
     return db - da;
   });
 
+  // Pagination client-side di atas hasil filter/sort yang sudah dimuat.
+  // Endpoint riwayat transaksi/refund tidak mengekspos page/size, sehingga
+  // nomor halaman dihitung dari data lokal dan bukan dari metadata backend.
+  const totalElements = filteredOrders.length;
+  const totalPages = Math.max(1, Math.ceil(totalElements / pageSize));
+  const safePage = Math.min(page, totalPages - 1);
+  const paginatedOrders = filteredOrders.slice(
+    safePage * pageSize,
+    (safePage + 1) * pageSize
+  );
+  const pageNumbers = (() => {
+    if (totalPages <= 1) return [];
+    const maxButtons = 5;
+    let start = Math.max(0, safePage - Math.floor(maxButtons / 2));
+    const end = Math.min(totalPages, start + maxButtons);
+    start = Math.max(0, end - maxButtons);
+    return Array.from({ length: end - start }, (_, index) => start + index);
+  })();
+  const rangeStart = totalElements === 0 ? 0 : safePage * pageSize + 1;
+  const rangeEnd = Math.min(totalElements, (safePage + 1) * pageSize);
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage);
+    }
+  }, [page, safePage]);
+
   const handleOrderClick = async (order) => {
     if (isPendingOrder(order)) {
       // Cari eventId berdasarkan eventTitle
@@ -341,6 +370,7 @@ function MyTicket() {
                 className={`filter-button ${filter === f.key ? "active" : ""}`}
                 onClick={() => {
                   setFilter(f.key);
+                  setPage(0);
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               >
@@ -373,15 +403,72 @@ function MyTicket() {
             </button>
           </div>
         ) : (
-          <section className="my-ticket-list">
-            {filteredOrders.map((order) => (
-              <OrderCard
-                key={order.orderId}
-                order={order}
-                onClick={handleOrderClick}
-              />
-            ))}
-          </section>
+          <>
+            <section className="my-ticket-list">
+              {paginatedOrders.map((order) => (
+                <OrderCard
+                  key={order.orderId}
+                  order={order}
+                  onClick={handleOrderClick}
+                />
+              ))}
+            </section>
+
+            {totalPages > 1 && (
+              <div className="my-ticket-pagination">
+                <span className="my-ticket-pagination-info">
+                  Menampilkan {rangeStart}–{rangeEnd} dari {totalElements} pesanan
+                </span>
+
+                <div className="my-ticket-pagination-controls">
+                  <button
+                    type="button"
+                    className="my-ticket-page-button"
+                    disabled={safePage === 0}
+                    onClick={() =>
+                      setPage((previous) => Math.max(0, previous - 1))
+                    }
+                    aria-label="Halaman sebelumnya"
+                  >
+                    ‹
+                  </button>
+
+                  {pageNumbers.map((pageNumber) => (
+                    <button
+                      key={pageNumber}
+                      type="button"
+                      className={
+                        pageNumber === safePage
+                          ? "my-ticket-page-button active"
+                          : "my-ticket-page-button"
+                      }
+                      onClick={() => setPage(pageNumber)}
+                      aria-label={`Halaman ${pageNumber + 1}`}
+                      aria-current={
+                        pageNumber === safePage ? "page" : undefined
+                      }
+                    >
+                      {pageNumber + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    className="my-ticket-page-button"
+                    disabled={safePage >= totalPages - 1}
+                    onClick={() =>
+                      setPage((previous) =>
+                        Math.min(totalPages - 1, previous + 1)
+                      )
+                    }
+                    aria-label="Halaman berikutnya"
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -480,7 +567,8 @@ function OrderCard({ order, onClick }) {
 
           <div className="ticket-info-item">
             <svg viewBox="0 0 24 24">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+              <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" />
             </svg>
             <span>{formatCurrency(order.totalAmount)}</span>
           </div>

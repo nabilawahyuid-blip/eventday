@@ -11,13 +11,39 @@ import Navbar from "../shared/Navbar";
 
 import "./EventManagement.css";
 
+// Label dropdown UI → nilai yang dimengerti backend.
+const BACKEND_STATUS_BY_LABEL = {
+  "Semua Status": "",
+  Aktif: "PUBLISHED",
+  Draft: "DRAFT",
+  Menunggu: "PENDING_APPROVAL",
+  Ditolak: "REJECTED",
+  Selesai: "COMPLETED",
+  Dibatalkan: "CANCELLED",
+};
+
+const BACKEND_CATEGORY_BY_LABEL = {
+  "Semua Kategori": "",
+  "Music Festival": "MUSIC_FESTIVAL",
+  Conference: "CONFERENCE",
+  Exhibition: "EXHIBITION",
+  Culinary: "CULINARY",
+};
+
+const toBackendStatus = (label) => BACKEND_STATUS_BY_LABEL[label] ?? "";
+const toBackendCategory = (label) => BACKEND_CATEGORY_BY_LABEL[label] ?? "";
+
 export default function EventManagement() {
   const navigate = useNavigate();
   // ==========================================
   // STATE
   // ==========================================
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(0); // Dimulai dari 0 (standar Spring Pageable)
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 10;
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dataWarning, setDataWarning] = useState("");
 
@@ -30,17 +56,12 @@ export default function EventManagement() {
     useState("Semua Kategori");
 
   // ==========================================
-  // PAGINATION (client-side — isi tiap halaman konsisten)
+  // PAGINATION (server-side, standar Spring Pageable)
   // ==========================================
-  // Kenapa client-side? Backend mengembalikan page berisi size=12
-  // SEBELUM DELETED/status/kategori disaring. Sebelumnya halaman
-  // pertama cuma tampil 6 event (12 - 6 yg DELETED), halaman
-  // berikut 9, dst — tidak seragam. Sekarang backend hanya dipakai
-  // untuk SEARCH + fetch 1x (FETCH_SIZE), sisa filter & paginasi
-  // dilakukan client-side dengan PAGE_SIZE TETAP per halaman.
-  const PAGE_SIZE = 12;
-  const FETCH_SIZE = 20;
-  const [page, setPage] = useState(0);
+  // Backend menentukan isi tiap halaman melalui page/size, lalu FE memakai
+  // metadata totalPages/totalElements dari respons. Filter status, kategori,
+  // dan pencarian juga dikirim ke backend supaya halaman yang diterima sudah
+  // final dan tidak dipotong lagi di client.
 
   // ==========================================
   // NORMALISASI ITEM BACKEND → SHAPE UI
@@ -131,13 +152,15 @@ export default function EventManagement() {
 
   // ==========================================
   // AMBIL DATA EVENT DARI BACKEND
-  // GET /api/admin/events?search=&page=0&size=20
-  // Halaman & filter ditangani client-side (lihat blok SORT & PAGINASI).
+  // GET /api/admin/events?search=&status=&category=&page=0&size=10
+  // Halaman aktif, ukuran halaman, dan semua filter dikirim ke backend.
+  // Metadata totalPages/totalElements dari respons dipakai langsung tanpa
+  // dihitung ulang dari hasil filter client.
   // Fallback: /api/admin/dashboard/recent-events bila backend
   // belum punya AdminEventController (Phase 1 belum deploy →
   // 500 "No static resource").
   // ==========================================
-  const fetchEvents = useCallback(async (search = "") => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -146,9 +169,11 @@ export default function EventManagement() {
       let response;
       try {
         response = await getAdminEventsTolerant({
-          search,
-          page: 0,
-          size: FETCH_SIZE,
+          search: debouncedSearch,
+          status: toBackendStatus(selectedStatus),
+          category: toBackendCategory(selectedCategory),
+          page,
+          size: pageSize,
         });
         if (response?._partial) {
           setDataWarning(
@@ -171,15 +196,25 @@ export default function EventManagement() {
       console.log("Response event:", response);
 
       // ApiResponse backend: {msg, status, data}
-      // data bisa Page {content,page,totalPages,totalElements} atau array langsung
-      const raw = response?.data;
-      const list = Array.isArray(raw)
-        ? raw
-        : Array.isArray(raw?.content)
-          ? raw.content
+      // data normal = Page {content,page,totalPages,totalElements}.
+      const pageData = response?.data ?? {};
+      const content = Array.isArray(pageData)
+        ? pageData
+        : Array.isArray(pageData?.content)
+          ? pageData.content
           : [];
+      const parsedTotalPages = Number(
+        pageData?.totalPages ?? (content.length > 0 ? 1 : 0)
+      );
+      const parsedTotalElements = Number(
+        pageData?.totalElements ?? content.length
+      );
 
-      setEvents(list.map(normalizeEvent));
+      setItems(content.map(normalizeEvent));
+      setTotalPages(Number.isFinite(parsedTotalPages) ? Math.max(0, parsedTotalPages) : 0);
+      setTotalElements(
+        Number.isFinite(parsedTotalElements) ? Math.max(0, parsedTotalElements) : 0
+      );
     } catch (err) {
       console.error("Gagal memuat data event:", err);
 
@@ -196,11 +231,13 @@ export default function EventManagement() {
         setError(msg || "Gagal menyambungkan ke server backend.");
       }
 
-      setEvents([]);
+      setItems([]);
+      setTotalPages(0);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [debouncedSearch, selectedStatus, selectedCategory, page]);
 
   // Debounce kata kunci (400ms) → reset ke halaman 0
   useEffect(() => {
@@ -211,10 +248,10 @@ export default function EventManagement() {
     return () => clearTimeout(t);
   }, [searchTerm]);
 
-  // Fetch ulang saat kata kunci berubah (paginasi ditangani client-side)
+  // Fetch ulang saat kata kunci, filter, atau halaman berubah.
   useEffect(() => {
-    fetchEvents(debouncedSearch);
-  }, [debouncedSearch, fetchEvents]);
+    fetchEvents();
+  }, [fetchEvents]);
 
   // ==========================================
   // KLIK PANAH → DETAIL EVENT
@@ -245,49 +282,34 @@ export default function EventManagement() {
   };
 
   // ==========================================
-  // FILTER, SORT & HIDE-DELETED
+  // HIDE-DELETED & SORT HALAMAN AKTIF
   // ==========================================
-  // - Event yang dihapus (DELETED, soft delete) tidak pernah ditampilkan
-  // - Status & kategori difilter client-side (search sudah di backend)
-  // - Urutan selalu terbaru-dibuat → terlama-dibuat berdasarkan createdAt
-  //   (backend belum punya param sort, API.md §17.11 — jadi client-side per halaman)
-  const norm = (s) => String(s || "").replace(/_/g, " ").trim().toLowerCase();
-  const sortedEvents = events
+  // Status/kategori/search sudah difilter oleh backend. Satu-satunya
+  // penyaringan client yang tersisa adalah menyembunyikan DELETED saat
+  // filter status "Semua Status". Urutan halaman aktif dirapikan
+  // terbaru-dibuat → terlama-dibuat karena backend belum punya param sort.
+  const visibleItems = items
     .filter((event) => {
-      if (String(event?.rawStatus || "").toUpperCase() === "DELETED") {
-        return false;
-      }
-      const status = norm(event?.status || "Aktif");
-      const category = norm(event?.category || "");
-
-      const matchesStatus =
-        selectedStatus === "Semua Status" ||
-        status === norm(selectedStatus);
-
-      const matchesCategory =
-        selectedCategory === "Semua Kategori" ||
-        category === norm(selectedCategory) ||
-        norm(event?.rawCategory) === norm(selectedCategory);
-
-      return matchesStatus && matchesCategory;
+      if (selectedStatus !== "Semua Status") return true;
+      return String(event?.rawStatus || "").toUpperCase() !== "DELETED";
     })
     .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  // Jumlah DELETED yang disembunyikan dari halaman aktif — ditampilkan sebagai
+  // catatan supaya angka "Showing X–Y" tidak terlihat salah.
+  const hiddenDeletedCount = items.length - visibleItems.length;
+  const emptyMessage =
+    items.length > 0
+      ? hiddenDeletedCount > 0
+        ? "Halaman ini hanya berisi event yang sudah dihapus."
+        : "Tidak ada event yang sesuai dengan pencarian."
+      : "Tidak ada event yang sesuai dengan pencarian.";
 
   // ==========================================
-  // PAGINATION (client-side, seragam per halaman)
+  // PAGINATION (server-side)
   // ==========================================
-  // totalPages/totalElements dihitung dari HASIL FILTER + SORT,
-  // bukan dari backend — jadi jumlah kartu per halaman selalu
-  // sebanyak PAGE_SIZE (kecuali halaman terakhir), berapa pun
-  // jumlah event DELETED yang terbuang di client.
-  const totalPages = Math.max(1, Math.ceil(sortedEvents.length / PAGE_SIZE));
-  const totalElements = sortedEvents.length;
-  const safePage = Math.min(page, totalPages - 1);
-  const displayedEvents = sortedEvents.slice(
-    safePage * PAGE_SIZE,
-    (safePage + 1) * PAGE_SIZE
-  );
-
+  // totalPages/totalElements berasal dari backend dan tidak dihitung ulang.
+  const safePage =
+    totalPages > 0 ? Math.min(Math.max(0, page), totalPages - 1) : 0;
   // Reset ke halaman pertama bila hasil filter menyusut
   useEffect(() => {
     if (page !== safePage) setPage(safePage);
@@ -303,8 +325,8 @@ export default function EventManagement() {
     return Array.from({ length: end - start }, (_, i) => start + i);
   })();
 
-  const rangeStart = totalElements === 0 ? 0 : safePage * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(totalElements, (safePage + 1) * PAGE_SIZE);
+  const rangeStart = totalElements === 0 ? 0 : safePage * pageSize + 1;
+  const rangeEnd = Math.min(totalElements, (safePage + 1) * pageSize);
 
   // ==========================================
   // RENDER
@@ -470,6 +492,12 @@ export default function EventManagement() {
               </p>
             )}
 
+            {hiddenDeletedCount > 0 && !loading && !error && (
+              <p style={{ background: "#f3f4f6", border: "1px solid #e5e7eb", color: "#6b7280", borderRadius: 8, padding: "10px 14px", margin: "0 0 16px", fontSize: 13 }}>
+                {hiddenDeletedCount} event yang sudah dihapus disembunyikan dari halaman ini.
+              </p>
+            )}
+
             {/* ==================================
                 EVENT GRID
             ================================== */}
@@ -503,12 +531,12 @@ export default function EventManagement() {
                   {error}
                 </p>
 
-              ) : sortedEvents.length > 0 ? (
+              ) : visibleItems.length > 0 ? (
 
                 /* =================================
                    EVENT DATA
                 ================================== */
-                displayedEvents.map(
+                visibleItems.map(
                   (event, index) => {
 
                     const eventId =
@@ -656,8 +684,7 @@ export default function EventManagement() {
                     padding: "30px",
                   }}
                 >
-                  Tidak ada event yang sesuai
-                  dengan pencarian.
+                  {emptyMessage}
                 </p>
 
               )}

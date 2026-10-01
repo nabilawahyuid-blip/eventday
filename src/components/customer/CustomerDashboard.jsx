@@ -188,6 +188,11 @@ function DashboardCustomer() {
   const [events, setEvents] =
     useState(FALLBACK_EVENTS);
 
+  const [page, setPage] = useState(0); // Dimulai dari 0 (standar Spring Pageable)
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 9;
+
   const [loading, setLoading] =
     useState(true);
 
@@ -210,6 +215,7 @@ function DashboardCustomer() {
         setDebouncedSearch(
           search.trim()
         );
+        setPage(0);
       },
       400
     );
@@ -281,20 +287,17 @@ function DashboardCustomer() {
 
       try {
         // =================================================
-        // PAGINATION
+        // SERVER-SIDE PAGINATION
         //
-        // Backend saat ini:
-        // size = 12
-        // totalElements = 23
-        // totalPages = 2
-        //
-        // Kita naikkan size supaya "Semua"
-        // mengambil seluruh event.
+        // Halaman aktif dan ukuran halaman dikirim ke backend.
+        // Metadata totalPages/totalElements dipakai langsung,
+        // tanpa slice manual di client.
         // =================================================
 
         const params = {
-          page: 0,
-          size: 100,
+          page,
+          size: pageSize,
+          sort: "latest",
         };
 
         // =================================================
@@ -339,21 +342,25 @@ function DashboardCustomer() {
         );
 
         // =================================================
-        // GET CONTENT
+        // SET EVENTS + METADATA PAGE
         // =================================================
 
-        const list =
-          res?.data?.content ||
-          res?.data ||
-          [];
-
-        // =================================================
-        // SET EVENTS
-        // =================================================
+        const pageData = res?.data ?? {};
+        const content = Array.isArray(pageData)
+          ? pageData
+          : Array.isArray(pageData?.content)
+            ? pageData.content
+            : [];
+        const parsedTotalPages = Number(
+          pageData?.totalPages ?? (content.length > 0 ? 1 : 0)
+        );
+        const parsedTotalElements = Number(
+          pageData?.totalElements ?? content.length
+        );
 
         setEvents(
-          Array.isArray(list)
-            ? list.map((ev) => ({
+          Array.isArray(content)
+            ? content.map((ev) => ({
                 ...ev,
 
                 image:
@@ -365,6 +372,16 @@ function DashboardCustomer() {
               }))
             : []
         );
+        setTotalPages(
+          Number.isFinite(parsedTotalPages)
+            ? Math.max(0, parsedTotalPages)
+            : 0
+        );
+        setTotalElements(
+          Number.isFinite(parsedTotalElements)
+            ? Math.max(0, parsedTotalElements)
+            : 0
+        );
       } catch (err) {
         console.error(
           "Gagal memuat event:",
@@ -374,6 +391,8 @@ function DashboardCustomer() {
         setEvents(
           FALLBACK_EVENTS
         );
+        setTotalPages(1);
+        setTotalElements(FALLBACK_EVENTS.length);
       } finally {
         setLoading(false);
       }
@@ -381,6 +400,7 @@ function DashboardCustomer() {
     [
       activeCategory,
       debouncedSearch,
+      page,
     ]
   );
 
@@ -482,6 +502,44 @@ function DashboardCustomer() {
 
   const currentHero =
     heroSlides[currentSlide];
+
+  // =====================================================
+  // SERVER PAGINATION DERIVATIVES
+  // =====================================================
+
+  const safePage =
+    totalPages > 0
+      ? Math.min(Math.max(0, page), totalPages - 1)
+      : 0;
+  const pageNumbers = (() => {
+    if (totalPages <= 1) return [];
+    const maxButtons = 5;
+    let start = Math.max(
+      0,
+      safePage - Math.floor(maxButtons / 2)
+    );
+    const end = Math.min(
+      totalPages,
+      start + maxButtons
+    );
+    start = Math.max(0, end - maxButtons);
+    return Array.from(
+      { length: end - start },
+      (_, index) => start + index
+    );
+  })();
+  const rangeStart =
+    totalElements === 0 ? 0 : safePage * pageSize + 1;
+  const rangeEnd = Math.min(
+    totalElements,
+    (safePage + 1) * pageSize
+  );
+
+  useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage);
+    }
+  }, [safePage, page]);
 
   // =====================================================
   // RENDER
@@ -642,11 +700,12 @@ function DashboardCustomer() {
                         ? "active"
                         : ""
                     }
-                    onClick={() =>
+                    onClick={() => {
                       setActiveCategory(
                         category
-                      )
-                    }
+                      );
+                      setPage(0);
+                    }}
                   >
                     {category}
                   </button>
@@ -842,6 +901,61 @@ function DashboardCustomer() {
 
             </div>
 
+          )}
+
+          {!loading && totalPages > 1 && (
+            <div className="dashboard-pagination">
+              <span className="dashboard-pagination-info">
+                Menampilkan {rangeStart}–{rangeEnd} dari {totalElements} event
+              </span>
+
+              <div className="dashboard-pagination-controls">
+                <button
+                  type="button"
+                  className="dashboard-page-button"
+                  disabled={safePage === 0}
+                  onClick={() =>
+                    setPage((previous) => Math.max(0, previous - 1))
+                  }
+                  aria-label="Halaman sebelumnya"
+                >
+                  ‹
+                </button>
+
+                {pageNumbers.map((pageNumber) => (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    className={
+                      pageNumber === safePage
+                        ? "dashboard-page-button active"
+                        : "dashboard-page-button"
+                    }
+                    onClick={() => setPage(pageNumber)}
+                    aria-label={`Halaman ${pageNumber + 1}`}
+                    aria-current={
+                      pageNumber === safePage ? "page" : undefined
+                    }
+                  >
+                    {pageNumber + 1}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  className="dashboard-page-button"
+                  disabled={safePage >= totalPages - 1}
+                  onClick={() =>
+                    setPage((previous) =>
+                      Math.min(totalPages - 1, previous + 1)
+                    )
+                  }
+                  aria-label="Halaman berikutnya"
+                >
+                  ›
+                </button>
+              </div>
+            </div>
           )}
 
           {/* =================================================
