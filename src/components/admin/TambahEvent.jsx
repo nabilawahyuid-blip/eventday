@@ -45,7 +45,9 @@ function TambahEvent() {
     { namaKategori: "Reguler", harga: 200000, kuota: 400 }
   ]);
 
-  const [lineUpList, setLineUpList] = useState(["For Revenge"]);
+  const [lineUpList, setLineUpList] = useState([
+    { name: "For Revenge", image: "" },
+  ]);
 
   // Handler Upload Dokumen Perizinan
   const handleDokumenUpload = (e) => {
@@ -73,12 +75,14 @@ function TambahEvent() {
     setTiketList(updated);
   };
 
-  // Handlers Dynamic LineUp
-  const handleAddLineUp = () => setLineUpList([...lineUpList, ""]);
+  // Handlers Dynamic LineUp ({name, image} — image opsional path/URL,
+  // dikirim format EO "Nama|/uploads/xxx.jpg" agar foto tampil di detail)
+  const handleAddLineUp = () =>
+    setLineUpList([...lineUpList, { name: "", image: "" }]);
   const handleRemoveLineUp = (index) => setLineUpList(lineUpList.filter((_, i) => i !== index));
-  const handleLineUpChange = (index, value) => {
+  const handleLineUpChange = (index, field, value) => {
     const updated = [...lineUpList];
-    updated[index] = value;
+    updated[index] = { ...updated[index], [field]: value };
     setLineUpList(updated);
   };
 
@@ -199,9 +203,20 @@ function TambahEvent() {
       endDate,
       bannerUrl: banner.url || null,
       facilities: [],
-      // Lineup dikirim sebagai string koma (format sama seperti EO) agar
-      // tersimpan di kolom yang sama dan tampil di semua halaman detail.
-      lineup: lineUpList.map((s) => String(s || "").trim()).filter(Boolean).join(", ") || null,
+      // Lineup format EO "Nama|/uploads/xxx.jpg, Nama2" agar foto
+      // lineup bisa tampil di semua halaman detail (admin/EO/customer).
+      // Upload file lineup menyusul di BE (endpoint admin khusus);
+      // untuk sekarang isi kolom foto dengan path hasil upload / URL langsung.
+      lineup:
+        lineUpList
+          .map((item) => {
+            const name = String(item?.name || "").trim();
+            const img = String(item?.image || "").trim();
+            if (!name) return null;
+            return img ? `${name}|${img}` : name;
+          })
+          .filter(Boolean)
+          .join(", ") || null,
       ticketTiers: tiketList
         .filter((t) => t.namaKategori && Number(t.kuota) > 0)
         .map((t) => ({
@@ -532,9 +547,18 @@ function TambahEvent() {
                     <div className="form-group flex-1">
                       <input
                         type="text"
-                        value={artist}
+                        value={artist?.name || ""}
                         placeholder="Nama Artis / Performa"
-                        onChange={(e) => handleLineUpChange(index, e.target.value)}
+                        onChange={(e) => handleLineUpChange(index, "name", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="form-group flex-1">
+                      <input
+                        type="text"
+                        value={artist?.image || ""}
+                        placeholder="Foto: /uploads/xxx.jpg atau https://... (opsional)"
+                        onChange={(e) => handleLineUpChange(index, "image", e.target.value)}
                       />
                     </div>
 

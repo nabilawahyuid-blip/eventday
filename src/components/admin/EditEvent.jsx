@@ -9,10 +9,16 @@ import {
 import {
   showSuccess,
   showError,
+  showWarning,
 } from "../../utils/alert";
+import {
+  uploadOrganizerLineupImage,
+  extractUploadedImageUrl,
+} from "../../services/organizerEventService";
 
 import Sidebar from "../shared/Sidebar";
 import Navbar from "../shared/Navbar";
+import EventBannerUpload from "./EventBannerUpload";
 import "./EditEvent.css";
 
 import {
@@ -41,10 +47,32 @@ function EditEvent() {
 
   const [tickets, setTickets] = useState([]);
   const [lineups, setLineups] = useState([]);
-  const [newLineup, setNewLineup] = useState("");
-  // Banner URL event yang sudah tersimpan — dipertahankan saat update
-  // (backend meng-isi ulang bannerUrl null = banner terhapus)
-  const [bannerUrl, setBannerUrl] = useState("");
+  const [newLineupName, setNewLineupName] = useState("");
+  const [newLineupImage, setNewLineupImage] = useState("");
+  const [uploadingLineup, setUploadingLineup] = useState(false);
+  // Banner dari EventBannerUpload: {file, url, urlValid}.
+  // file → part "file" multipart, url → field bannerUrl.
+  const [banner, setBanner] = useState({ file: null, url: "", urlValid: true });
+
+  const parseLineupItem = (l) => {
+    if (typeof l === "string") {
+      const [namePart, imagePart] = l.split("|");
+      const name = (namePart || "").trim();
+      if (!name) return null;
+      return { name, image: (imagePart || "").trim(), file: null, preview: null };
+    }
+    if (l && typeof l === "object") {
+      const name = String(l.name || l.artist || l.title || "").trim();
+      if (!name) return null;
+      return {
+        name,
+        image: String(l.image || l.photo || l.avatar || "").trim(),
+        file: null,
+        preview: null,
+      };
+    }
+    return null;
+  };
 
   const fetchDetail = useCallback(async () => {
     try {
@@ -58,7 +86,11 @@ function EditEvent() {
       // Normalisasi kategori lama busuk ("Musik"/"Konser"/...) ke enum valid
       // agar dropdown selalu berisi nilai yang bisa disimpan kembali.
       setKategori(normalizeCategoryForBackend(ev.category) || "MUSIC_FESTIVAL");
-      setBannerUrl(ev.bannerUrl || "");
+      setBanner({
+        file: null,
+        url: ev.bannerUrl || ev.banner_url || ev.banner || ev.image || "",
+        urlValid: true,
+      });
       if (ev.startDate) {
         const d = new Date(ev.startDate);
         setTanggal(d.toISOString().slice(0, 10));
@@ -83,7 +115,21 @@ function EditEvent() {
           quota: String(t.totalQuota ?? ""),
         }))
       );
-      setLineups(Array.isArray(ev.lineup) ? ev.lineup.map((l) => l?.name || l) : []);
+      // Pertahankan foto lineup ("Nama|path" / objek {name,image}),
+      // jangan strip ke nama saja agar gambar tidak hilang saat save.
+      const rawLineup = ev.lineup ?? ev.lineups ?? [];
+      if (Array.isArray(rawLineup)) {
+        setLineups(rawLineup.map(parseLineupItem).filter(Boolean));
+      } else if (typeof rawLineup === "string" && rawLineup.trim()) {
+        setLineups(
+          rawLineup
+            .split(/[,;\n]+/)
+            .map(parseLineupItem)
+            .filter(Boolean)
+        );
+      } else {
+        setLineups([]);
+      }
     } catch (err) {
       console.error("Gagal memuat event:", err);
       setError(err?.data?.msg || err?.message || "Gagal memuat event.");
@@ -109,10 +155,64 @@ function EditEvent() {
   };
 
   const addLineupItem = () => {
-    if (newLineup.trim()) {
-      setLineups([...lineups, newLineup.trim()]);
-      setNewLineup("");
+    const name = newLineupName.trim();
+    if (name) {
+      setLineups([
+        ...lineups,
+        { name, image: newLineupImage.trim(), file: null, preview: null },
+      ]);
+      setNewLineupName("");
+      setNewLineupImage("");
     }
+  };
+
+  const updateLineupRow = (index, field, value) => {
+    setLineups(
+      lineups.map((item, i) =>
+        // Pilih file baru membuang URL manual (satu sumber gambar saja)
+        i === index
+          ? field === "image"
+            ? { ...item, image: value, file: null, preview: null }
+            : { ...item, [field]: value }
+          : item
+      )
+    );
+  };
+
+  // Tombol "Pilih Foto" per artis — validasi sama seperti banner (gambar ≤5MB).
+  // File disimpan di state dan diupload saat Save (lihat handleSave).
+  const handleLineupFileChange = (index, file) => {
+    if (!file) return;
+    if (!file.type || !file.type.startsWith("image/")) {
+      showWarning("File Tidak Valid", "Foto lineup harus berupa gambar (PNG/JPG/JPEG).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showWarning("File Terlalu Besar", "Ukuran foto lineup maksimal 5MB.");
+      return;
+    }
+    setLineups((prev) =>
+      prev.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              file,
+              preview: URL.createObjectURL(file),
+              image: "",
+            }
+          : item
+      )
+    );
+  };
+
+  const handleRemoveLineupFile = (index) => {
+    setLineups((prev) =>
+      prev.map((item, i) => {
+        if (i !== index) return item;
+        if (item.preview) URL.revokeObjectURL(item.preview);
+        return { ...item, file: null, preview: null };
+      })
+    );
   };
 
   const removeLineupItem = (index) => {
@@ -143,6 +243,49 @@ function EditEvent() {
         ? `${tanggal || new Date().toISOString().slice(0, 10)}T${jamSelesai.length === 5 ? jamSelesai + ":00" : jamSelesai}`
         : null;
 
+      // Upload foto lineup yang dipilih via tombol "Pilih Foto".
+      // Hasilnya path /uploads/... yang tidak dibuang backend
+      // (URL eksternal mentah bisa dikosongkan BE seperti di EO).
+      let resolvedLineups = lineups;
+      const withFile = lineups
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => item.file);
+      if (withFile.length > 0) {
+        setUploadingLineup(true);
+        try {
+          resolvedLineups = [...lineups];
+          for (const { item, index } of withFile) {
+            try {
+              const res = await uploadOrganizerLineupImage(item.file);
+              const url = extractUploadedImageUrl(res);
+              if (url) {
+                if (item.preview) URL.revokeObjectURL(item.preview);
+                resolvedLineups[index] = {
+                  ...item,
+                  image: url,
+                  file: null,
+                  preview: null,
+                };
+              }
+            } catch (uploadErr) {
+              console.warn("Gagal mengupload foto lineup:", uploadErr);
+              await showWarning(
+                "Upload Foto Gagal",
+                `Foto ${item.name || "artis"} gagal diupload (${uploadErr?.data?.msg || uploadErr?.message || "server menolak"}). Baris ini disimpan tanpa foto — atau isi kolom URL manual.`
+              );
+              resolvedLineups[index] = {
+                ...item,
+                file: null,
+                preview: null,
+              };
+            }
+          }
+          setLineups(resolvedLineups);
+        } finally {
+          setUploadingLineup(false);
+        }
+      }
+
       const payload = {
         title: namaEvent.trim(),
         description: deskripsi.trim() || namaEvent.trim(),
@@ -151,14 +294,23 @@ function EditEvent() {
         venueName: lokasi.trim(),
         eventDate,
         endDate,
-        bannerUrl: bannerUrl.trim() || null,
-        // Lineup format string koma (sama seperti EO) agar tampil di detail.
-        lineup: lineups.map((s) => String(s || "").trim()).filter(Boolean).join(", ") || null,
+        bannerUrl: (banner.url || "").trim() || null,
+        // Lineup format EO "Nama|path, Nama2" agar foto tampil di detail.
+        lineup:
+          resolvedLineups
+            .map((item) => {
+              const name = String(item?.name || "").trim();
+              const img = String(item?.image || "").trim();
+              if (!name) return null;
+              return img ? `${name}|${img}` : name;
+            })
+            .filter(Boolean)
+            .join(", ") || null,
         ticketTiers: tickets
           .filter((t) => t.name && Number(t.quota) > 0)
           .map((t) => ({ name: t.name, price: Number(t.price) || 0, quota: Number(t.quota) || 0 })),
       };
-      await updateAdminEvent(id, payload);
+      await updateAdminEvent(id, payload, banner.file);
       await showSuccess(
         "Perubahan Event Disimpan",
         "Perubahan berhasil disimpan."
@@ -224,9 +376,9 @@ function EditEvent() {
               type="button"
               className="btn-primary"
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || uploadingLineup}
             >
-              <FiPlus /> {saving ? "Menyimpan..." : "Simpan Perubahan"}
+              <FiPlus /> {uploadingLineup ? "Mengupload foto..." : saving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
 
@@ -290,11 +442,10 @@ function EditEvent() {
             {/* BANNER EVENT */}
             <section className="form-card">
               <h3>Banner Event</h3>
-              <div className="upload-dropzone">
-                <FiUploadCloud size={32} className="upload-icon" />
-                <p className="upload-title">Upload Banner Event (16:9)</p>
-                <p className="upload-subtitle">Drag &amp; drop atau klik untuk memilih file (Max 5mb)</p>
-              </div>
+              <EventBannerUpload
+                initialUrl={banner.url}
+                onChange={setBanner}
+              />
             </section>
 
             {/* JADWAL EVENT */}
@@ -381,24 +532,108 @@ function EditEvent() {
             <section className="form-card">
               <div className="card-header-flex">
                 <h3>Line Up Event</h3>
-                <div className="add-lineup-group">
-                  <input
-                    type="text"
-                    className="form-control inline-input"
-                    placeholder="Nama Artist..."
-                    value={newLineup}
-                    onChange={(e) => setNewLineup(e.target.value)}
-                  />
-                  <button type="button" className="btn-text" onClick={addLineupItem}>+ Tambah LineUp</button>
-                </div>
               </div>
-              <div className="lineup-tags-container">
-                {lineups.map((item, idx) => (
-                  <div className="lineup-chip" key={idx}>
-                    <span>{item}</span>
-                    <FiX className="chip-close" onClick={() => removeLineupItem(idx)} />
-                  </div>
-                ))}
+              <p className="upload-subtitle" style={{ margin: "0 0 12px" }}>
+                Upload lewat <strong>Pilih Foto</strong> (maks 5MB, tersimpan ke server saat Save), atau tempel path/URL langsung di kolom foto.
+              </p>
+              <div className="lineup-table-header">
+                <span>FOTO</span>
+                <span>NAMA ARTIS</span>
+                <span>URL / PATH FOTO</span>
+                <span></span>
+              </div>
+              {/* Baris tambah */}
+              <div className="lineup-edit-row lineup-add-row">
+                <span className="lineup-photo-thumb lineup-photo-add">+</span>
+                <input
+                  type="text"
+                  className="form-control inline-input"
+                  placeholder="Nama Artist..."
+                  value={newLineupName}
+                  onChange={(e) => setNewLineupName(e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="form-control inline-input"
+                  placeholder="Foto: /uploads/xxx.jpg atau https://... (opsional)"
+                  value={newLineupImage}
+                  onChange={(e) => setNewLineupImage(e.target.value)}
+                />
+                <button type="button" className="btn-text" onClick={addLineupItem}>+ Tambah</button>
+              </div>
+              <div className="lineup-edit-list">
+                {lineups.map((item, idx) => {
+                  const thumb = item.preview || item.image;
+                  return (
+                    <div className="lineup-edit-row" key={idx}>
+                      <span className="lineup-photo-thumb">
+                        {thumb ? (
+                          <img src={thumb} alt={item?.name || "Lineup"} />
+                        ) : (
+                          <span className="lineup-photo-empty">
+                            {(item?.name || "?").charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                      </span>
+                      <input
+                        type="text"
+                        className="form-control inline-input"
+                        value={item?.name || ""}
+                        placeholder="Nama Artis"
+                        onChange={(e) => updateLineupRow(idx, "name", e.target.value)}
+                      />
+                      <div className="lineup-photo-cell">
+                        <input
+                          type="text"
+                          className="form-control inline-input"
+                          value={item?.image || ""}
+                          placeholder="Foto: /uploads/... atau https://..."
+                          onChange={(e) => updateLineupRow(idx, "image", e.target.value)}
+                        />
+                        <div className="lineup-photo-alt">
+                          {item.file ? (
+                            <>
+                              <span className="lineup-file-name">{item.file.name}</span>
+                              <button
+                                type="button"
+                                className="btn-photo-clear"
+                                onClick={() => handleRemoveLineupFile(idx)}
+                              >
+                                Batal
+                              </button>
+                            </>
+                          ) : (
+                            <label className="btn-photo-pick">
+                              Pilih Foto
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                hidden
+                                onChange={(e) => {
+                                  handleLineupFileChange(idx, e.target.files?.[0]);
+                                  e.target.value = "";
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn-delete-row"
+                        onClick={() => removeLineupItem(idx)}
+                        aria-label="Hapus lineup"
+                      >
+                        <FiX />
+                      </button>
+                    </div>
+                  );
+                })}
+                {lineups.length === 0 && (
+                  <p className="upload-subtitle" style={{ margin: 0 }}>
+                    Belum ada lineup. Tambahkan lewat baris di atas.
+                  </p>
+                )}
               </div>
             </section>
           </form>

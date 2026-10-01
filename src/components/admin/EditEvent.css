@@ -303,6 +303,151 @@ label {
   color: #9ca3af;
 }
 
+/* Lineup edit — tabel grid sejajar kolom (seperti tabel tiket) */
+.edit-event-page .lineup-table-header {
+  display: grid;
+  grid-template-columns: 48px 1fr 1.5fr 84px;
+  gap: 16px;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #9ca3af;
+  margin-bottom: 10px;
+  padding: 0 12px;
+}
+
+.edit-event-page .lineup-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-event-page .lineup-edit-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 1.5fr 84px;
+  gap: 16px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.edit-event-page .lineup-edit-row .btn-text {
+  white-space: nowrap;
+  font-size: 13px;
+  justify-self: end;
+}
+
+.edit-event-page .lineup-add-row {
+  border-style: dashed;
+  background: #fafbff;
+  margin-bottom: 12px;
+}
+
+.edit-event-page .lineup-edit-row .inline-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.edit-event-page .lineup-photo-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.edit-event-page .lineup-photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edit-event-page .lineup-photo-add {
+  border: 1px dashed #c7cbde;
+  background: #eef0ff;
+  color: #5868ee;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.edit-event-page .lineup-photo-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.edit-event-page .lineup-photo-alt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.edit-event-page .lineup-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+@media (max-width: 700px) {
+  .edit-event-page .lineup-table-header {
+    display: none;
+  }
+
+  .edit-event-page .lineup-edit-row {
+    grid-template-columns: 40px 1fr;
+  }
+
+  .edit-event-page .lineup-photo-cell {
+    grid-column: 1 / -1;
+  }
+}
+
+.edit-event-page .btn-photo-pick {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #453bd0;
+  background: #eef0ff;
+  border: 1px solid #d9dcff;
+  border-radius: 6px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+.edit-event-page .btn-photo-pick:hover {
+  background: #e2e5ff;
+}
+
+/* Kunci input file bawaan tetap tersembunyi — reset global
+   styles.css (input{display:block}) mengalahkan atribut hidden. */
+.edit-event-page .btn-photo-pick input[type="file"] {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.edit-event-page .btn-photo-clear {
+  font-size: 12px;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 @media (max-width: 700px) {
   .edit-main {
     margin-left: 0;
