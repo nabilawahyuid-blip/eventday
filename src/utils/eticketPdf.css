@@ -1,0 +1,448 @@
+/**
+ * Print container + concert boarding pass styles.
+ *
+ * Base rule: `.eticket-print-root { display: none }` so the concert pass never
+ * shows on screen. The @media print counterpart below flips it to flex.
+ *
+ * NOTE: the brief suggested `className="hidden print:block"` (Tailwind). This
+ * project has no Tailwind installed, so a real class is used instead.
+ *
+ * Screens: TicketSuccess.jsx (#concert-ticket-print) and OrderDetail.jsx
+ * (.eticket-print-root) both render one ConcertPass per ticket.
+ */
+
+.eticket-print-root {
+  display: none;
+}
+
+/* Raised off-screen just before window.print() so the browser can resolve the
+   QR <img> elements: inside a display:none subtree they have no layout box and
+   would otherwise never load, printing as an empty square. */
+.eticket-print-root.is-printing {
+  display: flex;
+  position: absolute;
+  left: -20000px;
+  top: 0;
+  flex-direction: column;
+  gap: 24px;
+  pointer-events: none;
+}
+
+/* ---------- Horizontal boarding pass: 70% main / 30% stub ---------- */
+.concert-pass {
+  --pass-notch-bg: #ffffff;
+  --pass-rule: #e2e8f0;
+  --pass-ink: #0f172a;
+  --pass-muted: #64748b;
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border: 1px solid var(--pass-rule);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  color: var(--pass-ink);
+  font-family: "Poppins", Arial, sans-serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.concert-pass-main {
+  flex: 0 0 70%;
+  min-width: 0;
+  padding: 20px 24px 18px;
+}
+
+.concert-pass-stub {
+  position: relative;
+  flex: 0 0 30%;
+  padding: 18px 18px 16px;
+  text-align: center;
+  background: #fbfcfe;
+  border-left: 2px dashed #94a3b8;
+}
+
+/* Half-circle tear notches at both ends of the perforation. */
+.concert-pass-stub::before,
+.concert-pass-stub::after {
+  content: "";
+  position: absolute;
+  left: -10px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--pass-rule);
+  border-radius: 50%;
+  background: var(--pass-notch-bg);
+}
+
+.concert-pass-stub::before {
+  top: -10px;
+}
+
+.concert-pass-stub::after {
+  bottom: -10px;
+}
+
+/* ---------- Header: logo + wordmark (kiri) / eyebrow (kanan) ----------
+   The old header put the bare <EventdayLogo /> next to the eyebrow, but
+   .eventday-logo had no styles at all: the component's own "Eventday" and
+   "Official E-Ticket" spans rendered as inline text and ran together into
+   "EventdayOfficial E-Ticket". The logo is now an inline-flex row with an
+   explicit gap, and the wordmark lives beside it in a stacked block. */
+.concert-pass-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 3px solid #4338ca;
+}
+
+.concert-pass-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.concert-pass-logo {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  color: #312e81;
+}
+
+.concert-pass-logo svg {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.concert-pass-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.concert-pass-brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+.concert-pass-brand-sub {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.concert-pass-eyebrow {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: #4338ca;
+  white-space: nowrap;
+}
+
+/* ---------- Event title + schedule ---------- */
+.concert-pass-title {
+  margin: 0 0 12px;
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--pass-ink);
+  overflow-wrap: anywhere;
+}
+
+.concert-pass-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  margin-bottom: 14px;
+}
+
+.concert-pass-when {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.concert-pass-when svg {
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: var(--pass-muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.concert-pass-when-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--pass-muted);
+}
+
+.concert-pass-when-value {
+  font-weight: 700;
+  color: var(--pass-ink);
+}
+
+/* ---------- Buyer grid ---------- */
+.concert-pass-buyer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--pass-rule);
+  border-radius: 10px;
+  background: #f8f9fd;
+}
+
+.concert-pass-cell {
+  min-width: 0;
+}
+
+.concert-pass-cell dt {
+  margin-bottom: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--pass-muted);
+}
+
+.concert-pass-cell dd {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--pass-ink);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Gate stub ---------- */
+.concert-pass-status {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.concert-pass-status.is-valid {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.concert-pass-status.is-used {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.concert-pass-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto 10px;
+  border: 1px solid var(--pass-rule);
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.concert-pass-qr img {
+  display: block;
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+}
+
+.concert-pass-qr-empty {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #9aa0b0;
+}
+
+.concert-pass-code {
+  margin: 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #eef1fb;
+  font-family: "Consolas", "Courier New", monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0.4px;
+  color: #312e81;
+  word-break: break-all;
+}
+
+.concert-pass-hint {
+  margin: 9px 0 0;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--pass-muted);
+}
+
+@media screen and (max-width: 900px) {
+  .concert-pass {
+    flex-direction: column;
+  }
+
+  .concert-pass-main,
+  .concert-pass-stub {
+    flex: 1 1 auto;
+  }
+
+  .concert-pass-stub {
+    border-left: none;
+    border-top: 2px dashed #94a3b8;
+  }
+
+  .concert-pass-stub::before,
+  .concert-pass-stub::after {
+    display: none;
+  }
+
+  .concert-pass-buyer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 1.5cm;
+  }
+
+  /* 1. Hide everything, layout intact. `display: none` here would collapse the
+        document and print a blank page. */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* 2. Re-show the concert pass subtree. */
+  #concert-ticket-print,
+  #concert-ticket-print *,
+  .eticket-print-root,
+  .eticket-print-root * {
+    visibility: visible !important;
+  }
+
+  /* 3. The container is display:none on screen, so it needs an explicit
+        override — otherwise there is no box to reveal. */
+  #concert-ticket-print,
+  .eticket-print-root {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: 10mm;
+
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* The off-screen trick used for image preloading must not survive into the
+     actual print, or the pass would print at left:-20000px. */
+  #concert-ticket-print.is-printing,
+  .eticket-print-root.is-printing {
+    left: 0 !important;
+    top: 0 !important;
+  }
+
+  /* 4. One pass per sheet, never split. printEticketPdf() sets these two
+        classes so a multi-ticket order prints only the clicked card. */
+  .eticket-print-root.is-printing-single .concert-pass {
+    display: none !important;
+  }
+
+  .eticket-print-root.is-printing-single .concert-pass.is-print-target {
+    display: flex !important;
+  }
+
+  .concert-pass {
+    width: 100% !important;
+    max-width: 100% !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 5. No interactive chrome on paper. */
+  button,
+  .no-print,
+  .ticket-code-actions,
+  .ticket-code-hint,
+  .auto-email-badge,
+  .success-actions,
+  .success-message,
+  .customer-nav,
+  .ticket-success-footer,
+  .order-detail-footer,
+  footer {
+    display: none !important;
+  }
+
+  /* 6. QR must survive the print renderer: fixed box, never cropped. */
+  #concert-ticket-print .concert-pass-qr,
+  .eticket-print-root .concert-pass-qr {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 140px !important;
+    height: 140px !important;
+    border: 1px solid #e2e8f0 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  #concert-ticket-print .concert-pass-qr img,
+  .eticket-print-root .concert-pass-qr img {
+    width: 140px !important;
+    height: 140px !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    image-rendering: -webkit-optimize-contrast;
+  }
+
+  /* 7. Keep the status badge and the scannable code fully saturated —
+        browsers strip backgrounds by default. */
+  #concert-ticket-print .concert-pass-status,
+  .eticket-print-root .concert-pass-status,
+  #concert-ticket-print .concert-pass-code,
+  .eticket-print-root .concert-pass-code {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

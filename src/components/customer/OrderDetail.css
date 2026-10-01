@@ -343,6 +343,63 @@
   background: #4338ca;
 }
 
+/* E-Ticket: unduh PDF + kirim ke email */
+.order-tickets-list .ticket-code-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.order-tickets-list .ticket-code-actions .download-qr-button {
+  margin-top: 0;
+  width: 100%;
+  height: 38px;
+}
+
+.order-tickets-list .download-qr-button:disabled {
+  background: #c3c7d4;
+  cursor: not-allowed;
+}
+
+.order-tickets-list .download-qr-button:disabled:hover {
+  background: #c3c7d4;
+}
+
+.order-tickets-list .ticket-code-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #6f7482;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.order-tickets-list .ticket-code-pending {
+  color: #9aa0b0;
+  letter-spacing: 1px;
+}
+
+.order-tickets-list .qr-pending {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 150px;
+  padding: 12px;
+  border: 1.5px dashed #c8cbd8;
+  border-radius: 10px;
+  background: #f7f8fc;
+  text-align: center;
+}
+
+.order-tickets-list .qr-pending span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: #9aa0b0;
+  overflow-wrap: anywhere;
+}
+
 .order-tickets-list .download-qr-button svg {
   width: 16px;
   height: 16px;

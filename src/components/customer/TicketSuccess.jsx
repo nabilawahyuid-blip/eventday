@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+﻿import React, { useEffect, useRef, useState } from "react";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
-import { getMyTickets } from "../../services/ticketService";
+import ConcertPass from "../shared/ConcertPass";
+import { getMyTickets, getTicketsByOrder, getTicketDetail } from "../../services/ticketService";
+import { autoSendEticket, downloadAndEmailEticket } from "../../utils/eticketActions";
 import "./TicketSuccess.css";
 
 const STATUS_LABEL = {
@@ -18,61 +20,191 @@ const STATUS_TYPE = {
   EXPIRED: "expired",
 };
 
+// PENTING: jangan pernah memalsukan kode tiket (mis. "TK-001") sebagai
+// fallback. Kode yang terlihat sah padahal tidak ada di DB akan ditolak
+// saat discan staff, dan lebih buruk dari menampilkan status "belum ada".
+const PENDING_CODE_LABEL = "MENUNGGU PENERBITAN";
+const LOADING_CODE_LABEL = "MEMUAT KODE...";
+
+// Cache tiket yang pernah ditulis halaman Checkout / OrderDetail.
+// Dua storage dipakai supaya kompatibel dengan versi halaman sebelumnya.
+const readCachedTickets = (orderId) => {
+  for (const store of ["localStorage", "sessionStorage"]) {
+    try {
+      const raw = window[store].getItem("issued_tickets");
+      if (!raw) continue;
+
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : [];
+      if (list.length === 0) continue;
+
+      const matched = orderId
+        ? list.filter((t) => String(t?.orderId) === String(orderId))
+        : list;
+
+      if (matched.length > 0) return matched;
+    } catch {
+      // cache rusak / tidak bisa dibaca -> abaikan, lanjut ke sumber berikutnya
+    }
+  }
+
+  return [];
+};
+
+// Backend bisa membalas array polos atau objek paginated. Samakan keduanya.
+const toTicketList = (payload) => {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.content)) return payload.content;
+  if (Array.isArray(payload?.tickets)) return payload.tickets;
+  return [];
+};
+
 function TicketSuccess() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const fromMyTicket = location.state?.fromMyTicket || false;
   const singleTicket = location.state?.ticket || null;
   const stateEvent = location.state?.event || null;
   const stateBuyers = location.state?.buyers || [];
-  const orderId = location.state?.orderId || null;
-  const orderNumber = location.state?.orderNumber || null;
+  const stateOrder = location.state?.order || null;
+
+  // Query param adalah satu-satunya sumber yang selamat saat halaman
+  // di-refresh atau dibuka langsung via URL (location.state ikut hilang).
+  const queryOrderId = searchParams.get("orderId");
+  const queryTicketCode = searchParams.get("ticketCode");
+
+  const orderId =
+    location.state?.orderId || stateOrder?.orderId || queryOrderId || null;
+
+  const orderNumber =
+    location.state?.orderNumber ||
+    stateOrder?.orderNumber ||
+    searchParams.get("orderNumber") ||
+    null;
+
+  // Kode tiket dari state navigasi (Checkout / MyTicket), lalu query URL.
+  const routedTicketCode =
+    location.state?.ticket?.ticketCode ||
+    location.state?.ticketCode ||
+    location.state?.tickets?.[0]?.ticketCode ||
+    location.state?.order?.tickets?.[0]?.ticketCode ||
+    queryTicketCode ||
+    "";
 
   const [tickets, setTickets] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [usedFallback, setUsedFallback] = useState(false);
 
   useEffect(() => {
-    if (fromMyTicket || singleTicket) return;
+    // Tiket dari MyTicket sudah lengkap di state, tidak perlu fetch.
+    if (fromMyTicket || singleTicket) {
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
 
     const fetchTickets = async () => {
-      const email = localStorage.getItem("email");
-      if (!email) return;
-
       setLoading(true);
-      try {
-        const res = await getMyTickets(email);
-        const allTickets = res?.data || [];
+      setUsedFallback(false);
 
-        const filtered = orderId
-          ? allTickets.filter((t) => String(t.orderId) === String(orderId))
-          : [];
+      // 1) Source paling akurat: endpoint per-order (tanpa N+1).
+      if (orderId) {
+        try {
+          const res = await getTicketsByOrder(orderId);
+          const list = toTicketList(res?.data);
 
-        if (filtered.length > 0) {
-          setTickets(filtered);
-          setUsedFallback(false);
-        } else {
-          setUsedFallback(true);
+          if (!cancelled && list.length > 0) {
+            setTickets(list);
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.warn("[TicketSuccess] by-order gagal:", err.message);
         }
-      } catch (err) {
-        console.error("[TicketSuccess] ERROR:", err.message);
+      }
+
+      // 2) Direct visit dengan ?ticketCode= tanpa orderId -> ambil detail.
+      if (!orderId && routedTicketCode) {
+        try {
+          const res = await getTicketDetail(routedTicketCode);
+          const ticket = res?.data;
+
+          if (!cancelled && ticket && !Array.isArray(ticket)) {
+            setTickets([ticket]);
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.warn("[TicketSuccess] detail tiket gagal:", err.message);
+        }
+      }
+
+      // 3) Fallback ke daftar tiket saya, filter per orderId.
+      if (orderId) {
+        const email = localStorage.getItem("email");
+
+        if (email) {
+          try {
+            const res = await getMyTickets(email);
+            const all = toTicketList(res?.data);
+            const filtered = all.filter(
+              (t) => String(t?.orderId) === String(orderId)
+            );
+
+            if (!cancelled && filtered.length > 0) {
+              setTickets(filtered);
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.warn("[TicketSuccess] my-tickets gagal:", err.message);
+          }
+        }
+      }
+
+      // 4) Terakhir: cache lokal. Kode di sini masih kode asli dari
+      //    payout sebelumnya, bukan kode buatan.
+      const cached = readCachedTickets(orderId);
+
+      if (!cancelled && cached.length > 0) {
+        setTickets(cached);
         setUsedFallback(true);
-      } finally {
+        setLoading(false);
+        return;
+      }
+
+      if (!cancelled) {
+        setTickets([]);
+        setUsedFallback(true);
         setLoading(false);
       }
     };
 
     fetchTickets();
-  }, [orderId, fromMyTicket, singleTicket]);
 
-  const displayTickets = fromMyTicket && singleTicket
-    ? [singleTicket]
-    : usedFallback
-    ? orderId
-      ? stateBuyers.map((b, i) => ({
-          ticketCode: `TK-${String(i + 1).padStart(3, "0")}`,
-          attendeeName: b.name || b.fullName || "-",
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId, routedTicketCode, fromMyTicket, singleTicket]);
+
+  // Susun daftar yang dirender.
+  //
+  // Bila backend tidak mengembalikan tiket sama sekali, tetap tampilkan kartu
+  // agar pengguna tahu statusnya — TAPI tanpa kode tiket palsu. Kartu seperti
+  // ini akan menampilkan PENDING_CODE_LABEL dan tombol unduh nonaktif.
+  const displayTickets =
+    fromMyTicket && singleTicket
+      ? [singleTicket]
+      : tickets.length > 0
+      ? tickets
+      : usedFallback && stateBuyers.length > 0
+      ? stateBuyers.map((buyer) => ({
+          ticketCode: null,
+          ticketItemId: null,
+          attendeeName: buyer.name || buyer.fullName || "-",
           categoryName: stateEvent?.ticketName || stateEvent?.category || "-",
           checkInStatus: "UNREDEEMED",
           eventTitle: stateEvent?.title || "Event",
@@ -81,17 +213,22 @@ function TicketSuccess() {
           orderId: orderId || null,
           eventImageUrl: stateEvent?.image || null,
         }))
-      : []
-    : tickets;
+      : [];
 
   useEffect(() => {
     if (fromMyTicket || usedFallback || displayTickets.length === 0) return;
 
     const stored = JSON.parse(localStorage.getItem("issued_tickets") || "[]");
-    const existingCodes = new Set(stored.map((t) => t.ticketCode || t.ticketItemId));
-    const newTickets = displayTickets.filter(
-      (t) => !existingCodes.has(t.ticketCode) && !existingCodes.has(t.ticketItemId)
+    const existingCodes = new Set(
+      stored.map((t) => t.ticketCode || t.ticketItemId).filter(Boolean)
     );
+    const newTickets = displayTickets.filter(
+      (t) =>
+        (t.ticketCode || t.ticketItemId) &&
+        !existingCodes.has(t.ticketCode) &&
+        !existingCodes.has(t.ticketItemId)
+    );
+
     if (newTickets.length > 0) {
       localStorage.setItem(
         "issued_tickets",
@@ -100,15 +237,60 @@ function TicketSuccess() {
     }
   }, [displayTickets, fromMyTicket, usedFallback]);
 
-  const downloadQR = (ticketCode) => {
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
-      ticketCode
-    )}`;
-    const link = document.createElement("a");
-    link.href = qrUrl;
-    link.download = `${ticketCode}.png`;
-    link.target = "_blank";
-    link.click();
+  // Dua tampilan terpisah:
+  //  - Layar : kartu biasa seperti semula (TicketCard di bawah).
+  //  - Cetak : wadah #concert-ticket-print, disembunyikan di layar.
+  // Jadi layout konser tidak pernah bocor ke tampilan web.
+  const [busyTicketId, setBusyTicketId] = useState(null);
+
+  // === Auto-kirim e-ticket ke email, sekali saja setelah pembayaran sukses ===
+  //
+  // Dua pagar supaya tidak terjadi loop/spam:
+  //  1. autoSentRef (useRef) — dijaga true sebelum request dijalankan.
+  //  2. hanya jalan bila location.state ada. Setelah refresh, state hilang,
+  //     sehingga membuka ulang halaman ini tidak mengirim ulang email.
+  //     Menonton tiket yang sudah lama (fromMyTicket) juga tidak memicu kirim.
+  const autoSentRef = useRef(false);
+  const [autoEmail, setAutoEmail] = useState(null);
+  const firstTicketCode = displayTickets[0]
+    ? displayTickets[0].ticketCode || displayTickets[0].ticketItemId || ""
+    : "";
+
+  useEffect(() => {
+    if (autoSentRef.current) return;
+    if (fromMyTicket || !location.state) return;
+    if (!firstTicketCode) return;
+
+    autoSentRef.current = true;
+    let cancelled = false;
+
+    autoSendEticket({
+      ticket: displayTickets[0],
+      order: stateOrder,
+      navState: location.state,
+    }).then((result) => {
+      if (!cancelled && result.emailed) setAutoEmail(result.email);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [firstTicketCode, fromMyTicket, stateOrder]);
+
+  const handleDownloadPdf = async (ticket) => {
+    const key = ticket.ticketCode || ticket.ticketItemId || null;
+    setBusyTicketId(key);
+    try {
+      await downloadAndEmailEticket({
+        ticket,
+        order: stateOrder,
+        navState: location.state,
+        // Cetak wadah konser, bukan kartu di layar.
+        target: "#concert-ticket-print",
+      });
+    } finally {
+      setBusyTicketId(null);
+    }
   };
 
   return (
@@ -139,13 +321,28 @@ function TicketSuccess() {
           <div className="ticket-list">
             {displayTickets.map((ticket, index) => (
               <TicketCard
-                key={ticket.ticketCode || ticket.ticketItemId || index}
+                key={
+                  ticket.ticketCode ||
+                  ticket.ticketItemId ||
+                  `${orderId || "pending"}-${index}`
+                }
                 ticket={ticket}
                 index={index}
-                onDownload={downloadQR}
+                loading={loading}
+                busy={busyTicketId === (ticket.ticketCode || ticket.ticketItemId || null)}
+                onDownloadPdf={handleDownloadPdf}
               />
             ))}
           </div>
+        )}
+
+        {autoEmail && (
+          <p className="auto-email-badge" role="status">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m5 13 4 4L19 7" />
+            </svg>
+            E-Ticket telah otomatis dikirim ke email {autoEmail}
+          </p>
         )}
 
         <div className="success-actions">
@@ -178,6 +375,27 @@ function TicketSuccess() {
         </div>
       </main>
 
+      {/* ===================================================================
+          WADAH KHUSUS CETAK.
+          `display: none` di layar (.eticket-print-root), `display: flex` saat
+          print. Isinya boarding pass konser — terpisah total dari tampilan web
+          di atas, jadi desain konser tidak pernah bocor ke layar.
+          Gaya ada di src/utils/eticketPdf.css.
+          =================================================================== */}
+      <div id="concert-ticket-print" className="eticket-print-root">
+        {displayTickets.map((ticket, index) => (
+          <ConcertPass
+            key={
+              ticket.ticketCode ||
+              ticket.ticketItemId ||
+              `pass-${orderId || "pending"}-${index}`
+            }
+            ticket={ticket}
+            order={stateOrder}
+          />
+        ))}
+      </div>
+
       <footer className="ticket-success-footer">
         © 2027 EVENTDAY. Hak cipta dilindungi undang-undang.
       </footer>
@@ -185,8 +403,15 @@ function TicketSuccess() {
   );
 }
 
-function TicketCard({ ticket, index, onDownload }) {
-  const ticketCode = ticket.ticketCode || ticket.ticketItemId || "-";
+
+/* ==========================================================================
+   SCREEN CARD — tampilan web biasa, sama seperti desain semula.
+   ========================================================================== */
+function TicketCard({ ticket, index, loading, busy, onDownloadPdf }) {
+  // Kode asli dari database. Tidak pernah di-fallback ke string buatan.
+  const realCode = ticket.ticketCode || ticket.ticketItemId || "";
+  const hasRealCode = realCode !== "";
+  const ticketCode = realCode || (loading ? LOADING_CODE_LABEL : PENDING_CODE_LABEL);
   const statusKey = ticket.checkInStatus || ticket.status || "UNREDEEMED";
 
   return (
@@ -219,29 +444,46 @@ function TicketCard({ ticket, index, onDownload }) {
 
       <div className="ticket-qr-section">
         <div className="qr-wrapper">
-          <img
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
-              ticketCode
-            )}`}
-            alt={`QR Code ${ticketCode}`}
-          />
+          {hasRealCode ? (
+            <img
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
+                realCode
+              )}`}
+              width="300"
+              height="300"
+              alt={`QR Code ${realCode}`}
+            />
+          ) : (
+            <div className="qr-pending">
+              <span>{ticketCode}</span>
+            </div>
+          )}
         </div>
 
-        <p className="qr-instruction">Tunjukan kode ini ke Staff</p>
+        <p className="qr-instruction">
+          {hasRealCode
+            ? "Tunjukkan kode ini ke Staff"
+            : "Kode tiket belum diterbitkan. Silakan cek Tiket Saya beberapa saat lagi."}
+        </p>
 
-        <div className="ticket-code">{ticketCode}</div>
+        <div className={`ticket-code ${hasRealCode ? "" : "ticket-code-pending"}`}>
+          {ticketCode}
+        </div>
 
-        <button
-          className="download-qr-button"
-          onClick={() => onDownload(ticketCode)}
-        >
-          <svg viewBox="0 0 24 24">
-            <path d="M12 3v12" />
-            <path d="m7 10 5 5 5-5" />
-            <path d="M5 20h14" />
-          </svg>
-          <span>Unduh QR Tiket</span>
-        </button>
+        <div className="ticket-code-actions no-print">
+          <button
+            className="download-qr-button"
+            disabled={!hasRealCode || busy}
+            onClick={() => onDownloadPdf(ticket)}
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 20h14" />
+            </svg>
+            <span>{busy ? "Memproses..." : "Unduh PDF E-Ticket"}</span>
+          </button>
+        </div>
       </div>
 
       <div className="ticket-detail-section">

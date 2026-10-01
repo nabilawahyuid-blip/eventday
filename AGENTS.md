@@ -1,123 +1,251 @@
 # AGENTS.md — eventday
 
+> **Status dokumen: 2026-09-30, disinkronkan ulang terhadap kode aktual (HEAD `7b1c3e6`).**
+> Revisi sebelumnya mendeskripsikan codebase yang lebih lama dan sudah tidak akurat — lihat bagian
+> ["Yang sudah tidak lagi berlaku"](#yang-sudah-tidak-lagi-berlaku) di akhir dokumen. Setiap klaim di
+> bawah ini diverifikasi langsung terhadap file di repo.
+
 ## Stack
-- Vite 5 + React 18 + `react-router-dom` 7 + `@react-oauth/google` — SPA only, no SSR.
-- ESM (`"type": "module"`). No TypeScript, no tests, no linter/formatter config.
-- `vite.config.js:1` wires `@vitejs/plugin-react` — required for HMR/fast-refresh (previously missing, fixed 2026-09).
+- Vite 5 (`^5.4.10`) + React 18 (`^18.3.1`) + `react-router-dom` 7 (`^7.18.3`) + `@react-oauth/google` — SPA only, no SSR.
+- ESM (`"type": "module"`). **Tidak ada TypeScript, tidak ada test, tidak ada konfigurasi linter/formatter.**
+- `vite.config.js:10` memuat `@vitejs/plugin-react`, `server.proxy`, dan `preview.proxy`.
+- Lib UI: `sweetalert2` 11 (dibungkus `src/utils/alert.js`), `lucide-react` + `react-icons` (keduanya dipakai, dicampur antar-file).
+- `.github/workflows/deploy-fe-prod-eventday.yml` — CI: `npm ci` → injeksi `.env` dari secret `VITE_NGROK_URL` → `npm run build` → `scp dist/*` ke `/var/www/eventday-fe/`. Deploy dipicu push ke `main`.
 
 ## Commands
 ```bash
-npm install          # install (no lockfile enforcement)
-npm run dev          # Vite dev server — URL printed in terminal
+npm install          # install (node_modules TIDAK ada di repo → wajib run dulu)
+npm run dev          # Vite dev server, host:true port 5173
 npm run build        # vite build -> dist/
-npm run preview      # serve built dist/
+npm run preview      # serve dist/, port 4173 (butuh build sebelumnya)
 ```
-- No `test` / `lint` / `typecheck` scripts. Verification is `npm run build`.
+- Tidak ada script `test` / `lint` / `typecheck`. **Verifikasi satu-satunya adalah `npm run build`.**
+- `build_check.txt` di root adalah **artefak basi dari mesin lain** (`C:/xampp/htdocs/...`) yang mencatat kegagalan build pada import `showInformation` yang sudah tidak ada. Jangan dipakai sebagai acuan.
+
+## Environment — ini bagian yang paling mudah salah paham
+Ada **dua env var berbeda dengan peran berbeda**, dan `.env` lokal hanya menyetel yang pertama:
+
+| Var | Dibaca oleh | Fungsi | Status |
+|---|---|---|---|
+| `VITE_NGROK_URL` | `vite.config.js:59,62` | Target untuk `server.proxy` dan `preview.proxy` | **Hanya di-injeksi di CI** dari secret. Tidak ada di `.env` lokal. |
+| `VITE_API_URL` | `src/utils/bannerUrl.js:22` | Base URL absolut untuk gambar `/uploads/*` di mode production | Ada di `.env` lokal (`https://zngjfn0w-8082.asse.devtunnels.ms/`) |
+
+Konsekuensi:
+- **Secara lokal, `server.proxy` menunjuk `undefined`.** Dev tetap bisa jalan hanya karena `apiFetch` memakai path relatif (`/api/...`) terhadap origin frontend, dan response-nya dilayani oleh apa pun yang sedang listen di 5173. Kalau butuh proxy beneran secara lokal, set `VITE_NGROK_URL`.
+- `bannerUrl.js:22` punya hardcoded fallback `https://api-eventday.dnabisa.tech`. **Perhatikan: tanda hubung, bukan titik.** `DashboardEO.jsx` punya resolver sendiri yang memakai titik (`api.eventday.dnabisa.tech`) — kedua bentuk itu berbeda domain dan salah satunya salah.
+- `.env` sudah masuk `.gitignore`. Tidak ada file `.env` yang boleh di-commit.
 
 ## Structure
-- `src/main.jsx:1` — entry, mounts `App` + imports `src/styles.css` (global).
-- `src/App.jsx:42` — all routes + `GoogleOAuthProvider` (hardcoded `GOOGLE_CLIENT_ID` at `src/App.jsx:42`).
-- `src/components/` — one `.jsx` + co-located `.css` per page/feature:
-  - `auth/` — `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `OTP.jsx`, `ResetPassword.jsx`
-  - `admin/` — `DashboardAdmin.jsx`, `EventManagement.jsx`, `DetailEvent.jsx`, `EditEvent.jsx`, `TambahEvent.jsx`, `UserManagement.jsx`, `DetailUser.jsx`, `PengajuanAkunEO.jsx`, `DetailPengajuanEo.jsx`, `PengajuanPayout.jsx`, `DetailPengajuanPayout.jsx`, `Transaksi.jsx`, `Tiket.jsx`, `AuditLog.jsx`, `PengaturanPlatform.jsx` + `EventBannerUpload.jsx` (helper). **Penyeragaman tampilan admin:** tiap CSS halaman diberi blok `/* PENYERAGAMAN ... */` di akhir file, scoped ke root class halaman (`.event-management-page`, `.transaction-page`, `.detail-payout-page`, dst; untuk DashboardAdmin/TambahEvent/DetailPengajuanEo yang sama-sama root `.admin-dashboard` di-scope via class turunan seperti `.dashboard-wrapper`/`.form-header`). Standarnya: judul 26px/700/-0.3px `#242331`, sub 14px `#6f7482`, stat 32px, **kartu statistik seragam di semua halaman admin: min-height 130px, padding 20px 22px, radius 12px, angka 32px, label 13px, icon 36x36 r10px, grid gap 16px** (Dashboard/Transaksi/PengajuanAkunEO/Tiket/PengajuanPayout), th 13px/td 14px, badge 12px, tombol 14px (h 40-42px), input 14px, pagination 13px. `admin-theme.css` sudah DIHAPUS — jangan dibuat ulang. **Layout tetap antar menu:** setiap CSS admin juga diberi blok `/* LAYOUT ADMIN SERAGAM */` (di akhir, setelah PENYERAGAMAN) yang di-scope ke root class halaman di dalam `@media (min-width:1101px)`: main `margin-left:220px; width:calc(100% - 220px)` (mengikuti Sidebar 220px; EventManagement dulu 230px) dan content `max-width:1400px; margin:auto; padding:24px 28px 40px`. Untuk 3 halaman ber-root `.admin-dashboard` (DashboardAdmin/TambahEvent/DetailPengajuanEo) bloknya **identik** karena memakai class global `.dashboard-wrapper`/`.dashboard-main`/`.dashboard-content` — kalau diubah, ubah ketiganya; jangan set ulang `.dashboard-wrapper { width: calc(100% - 260px) }` seperti lama (itu bocor antar halaman).
-  - `eo/` — `DashboardEO.jsx`, `EventEO.jsx`, `AddEvent.jsx`, `TransaksiEO.jsx`, `DetailTransaksiEO.jsx`, `RefundEO.jsx`, `ProfileEO.jsx`
-  - `customer/` — `CustomerDashboard.jsx` (sudah terhubung BE via `eventService.js`), `DetailEventCustomer.jsx`, `Checkout.jsx`, `TicketSuccess.jsx`, `MyTicket.jsx`, `RefundRequest.jsx`, `RefundList.jsx` (sisanya masih mock, `API.md` §8-9 sudah live di BE, §10-19 masih SCHEMA ONLY)
-  - `shared/` — `Navbar.jsx`, `NavbarEO.jsx`, `NavbarCustomer.jsx`, `Sidebar.jsx`, `SidebarEO.jsx`, `Button.jsx`, `FormInput.jsx`
-- `src/services/authService.js:10` — all auth API calls; `API_BASE=https://a2c2-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app` (ngrok → localhost:8082, override via `VITE_API_URL`), `fetchWithAuth` pakai `credentials:'include'` agar `Set-Cookie: access_token` HttpOnly dari BE terkirim (BE `@JsonIgnore` hide `data.token`). Helpers `isWrappedResponse`/`normalizeSuccess`/`extractErrorMessage` unwrap `msg`. **Baru:** `eventService.js` (getEvents/getFeatured/getEventById) sudah ada, `order/ticket/refundService` masih TODO.
-- `src/services/admin*.js` — **9 file, satu fitur per file, SEMUA sudah dipakai UI admin (rev.14):** `adminDashboardService` (metrics/recent-events/recent-transactions), `adminUserService` (list/detail/PATCH status/suspend), `adminEoService` (list/detail/PATCH status/company-deed + **download**), `adminPayoutService` (list/detail/PATCH status + adminNote/reconciliation), `adminEventService` (CRUD multipart/**approve/reject**/sales/export), `adminTicketService` (list/detail/**POST /tickets** generate/revoke→REVOKED/checkin/**inventory?eventId**/export), `adminTransactionService` (list/detail/PATCH status/export), `adminAuditService` (list/export/export-csv), `adminSettingsService` (GET/PUT settings/general + upload-logo). `api.js` menyediakan `apiFetch` + `toQueryString` (credentials include, Bearer fallback, Vite proxy `/api/admin/**`) — **api.js TIDAK BOLEH diubah**; helper `downloadFromEndpoint` (menangani export binary & CSV-string) ada di file terpisah `src/services/downloadExport.js`. Legacy `adminSettingService.js` (duplikat) & `adminService.js` (getAdminEvents→dashboard) sudah DIHAPUS — jangan dibuat ulang. `updateAdminEventStatus` (`/events/{id}/status`) tersisa hanya sebagai alias legacy untuk auto-publish fallback di TambahEvent — UI approve/reject pakai `/approve` + `/reject`.
-- `API.md:1` — canonical REST contract. Status 2026-09-10: **Auth aktif + Customer Event Catalog 7-9 aktif di BE**, **10-19 SCHEMA ONLY** (FE lebih lengkap mock). Response `{msg,status,data}`, register `201`, JWT 24h HttpOnly cookie, OTP 5min, reset code 15min, order expiry 15min.
+```
+src/
+  main.jsx                 mount App (StrictMode) + import styles.css
+  App.jsx:71-320           SEMUA route, tanpa route guard
+  styles.css               reset global + 1 CSS var + blok utility class MATI
+  components/
+    auth/     (5)   Login, Register, ForgotPassword, OTP, ResetPassword
+    admin/    (18)  DashboardAdmin, EventManagement, TambahEvent, DetailEvent, EditEvent,
+                   UserManagement, DetailUser, PengajuanAkunEO, DetailPengajuanEo,
+                   Transaksi, DetailTransaksi, Tiket, DetailTiket, PengajuanPayout,
+                   DetailPengajuanPayout, AuditLog, PengaturanPlatform, EventBannerUpload*
+    eo/       (14)  DashboardEO, EventEO, DetailEventEO, AddEvent, EditEventEO,
+                   TransaksiEO, DetailTransaksiEO, RefundEO, DetailRefundEO,
+                   ProfileEO, RegisterEO, StatusRegisterEO, PayoutEO, PengajuanPayoutEO
+    customer/ (15)  CustomerDashboard, DetailEventCustomer, Checkout, TicketSuccess,
+                   MyTicket, OrderDetail, TransaksiCustomer, RefundRequest, RefundList,
+                   RefundDetail, ProfileCustomer, EditProfileCustomer,
+                   ChangePasswordCustomer, KebijakanPrivasi, SyaratKetentuan
+    shared/   (9)   Navbar, NavbarEO, NavbarCustomer, Sidebar, SidebarEO,
+                   ProfileSidebar, FooterCustomer, Button*, FormInput*
+  services/   (27)  lihat tabel di bawah
+  utils/      (4)   tokenManager*, alert, alert.css, bannerUrl
+  constants/  (1)   categories.js
+* = kode mati / orphan, lihat "Dead code"
+```
+Konvensi penamaan: satu `.jsx` + satu `.css` ko-lokasi per halaman, diimpor dari dalam `.jsx` itu sendiri.
 
-## Routing
-Centralized in `src/App.jsx:49`. Groups:
-- Auth (`/`, `/register`, `/forgot-password`, `/otp`, `/forgot-password/reset`)
-- Admin (`/admin/*` 7 routes, `/event-management` + alias `/admin/event-management`, `/admin/event/:id`, `/admin/users`, `/admin/users/:id`, `/admin/pengajuan-eo`, `/admin/transaksi`, `/admin/tiket`)
-- EO (`/eo/dashboard`, `/eo/event`, `/eo/event/create`, `/eo/transaksi`, `/eo/transaksi/:id`, `/eo/refund`, `/eo/profil`)
-- Customer (`/customer/dashboard`, `/customer/event/:id`, `/checkout/:id`, `/customer/ticket-success`, `/customer/tickets`, `/customer/refund`, `/customer/refund-list`) — **duplikat route terdeteksi** di `src/App.jsx:158-216`: `/customer/dashboard`, `/customer/event/:id`, `/checkout/:id`, `/customer/ticket-success`, `/customer/tickets`, `/customer/refund` didefinisikan 2× (React Router pakai entri terakhir, tidak error tapi perlu dirapikan). Belum ada `/customer/history`, `/customer/profile`, `/customer/refund/:id` padahal di-link dari `CustomerDashboard.jsx:199,204,210`, `NavbarCustomer.jsx:110,122`, `RefundList.jsx:41` (akan 404).
+## Routing (`src/App.jsx:71-320`)
+**Tidak ada route guard sama sekali.** Tidak ada `<ProtectedRoute>`, tidak ada cek role. Setiap route `/admin/*`, `/eo/*`, `/customer/*` tetap render untuk pengunjung anonim lalu 401 di `useEffect` miliknya sendiri. Enforcement role hanya ada di sisi client pada 3 komponen (`NavbarCustomer`, `ProfileSidebar`, `FooterCustomer`) dan bisa dilewati dengan mengedit `localStorage.role`.
 
-## Backend / Env
-- No `.env` files, no env loading. Backend URL and Google Client ID are hardcoded strings — must be edited directly in `src/services/authService.js:10` and `src/App.jsx:42`.
-- ngrok URL `https://a2c2-2400-9800-3cd-197d-71d1-7b90-e13c-943f.ngrok-free.app` **aktif** → `http://localhost:8082` (`API.md:3`). FE `authService.js:10` + `eventService.js:5` pakai `API_BASE` ini + `fetchWithAuth` `credentials:'include'` + header `ngrok-skip-browser-warning`. Untuk lokal tanpa ngrok set `VITE_API_URL=http://localhost:8082`.
-- `forgotPassword` and `resetPassword` both `POST` to the same endpoint `/reset-password` (`src/services/authService.js:402,478`) — differentiated by payload (`{email}` vs `{email, code, newPassword}`). Backend `ResetPasswordRequest` supports aliases `code`/`token`/`otp` + `newPassword`/`password`.
-- JWT via **HttpOnly Cookie `access_token` + `Authorization: Bearer` fallback** (`API.md:7`, `Downloads/AGENTS.md:177`). BE `AuthResponse.token` `@JsonIgnore` — token tidak ada di JSON, hanya `Set-Cookie`. FE `authService.js:10` `fetchWithAuth` kirim keduanya (`credentials:'include'` + header jika ada `localStorage token`). Only Auth public, lainnya `401/403` `{msg,status,data}`. `google.client-id` `875040780549-...`.
-- Customer: `7-9` (`GET /api/v1/events`, `/featured`, `/{id}`) sudah **Live** di BE (`EventController.java`), FE `CustomerDashboard.jsx` sudah fetch via `eventService.js`. `10-19` (orders/payments/tickets/refunds) masih **SCHEMA ONLY** di BE — FE spek lengkap sebagai kontrak di `API.md` §10-13.
+| Group | Route |
+|---|---|
+| Auth | `/`, `/register`, `/forgot-password`, `/forgot-password/reset`, `/otp` |
+| Admin (17) | `/admin/dashboard`, `/event-management` **+ alias** `/admin/event-management`, `/admin/event/:id`, `/admin/event/edit/:id`, `/admin/tambah-event`, `/admin/users`, `/admin/users/:id`, `/admin/pengajuan-eo`, `/admin/pengajuan-eo/:id`, `/admin/transaksi`, `/admin/transaksi/:id`, `/admin/tiket`, `/admin/tiket/:id`, `/admin/pengajuan-payout`, `/admin/pengajuan-payout/:id`, `/admin/audit-log`, `/admin/pengaturan` |
+| EO (13) | `/register-eo`, `/register-eo/status`, `/eo/dashboard`, `/eo/event`, `/eo/event/create`, `/eo/event/:id`, `/eo/event/edit/:id`, `/eo/transaksi`, `/eo/transaksi/:id`, `/eo/refund`, `/eo/refund/detail`, `/eo/profil`, `/eo/payout`, `/eo/payout/pengajuan` |
+| Customer (14) | `/customer/dashboard`, `/customer/event/:id`, `/checkout/:id`, `/customer/ticket-success`, `/customer/tickets`, `/customer/refund`, `/customer/refund-list`, `/customer/refund/:id`, `/customer/orders/:orderId`, `/customer/history`, `/customer/profile`, `/customer/profile/edit`, `/customer/change-password`, `/customer/privacy`, `/customer/terms` |
 
-## Endpoint Status Matrix (FE vs BE) — untuk sinkron AI backend
+**Duplikat route sudah dibersihkan.** Semua target `navigate()` resolve, **kecuali** `FooterCustomer.jsx:49,58` yang memakai path relatif (lihat Known Bugs).
 
-> Sumber tunggal: `API.md` §Daftar Endpoint. Kolom **Status Frontend** menjelaskan kesiapan UI di `src/components/customer/*`.
+Redirect setelah login (`Login.jsx:60-79`, `Register.jsx:78-92`): `ADMIN`→`/admin/dashboard`, `ORGANIZER`→`/eo/dashboard`, `CUSTOMER`→`/customer/dashboard`. **Tidak konsisten:** `Login` menampilkan error untuk role tak dikenal lalu diam di `/`, sedangkan `Register` diam-diam fallback ke `/customer/dashboard`.
 
-| # | Endpoint | Status Frontend | Status Backend | File / Catatan |
-|---|----------|-----------------|----------------|----------------|
-| 1 | `POST /api/v1/auth/register` | ✅ Done — `Register.jsx:36` + `authService.js:84` | ✅ Live 8082 | Auth aktif |
-| 2 | `POST /api/v1/auth/verify-otp` | ✅ Done — `OTP.jsx` | ✅ Live |  |
-| 3 | `POST /api/v1/auth/resend-otp` | ✅ Done — `OTP.jsx` | ✅ Live |  |
-| 4 | `POST /api/v1/auth/login` | ✅ Done — `Login.jsx:26` | ✅ Live | `identifier` email/username |
-| 5 | `POST /api/v1/auth/google` | ✅ Done — GIS | ✅ Live |  |
-| 6 | `POST /api/v1/auth/reset-password` | ✅ Done — `ForgotPassword.jsx` + `ResetPassword.jsx` | ✅ Live | 2 tahap 1 endpoint |
-| 7 | `GET /api/v1/events` | ✅ Terhubung — `eventService.js:getEvents()` | ✅ Live BE | `CustomerDashboard.jsx:33` sudah fetch `credentials:include` |
-| 8 | `GET /api/v1/events/featured` | ✅ Terhubung — `eventService.js:getFeaturedEvents()` | ✅ Live BE | `CustomerDashboard.jsx:12` sudah fetch |
-| 9 | `GET /api/v1/events/{id}` | 🎨 UI Done / Mock — `getEventById()` siap | ✅ Live BE | `DetailEventCustomer.jsx:14` siap di-wire |
-| 10 | `POST /api/v1/orders` | 🎨 UI Done / Mock | ⏳ Spek siap | `Checkout.jsx:135` `alert()` saja |
-| 11 | `GET /api/v1/orders` | ⚠️ Link ada, Page 404 | ⏳ Spek siap | `NavbarCustomer.jsx:110` → `/customer/history` belum ada route |
-| 12 | `GET /api/v1/orders/{id}` | 🎨 Mock | ⏳ Spek siap | `Checkout.jsx:30` |
-| 13 | `POST /api/v1/payments` | 🎨 Mock | ⏳ Spek siap | `Checkout.jsx:135` |
-| 14 | `GET /api/v1/tickets/me` | 🎨 Mock | ⏳ Spek siap | `MyTicket.jsx:9` 3 status |
-| 15 | `GET /api/v1/tickets/{code}` | 🎨 Mock | ⏳ Spek siap | `TicketSuccess.jsx:9` QR `api.qrserver.com` |
-| 16 | `GET /api/v1/orders/{orderId}/tickets` | 🎨 Mock | ⏳ Spek siap | `TicketSuccess.jsx:9` |
-| 17 | `POST /api/v1/refunds` | 🎨 Mock | ⏳ Spek siap | `RefundRequest.jsx:33` enum bank |
-| 18 | `GET /api/v1/refunds` | 🎨 Mock | ⏳ Spek siap | `RefundList.jsx:9` |
-| 19 | `GET /api/v1/refunds/{id}` | ⚠️ Link ada, Route 404 | ⏳ Spek siap | `RefundList.jsx:41` → `/customer/refund/:id` belum ada |
+## Lapis fetch — tiga, dan tidak diseragamkan
+Ini bagian yang paling mudah broke. **Jangan menyatukan tanpa alasan.**
 
-**Legenda:** ✅ Done = UI + fetch + JWT sudah terhubung | 🎨 UI Done / Mock = UI jadi, data hardcode, belum `fetch` | ⚠️ Link ada, Route 404 = tombol `navigate()` ada tapi `App.jsx:158-216` belum ada `<Route>` | ⏳ Spek siap = kontrak ada di `API.md §8-13`, backend tinggal implement | **PR selanjutnya FE:** buat `src/services/eventService.js`, `orderService.js`, `ticketService.js`, `refundService.js` lalu ganti semua hardcode ke `fetch` + `Authorization`.
+| File | Dipakai untuk | Ciri khusus |
+|---|---|---|
+| `src/services/api.js:113` `apiFetch` | Workhorse, ~20 service | Path **relatif** (`/api/...`) → lewat Vite proxy. `credentials:'include'` + header `Bearer` dari `localStorage.token` bila ada. Otomatis buang `Content-Type` untuk `FormData`. **Return wrapper `{msg,status,data}` MENTAH tanpa unwrap** → tiap halaman harus `res?.data` sendiri. Lempar `Error` dengan `.status` + `.data`attached. |
+| `src/services/authService.js:80` `authFetch` | Auth saja | Prefix `/api` sendiri, **tidak** pakai `apiFetch`. Punya `normalizeSuccess` yang **sudah** meng-unwrap payload dan inject `message`/`msg`/`_status`/`_msg`. |
+| `src/services/downloadExport.js:20` | Export binary/CSV | Fetch terpisah. Auto-deteksi binary vs CSV-string-dalam-JSON, trigger download blob dengan BOM `\ufeff`. **Jangan pakai `apiFetch` untuk endpoint export.** |
 
-### Admin rev.14 — status sinkron FE (2026-09-22)
+`apiFetch(path, { raw: true })` adalah jalur lain ke URL absolut (`api.js:89-107`) memakai `VITE_NGROK_URL`.
 
-**Semua 15 halaman admin sudah terhubung ke service lokal FE** (prefix `/api/admin/**` via `api.js:apiFetch`). Halaman yang sebelumnya mock kini live:
-- `Transaksi.jsx` → `adminTransactionService` (list+filter+pagination+export+PATCH status; statistik PAID/PENDING/GAGAL diturunkan dari snapshot).
-- `Tiket.jsx` → `adminTicketService` (list+search+pagination+export+checkin/revoke; statistik turunan).
-- `PengajuanPayout.jsx` → `adminPayoutService` (list+statistik pending/approved/rejected).
-- `DetailPengajuanPayout.jsx` → `adminPayoutService` (detail via `useParams`, PATCH status+adminNote, dokumen rekonsiliasi via `getPayoutReconciliation`).
-- `AuditLog.jsx` → `adminAuditService` (list size=100 snip + filter client, export CSV prefer backend `/export/csv`, fallback build client; fallback mock bila BE mati).
-- `PengaturanPlatform.jsx` → `adminSettingsService` (GET/PUT `/settings/general` — nama sistem, email kontak, **admin fee, masa berlaku order** — + upload logo ≤5MB).
+### Aturan keras
+- **`src/services/api.js` tidak boleh diubah.** Ini konvensi tim yang harus diwariskan apa adanya. Kalau butuh fitur export, tambahkan ke `downloadExport.js` (file itu ada justru karena alasan ini).
+- `toQueryString` (`api.js:75`) memfilter `undefined`/`null`/`""` secara otomatis — tidak perlu rapikan manual.
 
-**Penyelarasan endpoint ke rev.14:**
-- Event approve/reject: `PATCH /events/{id}/approve` + `/reject` (UI `DetailEvent.jsx` sudah pakai); `/events/{id}/status` hanya alias legacy.
-- Ticket generate: `POST /api/admin/tickets` (body `{orderId}`), bukan `/tickets/generate`. Revoke → status **REVOKED**. Inventory: `GET /api/admin/tickets/inventory?eventId=` (tanpa path param).
-- EO deed: tambah `GET /eo-applications/{id}/documents/company-deed/download`.
-- Duplikat/legacy dihapus: `adminSettingService.js` (dupe settings), `adminService.js` (dupe dashboard), fungsi audit dipindah ke `adminAuditService.js`.
+## Service layer (27 file)
 
-**Selisih kontrak presisi terbaru (sinkron dengan AGENTS.md backend rev.14, HEAD `4680644`):**
-- Settings payload: `PUT /admin/settings/general` harus `{appName, contactEmail, adminFee, orderExpiryMinutes}` (BE `AdminSettingsRequest`); GET mengembalikan `Map<String,String>` — FE membaca `contactEmail` (bukan `adminEmail`), `adminFee`/`orderExpiryMinutes` dikirim sebagai Number.
-- Dashboard metrics: BE `AdminDashboardMetricsResponse` memakai **`totalPlatformRevenue`** (bukan `totalRevenue`) + `totalTicketsSold`/`totalEvents`/`activeEvents`/`totalUsers` — `DashboardAdmin.jsx` membaca `totalPlatformRevenue ?? totalRevenue`.
-- Rekonsiliasi payout: `GET /admin/payouts/{id}/documents/reconciliation` → field **`reconciliationDocumentUrl`** (`DetailPengajuanPayout.jsx` baca dengan fallback ke `url`/`fileUrl`).
-- Audit export CSV: `GET /admin/audit-logs/export/csv` membungkus **string CSV dalam `ApiResponse`** (BUKAN binary attachment). Helper `src/services/downloadExport.js:downloadFromEndpoint` menangani dua bentuk export (blob binary events/tickets/transactions VS CSV-string audit) — jangan pakai `apiFetch` untuk endpoint export.
-- `downloadCompanyDeedDocument` (`/documents/company-deed/download`) ada di service tapi belum dipakai UI; `getCompanyDeedDocument` → `{documentUrl}` yang dipakai `DetailPengajuanEo.jsx`.
+### Customer / transaksi
+| File | Prefix | Status |
+|---|---|---|
+| `eventService.js` | `/api/events` | ✅ 3/3 dipakai |
+| `ticketService.js` | `/api/tickets/*`, `/api/transactions/history` | ✅ dipakai; `scanTicket` **unused** |
+| `refundService.js` | `/api/refund/*` | ✅ dipakai; `getRefundProof` **unused** |
+| `checkoutService.js` | `/api/checkout/*` | ✅ dipakai; **`processCheckout` tidak pernah dipanggil** |
+| `paymentService.js` | `/api/payments/*` | ✅ dipakai (Midtrans Snap) |
+| `profileService.js` | `/api/user/*`, `/api/account/*` | ✅ dipakai; `getTransactionHistory` unused |
+| `homeSearchService.js` | `/home/*`, `/search/*` | ❌ **DEAD — nol importer** |
 
-**Detail transaksi/tiket DITAMBAHKAN (sesi ini):** `DetailTransaksi.jsx` (`/admin/transaksi/:id`) + `DetailTiket.jsx` (`/admin/tiket/:id`) dibuat, memakai ulang layout/CSS `DetailPengajuanPayout.css` (tanpa file CSS baru → penyeragaman admin otomatis konsisten). Klak ID di `Transaksi.jsx` → `navigate('/admin/transaksi/:id')`; `Tiket.jsx` → area info item `navigate('/admin/tiket/:id')`. Service `getAdminTransactionDetail`/`getAdminTicketDetail` sudah ada sejak awal — kini benar-benar dipakai.
+### Admin (9 file, satu fitur per file, semua dipakai UI)
+`adminDashboardService`, `adminUserService`, `adminEoService`, `adminPayoutService`, `adminEventService`, `adminTicketService`, `adminTransactionService`, `adminAuditService`, `adminSettingsService` — semuanya prefix `/api/admin/**` lewat `apiFetch`.
 
-## State & Auth Flow
-- Auth persistence: `localStorage` keys `token`, `userId`, `name`, `username`, `email`, `role` (`src/components/auth/Login.jsx:26`, `src/components/auth/Register.jsx:36`). **Update:** BE hide token (`@JsonIgnore`), `token` di `localStorage` hanya untuk fallback `Authorization` — utama adalah `Cookie: access_token` HttpOnly via `fetchWithAuth credentials:'include'` (`authService.js:10`).
-- OTP flow uses `sessionStorage` `otpEmail` + `otpFlow="register"` (`src/components/auth/Register.jsx:202`) and query param `?email=` on `/otp`.
-- `login` accepts `identifier` (email if contains `@`, else username) — see `src/services/authService.js:274`.
-- Google login sends `idToken` (credential) to `POST /google` (`src/services/authService.js:351`).
-- Customer mock state (belum terhubung backend):
-  - `CustomerDashboard.jsx:8,33` — **`Terhubung`** via `eventService.js:getEvents()` / `getFeaturedEvents()` dengan `credentials:include`, `activeCategory` → `?category=MUSIC_FESTIVAL`, `search` live, `handleBuyTicket` → `navigate(/customer/event/:id)`. Fallback ke mock 6 item jika BE mati.
-  - `DetailEventCustomer.jsx:12,14` — `quantity` lokal, `event` hardcode, `TicketBox` Early Bird/Regular, `navigate(/checkout/:id)` bawa qty via state (belum ada `eventService`)
-  - `Checkout.jsx:10,17,30` — timer `14*60+57` (15min expiry), `buyers` array per `quantity`, `location.state` untuk event, `adminFee=5000`, `ticketTotal=price*quantity`
-  - `MyTicket.jsx:9` — `tickets` hardcode 3 status `used/unused/expired` → `GET /api/v1/tickets/me`
-  - `TicketSuccess.jsx:9` — `tickets` hardcode `TK-894-ABC`, QR via `api.qrserver.com`, → `GET /api/v1/orders/{id}/tickets`
-  - `RefundRequest.jsx:9` — `formData` bank fields enum BCA/BRI/BNI/Mandiri/CIMB/BSI → `POST /api/v1/refunds`
-  - `RefundList.jsx:9` — `refunds` hardcode 4 item `approved/pending/rejected` → `GET /api/v1/refunds`
+Detail penting:
+- `adminDashboardService.getAdminRecentEvents/Transactions` punya **fallback tolerant**: kalau error cocok `/no enum constant.*category\./i`, ia pindah ke `getAdminEventsTolerant` dan menandai `_partial: true` (data sebagian, halaman bermasalah dilewati).
+- `getAdminEventsTolerant` / `getAdminTransactionsTolerant` (`adminEventService.js`, `adminTransactionService.js`) mengimplementasikan workaround yang sama: chunk size 10, max 20 halaman, halaman yang kena enum error di-skip dan dihitung di `_skippedPages`.
+- `adminEventService.createAdminEvent/updateAdminEvent` kirim **multipart** (`event` sebagai Blob JSON + `file`), dengan fallback ke JSON polos kalau backend balas `content-type not supported` (set flag `_bannerSkipped`).
+- `adminTicketService.postTicketAction` coba `POST`, fallback ke `PUT` kalau 405.
+- Approve/reject event = `PATCH /events/{id}/approve` + `/reject`. `updateAdminEventStatus` (`/events/{id}/status`) **hanya** alias legacy, dipakai di `TambahEvent.jsx` sebagai fallback auto-publish.
+- Export: `adminAuditService.exportAdminAuditLogsCSV` (JSON-wrapped CSV) vs `exportAdminEvents/Tickets/Transactions` (via `downloadFromEndpoint`).
 
-## Conventions
-- Language: UI and most comments in Indonesian.
-- Styling: global `src/styles.css` + per-component CSS; no CSS modules/Tailwind.
-- Not a git repo — no CI, hooks, or branch conventions to follow.
+### EO (8 file)
+`organizerEventService` (11/13 fn dipakai), `organizerDashboardService` (3/4), `organizerProfileService` (7/7), `organizerRefundService` (3/3), `organizerRegisterService` (2/2), `organizerPayoutService` (`getOrganizerPayoutDetail` unused), `organizerTransactionService` ❌ **DEAD — nol importer** (TransaksiEO pakai `organizerDashboardService`), `organizerAuthService` (`logoutOrganizer` dipakai **hanya** oleh `SidebarEO.jsx:16`).
 
-## Gotchas
-- No error boundaries; API errors are `alert()` + `console.error`.
-- `vite preview` requires a prior `vite build`.
-- **Customer masih mock (kecuali dashboard):** `CustomerDashboard.jsx` sudah fetch, tapi `DetailEventCustomer/Checkout/MyTicket/TicketSuccess/Refund*` masih hardcode. Jangan demo tanpa `credentials:'include'` — akan `401` meski token valid. Timer checkout hardcode, bukan dari `expiredAt` backend.
-- **Penyebab tidak tersambung (sudah diperbaiki):** `API_URL` ngrok mati `a2c2-...` + `fetch` tanpa `credentials:'include'` + FE expect `data.token` yang BE hide via `@JsonIgnore`. Fix di `authService.js:10` (`API_BASE=http://localhost:8082`, `fetchWithAuth`).
-- **Duplikat route** di `src/App.jsx:158-216` — bersihkan agar tidak bingung AI backend baca routing. Missing routes `/customer/history`, `/customer/profile`, `/customer/refund/:id` akan 404.
-- **Service layer customer:** baru `eventService.js` ada, `orderService.js`/`ticketService.js`/`refundService.js` masih TODO — buat dengan helper yang sama (`getResponseData`, `normalizeSuccess`, `extractErrorMessage`).
-- **Enum mismatch risiko:** frontend `MUSIC FESTIVAL` (spasi) vs BE `MUSIC_FESTIVAL` (underscore) — BE sudah return keduanya (`category` + `categoryLabel`), FE normalisasi `replace(/_/g," ")`.
+`organizerEventService.updateOrganizerEvent` memakai `PUT /api/organizer/events/update/{id}` (bukan RESTful `/{id}`) dan menyertakan `eventId` di body. Jangan "rapikan" tanpa cek backend.
+
+## Auth & session
+- **Mekanisme utama: HttpOnly cookie `access_token`** (24 jam) + `credentials:'include'`. Backend menyembunyikan `token` dari JSON via `@JsonIgnore`, jadi `data.token` praktis tidak pernah ada.
+- Fallback `Authorization: Bearer` dari `localStorage.token` dihantarkan di 4 tempat: `api.js:21`, `downloadExport.js:26`, `organizerRegisterService.js:51`, plus `api.js:getHeaders()`.
+- **Key `localStorage`:** `token`, `eventday_token` (write-only, **tidak dibaca siapa pun**), `userId`, `name`, `username`, `email`, `role`, `avatarUrl` (base64 data-URI — lihat Known Bugs).
+- **Key `sessionStorage`:** `otpEmail`, `otpFlow` (`"register"` | `"forgot-password"`), `resetToken` (**OTP plaintext**), `resetEmail`, `issued_tickets`.
+- `utils/tokenManager.js` managing `eventday_token` + `token` tapi **nol importer** — `Login.jsx:30-31` dan `Register.jsx:38-39` menulis langsung secara manual. Jangan tambah pemakaian baru ke file ini tanpaigentinya dulu.
+
+### Ada EMPAT implementasi logout yang berbeda
+| Sumber | Panggil API? | Bersihkan storage? |
+|---|---|---|
+| `shared/Sidebar.jsx` (admin) | ❌ tidak | `localStorage.clear()` + `sessionStorage.clear()` |
+| `shared/SidebarEO.jsx` | ✅ `logoutOrganizer()` | `clear()` keduanya |
+| `shared/ProfileSidebar.jsx` | ✅ `logoutUser()` | 6 `removeItem` selektif — **miss `eventday_token` dan `sessionStorage`** |
+| `shared/NavbarCustomer.jsx` (hamburger "Keluar") | ❌ tidak | ❌ tidak — cuma `navigate("/")` |
+
+Hanya cookie HttpOnly yang jadi kebenaran di sisi server, dan hanya 2 dari 4 yang berusaha mengosongkannya.
+
+## Konvensi styling admin
+Setiap file CSS admin diakhiri dua blok, dalam urutan ini:
+1. `/* PENYERAGAMAN ... */` — scoped ke root class halaman (`.transaction-page`, `.detail-payout-page`, dst). Standar: judul 26px/700/-0.3px `#242331`, sub 14px `#6f7482`, **kartu statistik seragam (min-height 130px, padding 20px 22px, radius 12px, angka 32px, label 13px, icon 36×36 r10px, grid gap 16px)**, th 13px/td 14px, badge 12px, tombol 14px (h 40-42px), input 14px, pagination 13px.
+2. `/* LAYOUT ADMIN SERAGAM */` — `@media (min-width:1101px)`, mengunci offset sidebar 220px dan `max-width:1400px` untuk content.
+
+**Tiga halaman berbagi root class `.admin-dashboard`** (`DashboardAdmin`, `TambahEvent`, `DetailPengajuanEo`) dan karena itu ketiga file CSS-nya memuat blok layout yang **identik byte-per-byte** (via `.dashboard-wrapper` / `.dashboard-main` / `.dashboard-content`). Kalau diubah, ubah ketiganya. Jangan set ulang `.dashboard-wrapper { width: calc(100% - 260px) }` seperti versi lama — itu bocor antar halaman.
+
+`DetailTransaksi.jsx` dan `DetailTiket.jsx` sengaja **tidak punya CSS sendiri**; keduanya mengimpor `DetailPengajuanPayout.css` sebagai shell detail bersama.
+
+Layout family yang ada: (A) `.admin-dashboard` → Sidebar → `.dashboard-wrapper` → Navbar → `main.dashboard-main` → `.dashboard-content`; (B) `<root>-page` → Sidebar → `main.<x>-main` → Navbar → `.<x>-content`. Family A cuma 3 halaman, sisanya family B.
+
+## Design system
+Praktis tidak ada di level token. **Satu** CSS variable di seluruh repo (`--page-gutter-mobile`). Warna hardcoded hex; ada ~6 ungu/indigo berbeda (`#5146e5`, `#2f66ff`, `#4036c9`, `#453bd0`). Dua font bersaing: Poppins (`:root` di `styles.css`) vs Arial yang dideklarasikan ulang di kelima file CSS auth.
+
+`styles.css` juga membawa reset element `label` dan `input` yang **bocor ke 74 komponen**, dan blok `@media (max-width:600px)` dengan `!important` di ~40 class. Dan karena `main.jsx` meng-import `App` **sebelum** `styles.css`, CSS global diinjeksi **terakhir** dan menang di setiap specificity tie — itulah alasan `.login-card` global Menimpa `Login.css`.
+
+## Known Bugs (sudah diverifikasi, belum diperbaiki)
+
+**Fungsional, prioritas tinggi:**
+1. `shared/FooterCustomer.jsx:49,58` — `navigate("../register-eo")` dan `startsWith("../register-eo")`. React Router me-resolve `navigate` terhadap hierarki route, jadi tab "Buat Event" untuk non-organizer tidak ke mana-mana dan active-check selalu false.
+2. `admin/PengaturanPlatform.jsx:324-327` — tombol simpan `type="submit"` **dan** `onClick={handleSave}` → save jalan dua kali per klik.
+3. `shared/NavbarCustomer.jsx` — "Keluar" di hamburger hanya `navigate("/")`. Tidak panggil API, tidak bersihkan storage, tidak bersihkan cookie. **Sesi tetap hidup sepenuhnya.**
+4. `admin/AuditLog.jsx` — 280 baris data audit 2023 hardcode dipakai mentah setiap panggilan API gagal. Menutupi kegagalan backend dengan data palsu — tidak pantas di halaman audit.
+5. `admin/AuditLog.jsx:606` — `Swal.fire({html: ...})` menyisipkan field log tanpa escaping → XSS kalau ada nilai mengandung HTML.
+6. `admin/Transaksi.jsx:123` — filter tanggal default "Last 30 Days". Digabung dengan fetch `size:20` di EventManagement / Transaksi / Tiket / AuditLog, UI admin hanya bisa menjangkau ~20 record terbaru per resource, data lama tersembunyi tanpa indikasi.
+7. `admin/DetailEvent.jsx` — approve/reject/delete jalan **tanpa `showConfirm`**, berbeda dari setiap mutasi admin lain. Alasan reject hardcoded `"Ditolak oleh admin"`, tanpa input.
+8. `admin/DetailPengajuanPayout.jsx:234` — fallback fee platform hardcode **5%** kalau API tidak mengirimnya → nominal payout bersih bisa salah di layar finansial.
+9. `eo/AddEvent.jsx` + `customer/CustomerDashboard.jsx` — mengirim kategori `ENTERTAINMENT`, `TECHNOLOGY`, `SEMINAR_WORKSHOP`, `COMMUNITY` yang oleh `constants/categories.js` dinyatakan invalid. Backend pakai `valueOf` strict → **4 dari 9 chip kategori di dashboard customer balik 400**.
+10. `admin/EditEvent.jsx` — merender dropzone tapi tidak memakai `EventBannerUpload` dan memanggil `updateAdminEvent(id, payload)` tanpa file. Dropzone dekoratif; banner hanya bisa diubah via URL.
+11. `eo/DetailEventEO.jsx` — fetch `salesSummary`/`salesError` lalu tidak merender keduanya. Tiga state mati + satu request sia-sia.
+12. `eo/StatusRegisterEO.jsx:13` — tombol setelah registrasi EO diarahkan ke `/customer/dashboard`, seharusnya `/eo/dashboard`.
+
+**Kebocoran token ke log:** `OTP.jsx` mencetak `"OTP CODE"`/`"RESET TOKEN"` (kode reset password plaintext) dan `ResetPassword.jsx` mencetak `"RESET TOKEN"`. `Login.jsx:104,142-144` mencetak objek response login penuh (bisa berisi PII). Sekitar 25 `console.log` lain masih tertinggal (DashboardAdmin:110-111, EventManagement:171, UserManagement:45, DetailUser:40,89,141, DetailEvent:79,87, DetailPengajuanEo:53,206, AuditLog:633, dst).
+
+**Bug kecil tapi belum diperbaiki:**
+- `auth/Register.jsx:712` — SVG ikon mata pada field "Ulangi Kata Sandi" punya path rusak, ikon tampil patah.
+- `auth/ResetPassword.jsx:283-285,332-334` — tombol show/hide password memakai glyph identik di kedua state → tidak ada feedback visual.
+- `customer/RefundDetail.jsx:41` — **memutasi objek hasil fetch** (`refundData.orderSummary = ...`), bukan merge di state. Plus guard di ~142-152 bisa throw kalau `orderSummary` null.
+- `customer/EditProfileCustomer.jsx` — hasil `uploadAvatar(file)` dibuang; avatar disimpan sebagai **base64 data-URI ke `localStorage["avatarUrl"]`** (masalah kuota & privasi), bukan pakai `avatarUrl` yang dikembalikan API.
+- `admin/DetailUser.jsx:102` — `getStatusLabel` dipakai sebelum deklarasinya (TDZ hazard, aman sekarang karena dipanggil saat runtime).
+- `admin/UserManagement.jsx:293` — `handleUserAction` duplikat persis `handleUserClick`; `handleFilter` `async` tanpa `await`.
+- `admin/DetailTiket.jsx` — `handleAction` tidak punya guard, jadi tiket `EXPIRED/REFUNDED/REVOKED` tetap dapat tombol "Revoke" yang tidak berarti (bandingkan `Tiket.jsx` yang benar mengembalikan `null`).
+- `admin/Tiket.jsx` — state `dataWarning` dirender tapi tidak pernah di-assign (dead, copy-paste dari Transaksi).
+- `admin/DetailEventEO` hardcode `status-badge active` tanpa memetakan status sebenarnya.
+- `eo/EventEO.jsx` — progress bar fake: `width: sold > 0 ? "100%" : "0%"`, tidak ada rasio ke kuota. Draft juga bisa tampil dua kali (endpoint draft + filter list).
+- `eo/DashboardEO.jsx` — baca metric **snake_case** (`active_events`, `total_revenue`, `tickets_sold`) tanpa fallback camelCase →FK nol kalau BE_return camelCase. Plus resolver gambar duplikat dengan domain typo (lihat Environment).
+- `eo/AddEvent.jsx` — `permissionFile` dikumpulkan tapi tidak pernah dikirim (UI mati). Hanya `schedules[0]` yang dipakai; baris jadwal ekstra dibuang diam-diam.
+- `admin/PengaturanPlatform.jsx` — `mataUang`/`zonaWaktu` diedit tapi tidak pernah dikirim (no-op senyap). Dropzone mengiklankan "tarik dan lepas" tapi tidak ada handler drag sama sekali.
+- `admin/PengajuanAkunEO.jsx` — tombol Export cuma stub `showWarning("Ekspor Belum Tersedia")`; tidak ada pagination (satu-satunya halaman list tanpa itu).
+- `admin/DetailTransaksi.jsx` & `DetailTiket.jsx` — tidak punya guard `if (!id)` (mengacute `GET .../undefined`); `DetailPengajuanPayout` sudah punya, termasuk check `"undefined"`.
+- `admin/DetailEventEO` / `admin/Tiket.jsx` — label status English ("Ticket Overview", "Success/Pending/Rejected") di|Pages yang lain Indonesia.
+- `customer/Checkout.jsx` — fallback uang hardcode (`adminFee = 5000`, tax 10%) dan fallback event mock aktif bila `location.state` hilang → deep-link langsung ke `/checkout/:id` menampilkan data palsu. `buyer.phone` direferensikan padahal field aslinya `phoneNumber`.
+- `customer/MyTicket.jsx` — `REFUND_STATUSES` dideklarasikan dua kali (module scope ~L68 dan di dalam komponen ~L258, yang innerPrefs shadow). N+1 hingga 15 `getTicketDetail`. `getEvents` dipakai untuk cari eventId by judul (match string rapuh) untuk flow "lanjutkan bayar".
+- `shared/Navbar.jsx:24-61` — `getPageInfo()` **tidak punya case** untuk `/admin/audit-log`, `/admin/pengajuan-payout`, `/admin/pengaturan` → tiga halaman itu judulnya jatuh ke "Admin Portal" generik.
+- `shared/Sidebar.jsx` — baca 4 key foto legacy (`photo`, `profilePhoto`, `avatar`, `picture`) yang **tidak pernah ditulis** siapa pun; key yang benar-benar dipakai (`avatarUrl`) tidak ada di daftar.
+- `shared/NavbarCustomer.jsx:198,322` — `searchRef` di-*attach* ke dua elemen berbeda (desktop + mobile overlay), sehingga deteksi click-outside rusak untuk salah satunya. Kegagalan `getProfile` ditelan `catch {}` kosong.
+- `customer/ProfileCustomer.jsx` - tidak render `ProfileSidebar`, melainkan menduplikasi daftar menu yang sama secara manual → dua sumber kebenaran.
+- `index.html` — memuat Midtrans Snap dari host **sandbox** (`app.sandbox.midtrans.com`) dengan sandbox client key, **di setiap route termasuk login**. `<title>` hardcoded "Eventday — Login" untuk semua halaman, tidak ada `document.title` management.
+- `customer/RefundRequest.jsx` — `orderId` hanya dari `location.state`, tanpa query param atau pemilih order → navigasi langsung ke `/customer/refund` merender form yang tidak terpakai.
+- `customer/ChangePasswordCustomer.jsx` — suksesnya **logout-user** (bersihkan 6 key, navigate `/`) tanpa dialog konfirmasi.
+- `eo/RegisterEO.jsx` — baca `registerResponse?.token` lalu tulis ke localStorage, padahal BE menyembunyikan token (`@JsonIgnore`) → dead code.
+- `eo/PengajuanPayoutEO.jsx` + `eo/RefundEO.jsx` + `customer/RefundRequest.jsx` + `eo/ProfileEO.jsx` — masih pakai `alert()`/`window.confirm()` mentah, bukan `utils/alert.js` (ketidakkonsistenan UX dengan halaman yang lebih baru).
+- `eo/DetailRefundEO.jsx` — **100% mock**, tombol Tolak/Setujui/Konfirmasi **tanpa `onClick`**, tidak ada `useParams`/`useNavigate`, dan nol link masuk. Halaman orphan.
+
+## Dead code
+| Item | Status |
+|---|---|
+| `shared/Button.jsx` + `.css` | Nol importer. Tidak punya `disabled`/`className`/`...rest`. |
+| `shared/FormInput.jsx` + `.css` | Nol importer. Tidak punya `error`/`required`/`disabled`. |
+| `utils/tokenManager.js` | Nol importer (meski ada side-effect `purgeForeignTokens()` saat import — yang juga tak pernah jalan). |
+| `services/organizerTransactionService.js` | Nol importer. |
+| `services/homeSearchService.js` | Nol importer. |
+| `eo/EditEvent.css` | Orphan — `EditEventEO.jsx` mengimpor `AddEvent.css`. Keduanya root class `.add-event-page` tapi sudah berbeda. |
+| `admin/AuditLog.jsx` `mockAuditData` | 280 baris — lihat Known Bugs #4. |
+| `DetailRefundEO.jsx` | Orphan, tidak fungsional. |
+| `localStorage.eventday_token` | Write-only, tidak dibaca siapa pun. |
+| `sessionStorage.forgotName` | Tidak pernah ditulis. |
+| Event `admin-sidebar:close` | Tidak pernah di-dispatch (listener ada di `Sidebar.jsx`). |
+| Export `checkoutService.processCheckout`, `ticketService.scanTicket`, `refundService.getRefundProof`, `profileService.getTransactionHistory`, `organizerPayoutService.getOrganizerPayoutDetail`, `organizerDashboardService.getOrganizerDashboard` | Ada tapi nol pemanggil. |
+| `styles.css` blok `.page` … `.register-button` | Dead — superseded per-page CSS. |
+| `import React` di ~30 `.jsx` | Harmless di automatic JSX transform. |
+
+## Yang sudah tidak lagi berlaku
+Catatan dari revisi `AGENTS.md` sebelumnya yang **sudah salah** terhadap kode sekarang — jangan dik.Accept.:
+- ~~Route customer didefinisikan 2×~~ → sudah dirapikan.
+- ~~`/customer/history`, `/customer/profile`, `/customer/refund/:id` akan 404~~ → semua sudah ada.
+- ~~"`order/ticket/refundService` masih TODO"~~ → ketiganya sudah ada dan dipakai.
+- ~~"`adminService.js` / `adminSettingService.js` sudah dihapus, jangan dibuat ulang"~~ → memang tidak ada, benar, tapi **9 service `admin*.js` yang sekarang aktif tidak tercatat sama sekali** di revisi lama.
+- ~~Hanya `eventService.js` yang tersambung dari sisi customer~~ →saarang hampir semua halaman customer/EO/admin sudah live.
+- ~~`API.md` §10-19 SCHEMA ONLY, FE masih mock~~ → FE sekarang memanggil permukaan endpoint yang jauh lebih luas (lihat `API.md`).
+- ~~"Tidak ada error boundaries; API errors adalah `alert()`"~~ →benar untuk halaman lama, tapi halaman baru sudah pakai SweetAlert2.
+- ~~Port 8082 + URL ngrok hardcoded di `authService.js:10`~~ → **tidak ada lagi**. `authService.js` sekarang murni lewat path relatif `/api/...`; port/tunnel diatur lewat `VITE_NGROK_URL` / `VITE_API_URL`.
+- ~~"admin-theme.css sudah DIHAPUS — jangan dibuat ulang"~~ → masih berlaku, tapi tidak ada lagi penyebutan blok `PENYERAGAMAN`/`LAYOUT ADMIN SERAGAM` di revisi lama.
+
+## Konvensi umum
+- Bahasa UI dan komentar: **Indonesia** (terkecuali `admin/Navbar.jsx`, `admin/Tiket.jsx`, `eo/PayoutEO.jsx` yang sebagian English).
+- Alert: `utils/alert.js` (`showSuccess/showError/showWarning/showInfo/showLoading/showConfirm/showToast/showInputDialog`) + `closeAlert`. Jangan pakai `alert()`/`window.confirm()` di kode baru.
+- Format uang: `Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" })` — **dideklarasikan ulang per-file**, tidak ada util bersama. Tanggal: `toLocaleDateString("id-ID")`, kecuali `admin/Transaksi.jsx` yang pakai `"en-GB"`.
+- Tidak ada shared form component yang dipakai; `FormInput`/`Button` mati, semua halaman hand-roll.
+- Responsive: breakpoint ad-hoc per file (admin mulai 1101px, EO 850-1100px, customer 768px). Tidak ada skala bersama.
+- `npm run build` adalah satu-satunya verifikasi. Selalu jalankan setelah perubahan.
+
+## Gotcha saatngoding
+- **Jangan edit `src/services/api.js`.** Butuh endpoint export → pakai `downloadExport.js`.
+- `apiFetch` **tidak** meng-unwrap response. `const d = (await getAdminEvents()).data` — bukan `await getAdminEvents()` langsung. (`authService` berbeda: sudah meng-unwrap.)
+- Kalau ubah salah satu dari 3 file CSS `.admin-dashboard`, **ubah ketiganya**.
+- Kalau bikin halaman admin baru, salin **kedua** blok (PENYERAGAMAN + LAYOUT) dari `Transaksi.css` sebagai template, dan set root class unik supaya tidak bocor.
+- `DetailTransaksi`/`DetailTiket` **sengaja** tanpa CSS — jangan bikinkan, mereka memakai `DetailPengajuanPayout.css`.
+- Injeksi CSS global menang atas per-page CSS (lihat Design system) — hindari menamai class seperti yang sudah ada di `styles.css`.
+- Kategori event: hanya `MUSIC_FESTIVAL`, `CONFERENCE`, `EXHIBITION`, `CULINARY` yang valid. Pakai `constants/categories.js` (`VALID_CATEGORIES`, `categoryLabel`, `normalizeCategoryForBackend`) daripada menulis enum sendiri.
+- Header `ngrok-skip-browser-warning` **wajib** untuk akses backend lewat proxy — tanpa itu ngrok free-tier mengembalikan halaman interstitial `ERR_NGROK_6024`, bukan konten asli. Dan karena `<img>`/`background-image` tidak bisa kirim header custom, **semua** akses gambar `/uploads` juga harus lewat proxy (`vite.config.js:48`).

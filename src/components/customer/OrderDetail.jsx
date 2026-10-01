@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
+import ConcertPass from "../shared/ConcertPass";
 import { getMyTickets, getTicketDetail, getTicketsByOrder } from "../../services/ticketService";
+import { downloadAndEmailEticket } from "../../utils/eticketActions";
 import { apiFetch } from "../../services/api";
 import "./OrderDetail.css";
 
@@ -77,6 +79,7 @@ function formatDateTime(dateStr) {
 function OrderDetail() {
   const navigate = useNavigate();
   const { orderId } = useParams();
+  const location = useLocation();
 
   const [order, setOrder] = useState(null);
   const [tickets, setTickets] = useState([]);
@@ -214,15 +217,22 @@ function OrderDetail() {
   const canRefund = order && ["PAID", "PENDING"].includes(order.status);
   const orderStatusKey = order?.status || "PENDING";
 
-  const downloadQR = (ticketCode) => {
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
-      ticketCode,
-    )}`;
-    const link = document.createElement("a");
-    link.href = qrUrl;
-    link.download = `${ticketCode}.png`;
-    link.target = "_blank";
-    link.click();
+  // PDF dicetak dari wadah concert pass terpisah, bukan dari kartu di layar.
+  const [busyTicketId, setBusyTicketId] = useState(null);
+
+  const handleDownloadPdf = async (ticket) => {
+    const key = ticket.ticketCode || ticket.ticketItemId || null;
+    setBusyTicketId(key);
+    try {
+      await downloadAndEmailEticket({
+        ticket,
+        order,
+        navState: location?.state,
+        target: ".eticket-print-root",
+      });
+    } finally {
+      setBusyTicketId(null);
+    }
   };
 
   if (loading) {
@@ -327,11 +337,23 @@ function OrderDetail() {
                   key={ticket.ticketCode || ticket.ticketItemId || index}
                   ticket={ticket}
                   index={index}
-                  onDownload={downloadQR}
+                  busy={busyTicketId === (ticket.ticketCode || ticket.ticketItemId || null)}
+                  onDownloadPdf={handleDownloadPdf}
                 />
               ))}
             </div>
           )}
+        </div>
+
+        {/* Wadah khusus cetak: boarding pass konser, tersembunyi di layar. */}
+        <div className="eticket-print-root">
+          {tickets.map((ticket, index) => (
+            <ConcertPass
+              key={ticket.ticketCode || ticket.ticketItemId || `pass-${index}`}
+              ticket={ticket}
+              order={order}
+            />
+          ))}
         </div>
 
         {/* Aksi */}
@@ -365,8 +387,10 @@ function OrderDetail() {
   );
 }
 
-function TicketCard({ ticket, index, onDownload }) {
-  const ticketCode = ticket.ticketCode || ticket.ticketItemId || "-";
+function TicketCard({ ticket, index, busy, onDownloadPdf }) {
+  const realCode = ticket.ticketCode || ticket.ticketItemId || "";
+  const hasRealCode = realCode !== "";
+  const ticketCode = hasRealCode ? realCode : "-";
   const statusKey = ticket.checkInStatus || ticket.status || "UNREDEEMED";
   const isPlaceholder = ticket.isPlaceholder;
 
@@ -405,25 +429,42 @@ function TicketCard({ ticket, index, onDownload }) {
               src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(
                 ticketCode,
               )}`}
+              width="300"
+              height="300"
               alt={`QR Code ${ticketCode}`}
             />
           </div>
 
-          <p className="qr-instruction">Tunjukan kode ini ke Staff</p>
+          <p className="qr-instruction">
+            {hasRealCode
+              ? "Tunjukkan kode ini ke Staff"
+              : "Kode tiket belum diterbitkan. Silakan cek Tiket Saya beberapa saat lagi."}
+          </p>
 
-          <div className="ticket-code">{ticketCode}</div>
+          <div className={`ticket-code ${hasRealCode ? "" : "ticket-code-pending"}`}>
+            {hasRealCode ? ticketCode : "MENUNGGU PENERBITAN"}
+          </div>
 
-          <button
-            className="download-qr-button"
-            onClick={() => onDownload(ticketCode)}
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M12 3v12" />
-              <path d="m7 10 5 5 5-5" />
-              <path d="M5 20h14" />
-            </svg>
-            <span>Unduh QR Tiket</span>
-          </button>
+          <div className="ticket-code-actions no-print">
+            <button
+              className="download-qr-button"
+              disabled={!hasRealCode || busy}
+              onClick={() => onDownloadPdf(ticket)}
+            >
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3v12" />
+                <path d="m7 10 5 5 5-5" />
+                <path d="M5 20h14" />
+              </svg>
+              <span>{busy ? "Memproses..." : "Unduh PDF E-Ticket"}</span>
+            </button>
+          </div>
+
+          {hasRealCode && (
+            <p className="ticket-code-hint">
+              Nama berkas saat disimpan: E-Ticket-{realCode}.pdf
+            </p>
+          )}
         </div>
       )}
 
