@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import ConcertPass from "../shared/ConcertPass";
 import { getMyTickets, getTicketDetail, getTicketsByOrder } from "../../services/ticketService";
-import { downloadAndEmailEticket } from "../../utils/eticketActions";
+import { downloadEticketPdf } from "../../utils/eticketActions";
 import { apiFetch } from "../../services/api";
 import "./OrderDetail.css";
 
@@ -224,7 +224,7 @@ function OrderDetail() {
     const key = ticket.ticketCode || ticket.ticketItemId || null;
     setBusyTicketId(key);
     try {
-      await downloadAndEmailEticket({
+      await downloadEticketPdf({
         ticket,
         order,
         navState: location?.state,

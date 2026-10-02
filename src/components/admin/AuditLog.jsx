@@ -33,20 +33,20 @@ import "./AuditLog.css";
 
 /* =========================================================
    TAKSONOMI KATEGORI AUDIT
-   Nilai `value` dikirim apa adanya sebagai query `category`
-   ke backend — harus cocok dengan enum/kategori backend.
+   Nilai `value` mengikuti enum backend persis dan dikirim apa adanya
+   sebagai query `category`: ALL | AUTH | EVENT | TRANSACTION |
+   PAYOUT | EO_APPROVAL | SYSTEM. "ALL" berarti tanpa filter
+   (dinormalisasi menjadi tanpa param di adminAuditService).
    ========================================================= */
 
 const AUDIT_CATEGORIES = [
-  { value: "", label: "Semua Kategori" },
+  { value: "ALL", label: "Semua Kategori" },
   { value: "AUTH", label: "Autentikasi" },
   { value: "EVENT", label: "Event" },
   { value: "TRANSACTION", label: "Transaksi" },
-  { value: "ORDER", label: "Order" },
-  { value: "EO_APPROVAL", label: "Persetujuan EO" },
   { value: "PAYOUT", label: "Payout" },
+  { value: "EO_APPROVAL", label: "Persetujuan EO" },
   { value: "SYSTEM", label: "Sistem" },
-  { value: "GATE_SCAN", label: "Scan Tiket" },
 ];
 
 /* Pencocokan EXACT action backend → kategori.
@@ -76,10 +76,10 @@ const ACTION_CATEGORY_MAP = {
   PAYMENT_FAILED: "TRANSACTION",
   PAYMENT_EXPIRED: "TRANSACTION",
   UPDATE_TRANSACTION_STATUS: "TRANSACTION",
-  // ORDER (siklus order)
-  CREATE_ORDER: "ORDER",
-  UPDATE_ORDER: "ORDER",
-  CANCEL_ORDER: "ORDER",
+  // ORDER (siklus order digabung ke TRANSACTION sesuai enum backend)
+  CREATE_ORDER: "TRANSACTION",
+  UPDATE_ORDER: "TRANSACTION",
+  CANCEL_ORDER: "TRANSACTION",
   // EO_APPROVAL
   APPROVE_EO: "EO_APPROVAL",
   REJECT_EO: "EO_APPROVAL",
@@ -97,7 +97,9 @@ const ACTION_CATEGORY_MAP = {
   UPDATE_USER: "SYSTEM",
   UPDATE_USER_STATUS: "SYSTEM",
   SUSPEND_USER: "SYSTEM",
-  // GATE_SCAN (siklus tiket di pintu masuk / admin)
+  // GATE_SCAN — belum ada di enum backend, jadi aksi tiket hanya tampil
+  // saat filter "ALL". Badge + ikonnya sudah disiapkan bila backend
+  // menambahkannya nanti.
   SCAN_TICKET: "GATE_SCAN",
   CHECKIN_TICKET: "GATE_SCAN",
   REVOKE_TICKET: "GATE_SCAN",
@@ -222,16 +224,16 @@ function AuditLog() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("ALL");
   const [status, setStatus] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(0); // 0-based, standar Spring Pageable
   const [auditData, setAuditData] = useState([]);
   const [totalEntries, setTotalEntries] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   /* =========================================================
      NORMALISASI LOG BE → shape UI
@@ -387,7 +389,7 @@ function AuditLog() {
   const loadAuditLogs = async () => {
     try {
       setLoading(true);
-      const res = await getAdminAuditLogs(currentPage - 1, itemsPerPage, {
+      const res = await getAdminAuditLogs(page, itemsPerPage, {
         search: debouncedSearch,
         category,
         status,
@@ -424,23 +426,23 @@ function AuditLog() {
 
   useEffect(() => {
     loadAuditLogs();
-  }, [currentPage, debouncedSearch, category, status, startDate, endDate]);
+  }, [page, debouncedSearch, category, status, startDate, endDate]);
 
-  // Debounce search 400ms — halaman kembali ke 1 setiap query berubah.
+  // Debounce search 400ms — halaman kembali ke 0 setiap query berubah.
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search.trim());
-      setCurrentPage(1);
+      setPage(0);
     }, 400);
     return () => clearTimeout(timer);
   }, [search]);
 
   // Jepit halaman bila total halaman menyusut akibat filter.
   useEffect(() => {
-    if (totalPages > 0 && currentPage > totalPages) {
-      setCurrentPage(totalPages);
+    if (totalPages > 0 && page > totalPages - 1) {
+      setPage(totalPages - 1);
     }
-  }, [totalPages, currentPage]);
+  }, [totalPages, page]);
 
   /* =========================================================
      ICON AKTIVITAS
@@ -504,9 +506,9 @@ function AuditLog() {
         item.detail.toLowerCase().includes(searchValue) ||
         item.actorId.toLowerCase().includes(searchValue);
 
-      // EXACT match — bukan substring.
+      // EXACT match — bukan substring. "ALL" berarti tampil semua.
       const matchesCategory =
-        !category || item.category === category;
+        !category || category === "ALL" || item.category === category;
 
       const matchesStatus =
         !status ||
@@ -541,26 +543,24 @@ function AuditLog() {
      PAGINATION (server-side — totalPages dari backend)
   ========================================================= */
 
-  const safeCurrentPage = Math.max(
-    1,
-    Math.min(currentPage, Math.max(totalPages, 1))
-  );
+  const safePage =
+    totalPages > 0 ? Math.min(Math.max(0, page), totalPages - 1) : 0;
 
-  const startIndex =
-    (safeCurrentPage - 1) * itemsPerPage;
+  const startIndex = safePage * itemsPerPage;
 
-  // Jendela maksimal 5 nomor halaman di sekitar halaman aktif.
+  // Jendela maksimal 5 nomor halaman di sekitar halaman aktif (0-based,
+  // ditampilkan +1).
   const pageButtons = (() => {
     if (totalPages <= 1) return [];
     const maxButtons = 5;
     let start = Math.max(
-      1,
-      safeCurrentPage - Math.floor(maxButtons / 2)
+      0,
+      safePage - Math.floor(maxButtons / 2)
     );
-    const end = Math.min(totalPages, start + maxButtons - 1);
-    start = Math.max(1, end - maxButtons + 1);
+    const end = Math.min(totalPages, start + maxButtons);
+    start = Math.max(0, end - maxButtons);
     return Array.from(
-      { length: end - start + 1 },
+      { length: end - start },
       (_, i) => start + i
     );
   })();
@@ -804,7 +804,7 @@ function AuditLog() {
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  setCurrentPage(1);
+                  setPage(0);
                 }}
                 placeholder="Cari aktor atau aktivitas..."
               />
@@ -823,7 +823,7 @@ function AuditLog() {
                 max={endDate || undefined}
                 onChange={(e) => {
                   setStartDate(e.target.value);
-                  setCurrentPage(1);
+                  setPage(0);
                 }}
                 aria-label="Tanggal mulai"
                 title="Tanggal mulai"
@@ -839,7 +839,7 @@ function AuditLog() {
                 min={startDate || undefined}
                 onChange={(e) => {
                   setEndDate(e.target.value);
-                  setCurrentPage(1);
+                  setPage(0);
                 }}
                 aria-label="Tanggal selesai"
                 title="Tanggal selesai"
@@ -852,7 +852,7 @@ function AuditLog() {
                 value={category}
                 onChange={(e) => {
                   setCategory(e.target.value);
-                  setCurrentPage(1);
+                  setPage(0);
                 }}
                 aria-label="Kategori aktivitas"
               >
@@ -878,7 +878,7 @@ function AuditLog() {
                 value={status}
                 onChange={(e) => {
                   setStatus(e.target.value);
-                  setCurrentPage(1);
+                  setPage(0);
                 }}
                 aria-label="Status aktivitas"
               >
@@ -1147,11 +1147,11 @@ function AuditLog() {
                 <button
                   type="button"
                   disabled={
-                    safeCurrentPage === 1
+                    safePage === 0
                   }
                   onClick={() =>
-                    setCurrentPage((prev) =>
-                      Math.max(prev - 1, 1)
+                    setPage((prev) =>
+                      Math.max(prev - 1, 0)
                     )
                   }
                 >
@@ -1167,21 +1167,21 @@ function AuditLog() {
                     key={p}
                     type="button"
                     className={
-                      safeCurrentPage === p
+                      safePage === p
                         ? "active"
                         : ""
                     }
                     onClick={() =>
-                      setCurrentPage(p)
+                      setPage(p)
                     }
                   >
-                    {p}
+                    {p + 1}
                   </button>
                 ))}
 
                 {totalPages > 5 &&
                   pageButtons[pageButtons.length - 1] <
-                    totalPages && (
+                    totalPages - 1 && (
                     <span className="pagination-dots">
                       ...
                     </span>
@@ -1191,15 +1191,15 @@ function AuditLog() {
                 <button
                   type="button"
                   disabled={
-                    safeCurrentPage >=
-                      totalPages ||
-                    totalPages === 1
+                    safePage >=
+                      totalPages - 1 ||
+                    totalPages <= 1
                   }
                   onClick={() =>
-                    setCurrentPage((prev) =>
+                    setPage((prev) =>
                       Math.min(
                         prev + 1,
-                        totalPages
+                        totalPages - 1
                       )
                     )
                   }

@@ -49,53 +49,6 @@ export const scanTicket = (ticketCode) =>
     body: JSON.stringify({ ticketCode }),
   });
 
-// Kirim ulang e-ticket ke email customer.
-// Endpoint ini BELUM terkonfirmasi ada di backend (tidak ada di API.md), jadi
-// fungsi ini mencoba dua path lalu melempar error kalau keduanya gagal —
-// pemanggil wajib menampilkan kegagalan, bukan mengklaim email terkirim.
-export const sendTicketEmail = async ({
-  email,
-  ticketCode,
-  orderId,
-  ticketIds,
-} = {}) => {
-  if (!email || !ticketCode) {
-    const err = new Error("Email atau kode tiket tidak tersedia");
-    err.status = 0;
-    throw err;
-  }
-
-  const payload = { email, ticketCode };
-  if (orderId) payload.orderId = orderId;
-  if (Array.isArray(ticketIds) && ticketIds.length > 0) {
-    payload.ticketIds = ticketIds;
-  }
-
-  const attempts = ["/api/tickets/send-email"];
-  if (orderId) {
-    attempts.push(`/api/orders/${encodeURIComponent(orderId)}/resend-ticket`);
-  }
-
-  let lastError = null;
-
-  for (const path of attempts) {
-    try {
-      const res = await apiFetch(path, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
-      return { ...res, _endpoint: path };
-    } catch (error) {
-      lastError = error;
-      // Hanya coba endpoint berikutnya kalau path ini memang tidak ada.
-      const notFound = error?.status === 404 || error?.status === 405;
-      if (!notFound) break;
-    }
-  }
-
-  throw lastError || new Error("Gagal mengirim e-ticket");
-};
-
 export const ticketService = {
   getMyTickets,
   getMyTicketsAuth,
@@ -103,5 +56,4 @@ export const ticketService = {
   getTicketsByOrder,
   getTransactionHistory,
   scanTicket,
-  sendTicketEmail,
 };

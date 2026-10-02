@@ -1,9 +1,9 @@
-﻿import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import ConcertPass from "../shared/ConcertPass";
 import { getMyTickets, getTicketsByOrder, getTicketDetail } from "../../services/ticketService";
-import { autoSendEticket, downloadAndEmailEticket } from "../../utils/eticketActions";
+import { downloadEticketPdf } from "../../utils/eticketActions";
 import "./TicketSuccess.css";
 
 const STATUS_LABEL = {
@@ -243,45 +243,11 @@ function TicketSuccess() {
   // Jadi layout konser tidak pernah bocor ke tampilan web.
   const [busyTicketId, setBusyTicketId] = useState(null);
 
-  // === Auto-kirim e-ticket ke email, sekali saja setelah pembayaran sukses ===
-  //
-  // Dua pagar supaya tidak terjadi loop/spam:
-  //  1. autoSentRef (useRef) — dijaga true sebelum request dijalankan.
-  //  2. hanya jalan bila location.state ada. Setelah refresh, state hilang,
-  //     sehingga membuka ulang halaman ini tidak mengirim ulang email.
-  //     Menonton tiket yang sudah lama (fromMyTicket) juga tidak memicu kirim.
-  const autoSentRef = useRef(false);
-  const [autoEmail, setAutoEmail] = useState(null);
-  const firstTicketCode = displayTickets[0]
-    ? displayTickets[0].ticketCode || displayTickets[0].ticketItemId || ""
-    : "";
-
-  useEffect(() => {
-    if (autoSentRef.current) return;
-    if (fromMyTicket || !location.state) return;
-    if (!firstTicketCode) return;
-
-    autoSentRef.current = true;
-    let cancelled = false;
-
-    autoSendEticket({
-      ticket: displayTickets[0],
-      order: stateOrder,
-      navState: location.state,
-    }).then((result) => {
-      if (!cancelled && result.emailed) setAutoEmail(result.email);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [firstTicketCode, fromMyTicket, stateOrder]);
-
   const handleDownloadPdf = async (ticket) => {
     const key = ticket.ticketCode || ticket.ticketItemId || null;
     setBusyTicketId(key);
     try {
-      await downloadAndEmailEticket({
+      await downloadEticketPdf({
         ticket,
         order: stateOrder,
         navState: location.state,
@@ -318,7 +284,13 @@ function TicketSuccess() {
             <p>Belum ada tiket yang diterbitkan.</p>
           </div>
         ) : (
-          <div className="ticket-list">
+          <div
+            className={`ticket-list ${
+              displayTickets.length > 1
+                ? "ticket-list-multi"
+                : "ticket-list-single"
+            }`}
+          >
             {displayTickets.map((ticket, index) => (
               <TicketCard
                 key={
@@ -334,15 +306,6 @@ function TicketSuccess() {
               />
             ))}
           </div>
-        )}
-
-        {autoEmail && (
-          <p className="auto-email-badge" role="status">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="m5 13 4 4L19 7" />
-            </svg>
-            E-Ticket telah otomatis dikirim ke email {autoEmail}
-          </p>
         )}
 
         <div className="success-actions">
@@ -397,7 +360,7 @@ function TicketSuccess() {
       </div>
 
       <footer className="ticket-success-footer">
-        © 2027 EVENTDAY. Hak cipta dilindungi undang-undang.
+        © 2026 EVENTDAY. Hak cipta dilindungi undang-undang.
       </footer>
     </div>
   );

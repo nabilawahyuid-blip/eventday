@@ -581,6 +581,134 @@
   color: #e0525d;
 }
 
+/* LINEUP ARTIST — baris rapi: nama | file picker | hapus.
+   (Baris fasilitas tetap memakai .lineup-row polos.) */
+.lineup-row-artist {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 250px) 40px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.lineup-list .lineup-row-artist .lineup-name-input {
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid #e2e5ed !important;
+  border-radius: 8px;
+  background: #ffffff !important;
+  box-shadow: none;
+  font-size: 13px;
+  color: #333342;
+  min-width: 0;
+}
+
+.lineup-list .lineup-row-artist .lineup-name-input:focus {
+  outline: none;
+  border-color: #4c3be8 !important;
+}
+
+.lineup-file-picker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.lineup-file-input-hidden {
+  display: none;
+}
+
+.lineup-file-button {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px dashed #c3c9d8;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #4c3be8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.lineup-file-button:hover {
+  background: #f2f0ff;
+  border-color: #4c3be8;
+}
+
+.lineup-file-button svg {
+  flex-shrink: 0;
+}
+
+.lineup-file-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #555b6b;
+}
+
+.lineup-row-artist .lineup-file-clear {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #f0f2f7;
+  color: #8a90a3;
+  cursor: pointer;
+}
+
+.lineup-row-artist .lineup-file-clear:hover {
+  background: #ffe9eb;
+  color: #d43a46;
+}
+
+.lineup-row-artist .lineup-delete-button {
+  width: 40px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: #e0525d;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lineup-row-artist .lineup-delete-button:hover {
+  background: #fff0f1;
+  color: #d43a46;
+}
+
+@media (max-width: 720px) {
+  .lineup-row-artist {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lineup-file-picker {
+    width: 100%;
+  }
+
+  .lineup-file-button {
+    justify-content: center;
+  }
+
+  .lineup-row-artist .lineup-delete-button {
+    justify-self: end;
+  }
+}
+
 /* RESPONSIVE */
 @media (max-width: 1000px) {
   .add-event-main {

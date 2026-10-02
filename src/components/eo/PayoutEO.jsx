@@ -162,6 +162,15 @@ function PayoutEO() {
 
       const data = response?.data || [];
 
+      // Sampel 1 baris untuk memastikan nama field backend
+      // (bank/account) persis saat pengujian.
+      if (Array.isArray(data) && data.length > 0) {
+        console.log(
+          "Payout item sample:",
+          data[0]
+        );
+      }
+
       setPayoutData(
         Array.isArray(data)
           ? data
@@ -214,7 +223,11 @@ function PayoutEO() {
       ).toLowerCase();
 
       const bankName = String(
-        item.bank_name ||
+        item.bankName ||
+          item.bank ||
+          item.destinationBank ||
+          item.bankCode ||
+          item.bank_name ||
           ""
       ).toLowerCase();
 
@@ -230,7 +243,11 @@ function PayoutEO() {
 
       const accountNumber =
         String(
-          item.account_number ||
+          item.accountNumber ||
+            item.bankAccountNumber ||
+            item.accountNo ||
+            item.destinationAccount ||
+            item.account_number ||
             ""
         ).toLowerCase();
 
@@ -573,6 +590,36 @@ function PayoutEO() {
                             item.status
                           );
 
+                        // Data bank dinamis — dukung varian snake_case
+                        // maupun camelCase dari backend, tanpa string statis.
+                        const bankName =
+                          item.bankName ||
+                          item.bank ||
+                          item.destinationBank ||
+                          item.bankCode ||
+                          item.bank_name ||
+                          "-";
+
+                        const rawAccount = String(
+                          item.accountNumber ||
+                            item.bankAccountNumber ||
+                            item.accountNo ||
+                            item.destinationAccount ||
+                            item.account_number ||
+                            ""
+                        );
+
+                        const maskedAccount =
+                          rawAccount.length > 4
+                            ? `•••• ${rawAccount.slice(-4)}`
+                            : rawAccount || "-";
+
+                        const holderName =
+                          item.accountHolder ||
+                          item.accountHolderName ||
+                          item.beneficiaryName ||
+                          "";
+
                         return (
                           <tr
                             key={
@@ -648,30 +695,21 @@ function PayoutEO() {
 
                               <div className="bank-wrapper">
 
-                                <div className="bank-logo">
+                                <span className="bank-logo">
+                                  {bankName}
+                                </span>
 
-                                  {item.bank_name ||
-                                    "-"}
-
-                                </div>
-
-                                <div className="bank-account">
-
-                                  <span>
-                                    ****
-                                  </span>
-
-                                  <span>
-                                    {item.account_number
-                                      ? item.account_number.slice(
-                                          -4
-                                        )
-                                      : "-"}
-                                  </span>
-
-                                </div>
+                                <span className="bank-account">
+                                  {maskedAccount}
+                                </span>
 
                               </div>
+
+                              {holderName && (
+                                <div className="bank-holder">
+                                  a.n. {holderName}
+                                </div>
+                              )}
 
                             </td>
 

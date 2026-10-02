@@ -14,6 +14,103 @@
   box-sizing: border-box;
 }
 
+/* =========================================================
+   TOMBOL NAVIGASI BAWAH
+   Wajib flex: tanpa ini <div> jadi block biasa dan ketiga
+   tombol runtuh jadi satu baris teks ("Ke DashboardKe Tiket
+   SayaAjukan Refund").
+   ========================================================= */
+
+.success-actions {
+  margin-top: 24px;
+  margin-bottom: 48px;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+}
+
+.success-actions button {
+  height: 44px;
+
+  padding: 0 20px;
+
+  border-radius: 10px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+/* Secondary: outline netral. */
+.success-actions .dashboard-button {
+  border: 1px solid #d7dce5;
+
+  background: #ffffff;
+  color: #475467;
+}
+
+.success-actions .dashboard-button:hover {
+  background: #f5f7fa;
+}
+
+/* Primary: aksi utama halaman ini. */
+.success-actions .my-ticket-button {
+  border: 1px solid #5146e5;
+
+  background: #5146e5;
+  color: #ffffff;
+}
+
+.success-actions .my-ticket-button:hover {
+  border-color: #4036c9;
+  background: #4036c9;
+}
+
+/* Tertiary:estructive, dibuat lebih ringan agar tidak bersaing
+   dengan tombol utama. */
+.success-actions .refund-button {
+  border: 1px solid #fbd5d5;
+
+  background: #fff5f5;
+  color: #d92d20;
+}
+
+.success-actions .refund-button:hover {
+  background: #fee4e2;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.ticket-success-footer {
+  width: 100%;
+
+  margin-top: auto;
+  padding: 24px 16px;
+
+  box-sizing: border-box;
+
+  border-top: 1px solid #e6e9f0;
+
+  color: #98a2b3;
+
+  font-size: 12px;
+  text-align: center;
+}
+
+.ticket-success-footer a {
+  color: inherit;
+}
+
 .success-message {
   width: 100%;
   min-height: 78px;
@@ -40,10 +137,38 @@
   font-weight: 600;
 }
 
+/* Grid, bukan flex column: 1 tiket di tengah, 2+ tiket jadi 2 kolom.
+   minmax(0, 1fr) mencegah isi kartu (judul panjang, QR) memaksa kolom
+   melebar dan hasilkan overflow horizontal. */
 .ticket-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+
+  grid-template-columns: minmax(0, 1fr);
+
   gap: 20px;
+}
+
+/* Cuma 1 tiket: kartu duduk di tengah dengan lebar ideal, tidak melar
+   penuh sampai 960px. */
+.ticket-list-single {
+  max-width: 576px;
+
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 2+ tiket: dua kolom sejak tablet ke atas. HP tetap satu kolom.
+   Breakpoint 769px (bukan 768px) supaya tidak bertabrakan dengan blok
+   @media (max-width: 768px) yang juga mengatur gap. */
+@media (min-width: 769px) {
+  .ticket-list-multi {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 24px;
+
+    /* Kartu mengikuti tinggi isinya sendiri, tidak diregangkan. */
+    align-items: start;
+  }
 }
 
 .ticket-result-card {
@@ -182,33 +307,6 @@
 
 .download-qr-button:disabled:hover {
   background: #c3c7d4;
-}
-
-/* Konfirmasi kecil bahwa e-ticket sudah otomatis terkirim. */
-.auto-email-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 18px 0 0;
-  padding: 10px 14px;
-  border: 1px solid #b7e4c7;
-  border-radius: 8px;
-  background: #ecfdf3;
-  color: #027a48;
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1.45;
-}
-
-.auto-email-badge svg {
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 .ticket-code-hint {
@@ -505,19 +603,26 @@
   }
 
   .success-actions {
-    margin-top: 24px;
-    gap: 12px;
+    margin-top: 20px;
+    margin-bottom: 36px;
+
+    gap: 10px;
   }
 
   .success-actions button {
-    height: 52px;
-    border-radius: 7px;
-    font-size: 15px;
-    font-weight: 500;
+    height: 48px;
+
+    padding: 0 16px;
+
+    border-radius: 9px;
+
+    font-size: 13.5px;
   }
 
   .ticket-success-footer {
-    display: none;
+    padding: 20px 14px;
+
+    font-size: 11.5px;
   }
 }
 
@@ -572,5 +677,10 @@
   .ticket-code,
   .ticket-code-actions .download-qr-button {
     max-width: 100%;
+  }
+
+  /* 370px: dua tombol muat, refund turun ke baris penuh. */
+  .success-actions button {
+    width: 100%;
   }
 }

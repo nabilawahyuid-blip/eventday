@@ -17,6 +17,7 @@ import {
 import "./AddEvent.css";
 
 import { VALID_CATEGORIES, CATEGORY_LABELS } from "../../constants/categories";
+import { Trash2, Upload, X } from "lucide-react";
 
 function AddEvent() {
   const navigate = useNavigate();
@@ -711,37 +712,66 @@ function AddEvent() {
 
             <div className="lineup-list">
               {lineups.map((lineup, index) => (
-                <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px", alignItems: "center" }}>
+                <div className="lineup-row lineup-row-artist" key={index}>
+                  {/* Kolom 1 — Nama artis */}
                   <input
                     type="text"
+                    className="lineup-name-input"
                     value={lineup.name}
                     placeholder="Nama Artis / Pengisi Acara"
                     onChange={(e) => handleLineupChange(index, "name", e.target.value)}
-                    style={{ flex: 1 }}
                   />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleLineupFileChange(index, e.target.files?.[0] || null)}
-                    style={{ flex: 1.5 }}
-                  />
-                  <input
-                    type="url"
-                    value={lineup.image}
-                    placeholder="atau tempel URL foto"
-                    onChange={(e) => handleLineupChange(index, "image", e.target.value)}
-                    style={{ flex: 1.5 }}
-                  />
+
+                  {/* Kolom 2 — Upload foto (file langsung, tanpa URL) */}
+                  <div className="lineup-file-picker">
+                    <input
+                      id={`lineup-photo-${index}`}
+                      type="file"
+                      accept="image/*"
+                      className="lineup-file-input-hidden"
+                      onChange={(e) => handleLineupFileChange(index, e.target.files?.[0] || null)}
+                    />
+                    <label
+                      htmlFor={`lineup-photo-${index}`}
+                      className="lineup-file-button"
+                      title="Pilih foto artis (maks 5MB)"
+                    >
+                      <Upload size={15} strokeWidth={2} />
+                      <span className="lineup-file-name">
+                        {lineup.file?.name || "Pilih foto"}
+                      </span>
+                    </label>
+                    {lineup.file && (
+                      <button
+                        type="button"
+                        className="lineup-file-clear"
+                        onClick={() => handleLineupFileChange(index, null)}
+                        title="Hapus foto yang dipilih"
+                        aria-label="Hapus foto yang dipilih"
+                      >
+                        <X size={13} strokeWidth={2.5} />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Kolom 3 — Hapus baris */}
                   {lineups.length > 1 && (
-                    <button type="button" onClick={() => handleDeleteLineup(index)}>×</button>
+                    <button
+                      type="button"
+                      className="lineup-delete-button"
+                      onClick={() => handleDeleteLineup(index)}
+                      title="Hapus Pengisi Acara"
+                      aria-label="Hapus Pengisi Acara"
+                    >
+                      <Trash2 size={17} strokeWidth={1.9} />
+                    </button>
                   )}
                 </div>
               ))}
             </div>
 
             <p style={{ fontSize: "12px", color: "#6f7482", margin: "4px 0 0" }}>
-              Upload foto artis di sini. Backend mengosongkan kolom lineup yang berisi
-              URL eksternal, jadi foto wajib berupa file yang diupload.
+              Foto artis wajib diupload sebagai file langsung (maks 5MB per foto).
             </p>
           </section>
 
