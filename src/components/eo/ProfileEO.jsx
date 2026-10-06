@@ -185,6 +185,22 @@ function ProfileEO() {
   const handleEditChange = (e) => {
     const { name, value } = e.target;
 
+    if (name === "bank_account_number") {
+      const digits = String(value || "").replace(/\D/g, "");
+
+      if (digits.length > 16) {
+        alert(
+          "Nomor rekening tidak boleh lebih dari 16 digit."
+        );
+      }
+
+      setEditForm((prev) => ({
+        ...prev,
+        [name]: digits.slice(0, 16),
+      }));
+      return;
+    }
+
     setEditForm((prev) => ({
       ...prev,
       [name]: value,
@@ -249,6 +265,17 @@ function ProfileEO() {
 
   const handleSaveProfile = async () => {
     try {
+      const accountDigits = String(
+        editForm.bank_account_number || ""
+      ).replace(/\D/g, "");
+
+      if (accountDigits.length > 16) {
+        alert(
+          "Nomor rekening tidak boleh lebih dari 16 digit."
+        );
+        return;
+      }
+
       setSaving(true);
       setMessage("");
       setError("");
@@ -1054,6 +1081,9 @@ function ProfileEO() {
                   <input
                     type="text"
                     name="bank_account_number"
+                    inputMode="numeric"
+                    maxLength={16}
+                    placeholder="Maks. 16 digit"
                     value={
                       isEditing
                         ? editForm.bank_account_number

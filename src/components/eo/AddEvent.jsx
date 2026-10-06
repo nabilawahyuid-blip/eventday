@@ -16,12 +16,9 @@ import {
 
 import "./AddEvent.css";
 
-<<<<<<< Updated upstream
 import { VALID_CATEGORIES, CATEGORY_LABELS } from "../../constants/categories";
 import { Trash2, Upload, X } from "lucide-react";
 
-=======
->>>>>>> Stashed changes
 function AddEvent() {
   const navigate = useNavigate();
 
