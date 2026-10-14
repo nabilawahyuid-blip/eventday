@@ -42,7 +42,7 @@ export default function EventManagement() {
   const [page, setPage] = useState(0); // Dimulai dari 0 (standar Spring Pageable)
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
-  const pageSize = 10;
+  const pageSize = 9;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dataWarning, setDataWarning] = useState("");
@@ -157,10 +157,12 @@ export default function EventManagement() {
 
   // ==========================================
   // AMBIL DATA EVENT DARI BACKEND
-  // GET /api/admin/events?search=&status=&category=&page=0&size=10
+  // GET /api/admin/events?search=&status=&category=&page=0&size=9&sort=createdAt,desc
   // Halaman aktif, ukuran halaman, dan semua filter dikirim ke backend.
   // Metadata totalPages/totalElements dari respons dipakai langsung tanpa
   // dihitung ulang dari hasil filter client.
+  // Sort terbaru-dulu diminta ke backend (Spring Pageable native);
+  // sort client di bawah hanya jaring pengaman per halaman.
   // Fallback: /api/admin/dashboard/recent-events bila backend
   // belum punya AdminEventController (Phase 1 belum deploy →
   // 500 "No static resource").
@@ -179,6 +181,7 @@ export default function EventManagement() {
           category: toBackendCategory(selectedCategory),
           page,
           size: pageSize,
+          sort: "createdAt,desc",
         });
         if (response?._partial) {
           setDataWarning(
@@ -292,7 +295,8 @@ export default function EventManagement() {
   // Status/kategori/search sudah difilter oleh backend. Satu-satunya
   // penyaringan client yang tersisa adalah menyembunyikan DELETED saat
   // filter status "Semua Status". Urutan halaman aktif dirapikan
-  // terbaru-dibuat → terlama-dibuat karena backend belum punya param sort.
+  // terbaru-dibuat → terlama-dibuat sebagai jaring pengaman bila backend
+  // mengabaikan param sort (Spring yang mendukung Pageable-native aman).
   const visibleItems = items
     .filter((event) => {
       if (selectedStatus !== "Semua Status") return true;

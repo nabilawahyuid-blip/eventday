@@ -24,6 +24,8 @@ import {
   Wallet,
   Settings,
   ScanLine,
+  TriangleAlert,
+  RotateCcw,
 } from "lucide-react";
 
 import Sidebar from "../shared/Sidebar";
@@ -219,6 +221,101 @@ const buildAuditDetailHtml = (item) => {
     </div>`;
 };
 
+/* =========================================================
+   ERROR HANDLING — petakan error teknis backend/fetch menjadi
+   pesan Indonesia yang ramah. Pesan mentah backend TIDAK pernah
+   dirender langsung (mencegah kebocoran detail internal/PII).
+   ========================================================= */
+const getAuditErrorInfo = (err) => {
+  const status = Number(err?.status) || 0;
+  const rawMessage = String(
+    err?.data?.msg ?? err?.data?.message ?? err?.message ?? ""
+  );
+  const isNetworkError =
+    !status &&
+    (/failed to fetch|networkerror|load failed|timeout/i.test(rawMessage) ||
+      err instanceof TypeError);
+
+  if (isNetworkError) {
+    return {
+      title: "Tidak terhubung ke server",
+      message:
+        "Periksa koneksi internet Anda lalu coba lagi. Data yang tampil mungkin belum terbaru.",
+      retryable: true,
+      status: 0,
+    };
+  }
+
+  switch (status) {
+    case 400:
+      return {
+        title: "Filter tidak valid",
+        message:
+          "Salah satu filter yang dikirim tidak didukung server. Coba reset filter lalu muat ulang.",
+        retryable: true,
+        status,
+      };
+    case 401:
+      return {
+        title: "Sesi berakhir",
+        message:
+          "Sesi login Anda telah berakhir. Silakan login ulang untuk melihat audit log.",
+        retryable: false,
+        status,
+      };
+    case 403:
+      return {
+        title: "Akses ditolak",
+        message:
+          "Akun Anda tidak memiliki izin melihat audit log. Hubungi superadmin bila ini keliru.",
+        retryable: false,
+        status,
+      };
+    case 404:
+      return {
+        title: "Endpoint tidak ditemukan",
+        message:
+          "Layanan audit log tidak tersedia di server (404). Hubungi tim backend.",
+        retryable: false,
+        status,
+      };
+    case 408:
+    case 429:
+      return {
+        title: "Server sibuk",
+        message:
+          "Server sedang sibuk atau permintaan dibatasi. Tunggu sebentar lalu coba lagi.",
+        retryable: true,
+        status,
+      };
+    default:
+      if (status >= 500) {
+        return {
+          title: "Server bermasalah",
+          message:
+            "Terjadi gangguan di sisi server. Data tidak dapat dimuat — coba lagi beberapa saat.",
+          retryable: true,
+          status,
+        };
+      }
+      return {
+        title: "Gagal memuat audit log",
+        message:
+          "Audit log tidak dapat dimuat saat ini. Coba muat ulang atau ubah filter.",
+        retryable: true,
+        status,
+      };
+  }
+};
+
+/* Log error hanya di development agar console produksi bersih dari PII. */
+const logAuditError = (context, err) => {
+  if (import.meta.env?.DEV) {
+    // eslint-disable-next-line no-console
+    console.warn(`[AuditLog] ${context}:`, err);
+  }
+};
+
 function AuditLog() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -231,7 +328,7 @@ function AuditLog() {
   const [totalEntries, setTotalEntries] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState("");
+  const [loadError, setLoadError] = useState(null);
 
   const itemsPerPage = 10;
 
@@ -386,9 +483,36 @@ function AuditLog() {
      bila backend mati, tampilkan error + tabel kosong.
   ========================================================= */
 
+  const resetFilters = () => {
+    setSearch("");
+    setDebouncedSearch("");
+    setStartDate("");
+    setEndDate("");
+    setCategory("ALL");
+    setStatus("");
+    setPage(0);
+  };
+
   const loadAuditLogs = async () => {
+    // Rentang tanggal terbalik: jangan tembak request sia-sia ke backend.
+    if (startDate && endDate && startDate > endDate) {
+      setAuditData([]);
+      setTotalEntries(0);
+      setTotalPages(0);
+      setLoadError({
+        title: "Rentang tanggal tidak valid",
+        message:
+          "Tanggal mulai melebihi tanggal selesai. Perbaiki rentang tanggal untuk memuat data.",
+        retryable: false,
+        status: 0,
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      setLoadError(null);
       const res = await getAdminAuditLogs(page, itemsPerPage, {
         search: debouncedSearch,
         category,
@@ -408,14 +532,10 @@ function AuditLog() {
       setTotalPages(
         Number(data?.totalPages ?? (list.length > 0 ? 1 : 0)) || 0
       );
-      setLoadError("");
+      setLoadError(null);
     } catch (err) {
-      console.error("Gagal memuat audit log:", err);
-      setLoadError(
-        err?.data?.msg ||
-          err?.message ||
-          "Gagal memuat audit log."
-      );
+      logAuditError("Gagal memuat audit log", err);
+      setLoadError(getAuditErrorInfo(err));
       setAuditData([]);
       setTotalEntries(0);
       setTotalPages(0);
@@ -488,7 +608,18 @@ function AuditLog() {
   ========================================================= */
 
   const normalizedLogs = useMemo(
-    () => auditData.map(normalizeLog),
+    () =>
+      auditData
+        .filter((item) => item && typeof item === "object")
+        .map((item) => {
+          try {
+            return normalizeLog(item);
+          } catch (err) {
+            logAuditError("Baris audit log rusak — dilewati", err);
+            return null;
+          }
+        })
+        .filter(Boolean),
     [auditData]
   );
 
@@ -603,13 +734,19 @@ function AuditLog() {
 
       return;
     } catch (err) {
-      console.warn(
-        "Export server gagal — fallback ke export client:",
-        err
-      );
+      logAuditError("Export server gagal — fallback ke export client", err);
+      Swal.fire({
+        icon: "warning",
+        title: "Server tidak merespons",
+        text: "Export server gagal, mengekspor data yang tampil di layar sebagai cadangan.",
+        confirmButtonColor: "#5546df",
+        timer: 2200,
+        showConfirmButton: false,
+      });
     }
 
-    const headers = [
+    try {
+      const headers = [
       "Log ID",
       "Timestamp",
       "Tanggal",
@@ -678,27 +815,38 @@ function AuditLog() {
 
     const url = URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
+    try {
+      const link = document.createElement("a");
 
-    link.href = url;
-    link.download = "audit-log.csv";
+      link.href = url;
+      link.download = "audit-log.csv";
 
-    document.body.appendChild(link);
+      document.body.appendChild(link);
 
-    link.click();
+      link.click();
 
-    document.body.removeChild(link);
+      document.body.removeChild(link);
 
-    URL.revokeObjectURL(url);
-
-    Swal.fire({
-      icon: "success",
-      title: "CSV berhasil diekspor",
-      text: `${displayedData.length} data audit log berhasil diekspor.`,
-      confirmButtonColor: "#5546df",
-      timer: 1800,
-      showConfirmButton: false,
-    });
+      Swal.fire({
+        icon: "success",
+        title: "CSV berhasil diekspor",
+        text: `${displayedData.length} data audit log berhasil diekspor (data layar).`,
+        confirmButtonColor: "#5546df",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+    } catch (err) {
+      logAuditError("Export CSV client gagal", err);
+      Swal.fire({
+        icon: "error",
+        title: "Export gagal",
+        text: "File CSV tidak dapat dibuat. Coba lagi atau hubungi tim teknis.",
+        confirmButtonColor: "#5546df",
+      });
+    }
   };
 
   /* =========================================================
@@ -706,7 +854,18 @@ function AuditLog() {
   ========================================================= */
 
   const handleViewDetail = (item) => {
-    Swal.fire({
+    if (!item || typeof item !== "object") {
+      Swal.fire({
+        icon: "warning",
+        title: "Data tidak tersedia",
+        text: "Detail log ini tidak dapat ditampilkan karena datanya rusak.",
+        confirmButtonColor: "#5546df",
+      });
+      return;
+    }
+
+    try {
+      Swal.fire({
       title: "Detail Audit Log",
 
       html: buildAuditDetailHtml(item),
@@ -724,7 +883,16 @@ function AuditLog() {
       },
 
       buttonsStyling: false,
-    });
+      });
+    } catch (err) {
+      logAuditError("Gagal membuka detail audit log", err);
+      Swal.fire({
+        icon: "error",
+        title: "Detail gagal dibuka",
+        text: "Terjadi kesalahan saat menampilkan detail. Coba lagi.",
+        confirmButtonColor: "#5546df",
+      });
+    }
   };
 
   /* =========================================================
@@ -978,7 +1146,42 @@ function AuditLog() {
                         colSpan="6"
                         className="audit-empty"
                       >
-                        {loadError}
+                        <div className="audit-error">
+                          <span className="audit-error-icon">
+                            <TriangleAlert
+                              size={22}
+                              strokeWidth={2}
+                            />
+                          </span>
+                          <strong className="audit-error-title">
+                            {loadError.title}
+                          </strong>
+                          <p className="audit-error-message">
+                            {loadError.message}
+                          </p>
+                          <div className="audit-error-actions">
+                            {loadError.retryable && (
+                              <button
+                                type="button"
+                                className="audit-error-retry"
+                                onClick={loadAuditLogs}
+                              >
+                                <RotateCcw
+                                  size={14}
+                                  strokeWidth={2}
+                                />
+                                <span>Coba Lagi</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="audit-error-reset"
+                              onClick={resetFilters}
+                            >
+                              Reset Filter
+                            </button>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   ) : displayedData.length > 0 ? (

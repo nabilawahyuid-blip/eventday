@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import NavbarCustomer from "../shared/NavbarCustomer";
 import FooterCustomer from "../shared/FooterCustomer";
 import { getTransactionHistory } from "../../services/ticketService";
+import { getRefundHistory } from "../../services/refundService";
 import { getEvents } from "../../services/eventService";
 import "./TransaksiCustomer.css";
 
@@ -34,6 +35,31 @@ const WAITING_STATUSES = ["PENDING", "WAITING_PAYMENT"];
 const PAID_STATUSES = ["PAID"];
 const FAILED_STATUSES = ["CANCELLED", "EXPIRED"];
 
+// Sama seperti MyTicket: ApiResponse {msg, status, data} bisa membawa
+// status error di HTTP 200 — wajib dicek sebelum .filter.
+function extractArrayResponse(res) {
+  if (!res) return { list: [], errorMsg: "" };
+  if (typeof res.status === "number" && res.status !== 200) {
+    return { list: [], errorMsg: res.msg || res.message || `Request gagal (${res.status})` };
+  }
+  if (Array.isArray(res.data)) return { list: res.data, errorMsg: "" };
+  if (Array.isArray(res)) return { list: res, errorMsg: "" };
+  const nested = res.data?.data || res.data?.content || res.data?.items;
+  if (Array.isArray(nested)) return { list: nested, errorMsg: "" };
+  if (res.data == null) return { list: [], errorMsg: "" };
+  return { list: [], errorMsg: res.msg || res.message || "Format data tidak dikenali." };
+}
+
+function getApiErrorMessage(err, fallback) {
+  return (
+    err?.data?.msg ||
+    err?.data?.message ||
+    err?.msg ||
+    err?.message ||
+    fallback
+  );
+}
+
 function formatCurrency(amount) {
   if (!amount && amount !== 0) return "-";
   return `Rp${Number(amount).toLocaleString("id-ID")}`;
@@ -60,64 +86,112 @@ function TransaksiCustomer() {
   const [activeTab, setActiveTab] = useState("Semua");
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
     const fetchTransactions = async () => {
       setLoading(true);
-      try {
-        const res = await getTransactionHistory();
-        const data = res?.data || [];
+      setLoadError("");
+      // allSettled: refund gagal tidak boleh menenggelamkan data transaksi.
+      const [transResult, refundResult] = await Promise.allSettled([
+        getTransactionHistory(),
+        getRefundHistory(),
+      ]);
 
-        // Deduplikasi by orderId (backend bisa return duplikat)
-        const seen = new Set();
-        const unique = data.filter((o) => {
-          if (seen.has(o.orderId)) return false;
-          seen.add(o.orderId);
-          return true;
-        });
+      if (cancelled) return;
 
-        const mapped = unique.map((o) => {
-          const statusInfo = STATUS_MAP[o.status] || { label: o.status, type: "unknown" };
-          return {
-            id: o.orderId,
-            orderId: o.orderId,
-            orderNumber: o.orderNumber,
-            status: statusInfo.label,
-            statusType: statusInfo.type,
-            statusRaw: o.status,
-            ticketType: o.ticketTierName,
-            ticketCount: `${o.quantity} Tiket`,
-            paymentMethod: o.paymentMethod || "-",
-            adminFee: o.adminFee ? formatCurrency(o.adminFee) : null,
-            total: formatCurrency(o.totalAmount),
-            eventTitle: o.eventTitle,
-            paidAt: o.paidAt ? formatDate(o.paidAt) : null,
-            expiredAt: o.expiredAt ? formatDate(o.expiredAt) : null,
-            createdAt: o.createdAt ? formatDate(o.createdAt) : null,
-            rawCreatedAt: o.createdAt,
-          };
-        });
+      // Sesi kedaluwarsa (401) → tendang ke login, bukan banner error.
+      if (transResult.status === "rejected" && transResult.reason?.status === 401) {
+        setLoading(false);
+        navigate("/login", { replace: true });
+        return;
+      }
 
-        // Sort: Primary = status priority, Secondary = createdAt desc
-        const sorted = mapped.sort((a, b) => {
-          const priorityA = STATUS_PRIORITY[a.statusRaw] || 99;
-          const priorityB = STATUS_PRIORITY[b.statusRaw] || 99;
-          if (priorityA !== priorityB) return priorityA - priorityB;
-          const da = a.rawCreatedAt ? new Date(a.rawCreatedAt).getTime() : 0;
-          const db = b.rawCreatedAt ? new Date(b.rawCreatedAt).getTime() : 0;
-          return db - da;
-        });
+      const transParsed =
+        transResult.status === "fulfilled"
+          ? extractArrayResponse(transResult.value)
+          : { list: [], errorMsg: getApiErrorMessage(transResult.reason, "Gagal memuat riwayat transaksi.") };
+      const refundParsed =
+        refundResult.status === "fulfilled"
+          ? extractArrayResponse(refundResult.value)
+          : { list: [], errorMsg: "" };
 
-        setTransactions(sorted);
-      } catch (err) {
-        console.error("[TransaksiCustomer] Gagal memuat riwayat:", err);
+      if (transParsed.errorMsg && transParsed.list.length === 0) {
         setTransactions([]);
-      } finally {
+        setLoadError(transParsed.errorMsg);
+        setLoading(false);
+        return;
+      }
+
+      const data = transParsed.list;
+
+      // Deduplikasi by orderId (backend bisa return duplikat)
+      const seen = new Set();
+      const unique = data.filter((o) => {
+        if (!o || !o.orderId) return false;
+        if (seen.has(o.orderId)) return false;
+        seen.add(o.orderId);
+        return true;
+      });
+
+      // Merge status refund (sumber terpisah) agar tab Refund terisi.
+      const refundMap = {};
+      refundParsed.list.forEach((refund) => {
+        if (refund && refund.orderId) refundMap[refund.orderId] = refund.status;
+      });
+      const withRefundStatus = unique.map((o) => {
+        const refundStatus = refundMap[o.orderId];
+        if (!refundStatus) return o;
+        if (refundStatus === "PENDING") return { ...o, status: "REFUND_REQUESTED" };
+        if (refundStatus === "APPROVED" || refundStatus === "REFUNDED") return { ...o, status: "REFUNDED" };
+        if (refundStatus === "REJECTED") return { ...o, status: "REJECTED" };
+        return o;
+      });
+
+      const mapped = withRefundStatus.map((o) => {
+        const statusInfo = STATUS_MAP[o.status] || { label: o.status, type: "unknown" };
+        return {
+          id: o.orderId,
+          orderId: o.orderId,
+          orderNumber: o.orderNumber,
+          status: statusInfo.label,
+          statusType: statusInfo.type,
+          statusRaw: o.status,
+          eventId: o.eventId || o.event_id || null,
+          ticketType: o.ticketTierName,
+          quantity: Number(o.quantity) || 0,
+          ticketCount: `${o.quantity} Tiket`,
+          paymentMethod: o.paymentMethod || "-",
+          adminFee: o.adminFee ? formatCurrency(o.adminFee) : null,
+          total: formatCurrency(o.totalAmount),
+          eventTitle: o.eventTitle,
+          paidAt: o.paidAt ? formatDate(o.paidAt) : null,
+          expiredAt: o.expiredAt ? formatDate(o.expiredAt) : null,
+          createdAt: o.createdAt ? formatDate(o.createdAt) : null,
+          rawCreatedAt: o.createdAt,
+        };
+      });
+
+      // Sort: Primary = status priority, Secondary = createdAt desc
+      const sorted = mapped.sort((a, b) => {
+        const priorityA = STATUS_PRIORITY[a.statusRaw] || 99;
+        const priorityB = STATUS_PRIORITY[b.statusRaw] || 99;
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        const da = a.rawCreatedAt ? new Date(a.rawCreatedAt).getTime() : 0;
+        const db = b.rawCreatedAt ? new Date(b.rawCreatedAt).getTime() : 0;
+        return db - da;
+      });
+
+      if (!cancelled) {
+        setTransactions(sorted);
+        setLoadError("");
         setLoading(false);
       }
     };
 
     fetchTransactions();
+    return () => { cancelled = true; };
   }, []);
 
   const tabs = [
@@ -125,31 +199,36 @@ function TransaksiCustomer() {
     { label: "Menunggu", value: "Menunggu" },
     { label: "Berhasil", value: "Berhasil" },
     { label: "Gagal", value: "Gagal" },
-    { label: "Refund", value: "Refund" },
   ];
 
-  const REFUND_STATUSES = ["REFUND_REQUESTED", "REFUNDED", "REJECTED"];
-  const WAITING_STATUSES = ["PENDING", "WAITING_PAYMENT"];
-  const PAID_STATUSES = ["PAID"];
-  const FAILED_STATUSES = ["CANCELLED", "EXPIRED"];
-
+  // Tab refund dihapus: order refund disembunyikan total dari halaman ini.
+  // Merge refund tetap dipertahankan agar status refund terdeteksi untuk filter.
   const filteredTransactions = transactions.filter((t) => {
+    if (REFUND_STATUSES.includes(t.statusRaw)) return false;
     if (activeTab === "Semua") return true;
     if (activeTab === "Menunggu") return WAITING_STATUSES.includes(t.statusRaw);
     if (activeTab === "Berhasil") return PAID_STATUSES.includes(t.statusRaw);
     if (activeTab === "Gagal") return FAILED_STATUSES.includes(t.statusRaw);
-    if (activeTab === "Refund") return REFUND_STATUSES.includes(t.statusRaw);
     return true;
   });
 
   const handlePayment = async (transaction) => {
+    // Utama: pakai eventId dari order bila ada (tanpa search rapuh).
+    if (transaction?.eventId) {
+      navigate(`/checkout/${transaction.eventId}`, {
+        state: {
+          orderId: transaction.orderId,
+          resume: true,
+          ticketTierName: transaction.ticketType,
+          quantity: transaction.quantity, // WAJIB: agar form peserta = quantity order asli
+        },
+      });
+      return;
+    }
     try {
-      // Cari event berdasarkan eventTitle untuk mendapatkan eventId yang benar
+      // Fallback: cari event berdasarkan eventTitle
       const res = await getEvents({ search: transaction.eventTitle, limit: 1 });
-      const rawData = res?.data;
-      const eventsArray = Array.isArray(rawData)
-        ? rawData
-        : (rawData?.data || rawData?.items || rawData?.content || []);
+      const { list: eventsArray } = extractArrayResponse(res);
       const foundEvent = eventsArray[0];
       if (!foundEvent?.id) throw new Error("Event tidak ditemukan");
 
@@ -157,15 +236,15 @@ function TransaksiCustomer() {
         state: { 
           orderId: transaction.orderId, 
           resume: true,
-          ticketTierName: transaction.ticketType
+          ticketTierName: transaction.ticketType,
+          quantity: transaction.quantity, // WAJIB: agar form peserta = quantity order asli
         },
       });
     } catch (err) {
-      console.error("[TransaksiCustomer] Gagal cari eventId:", err);
       Swal.fire({
         icon: "error",
         title: "Gagal Lanjut Bayar",
-        text: "Tidak dapat menemukan event yang sesuai. Hubungi support.",
+        text: getApiErrorMessage(err, "Tidak dapat menemukan event yang sesuai. Hubungi support."),
         confirmButtonColor: "#5143e6",
       });
     }
@@ -211,6 +290,41 @@ function TransaksiCustomer() {
             </button>
           ))}
         </section>
+
+        {loadError && transactions.length === 0 && (
+          <div
+            role="alert"
+            style={{
+              margin: "0 0 16px",
+              padding: "12px 16px",
+              borderRadius: 10,
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
+              color: "#991b1b",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <span>{loadError}</span>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              style={{
+                flexShrink: 0,
+                padding: "8px 14px",
+                borderRadius: 8,
+                border: "none",
+                background: "#5143e6",
+                color: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              Coba Lagi
+            </button>
+          </div>
+        )}
 
         <section className="transaction-list">
           {filteredTransactions.length > 0 ? (

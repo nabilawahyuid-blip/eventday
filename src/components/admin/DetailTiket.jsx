@@ -178,9 +178,8 @@ function DetailTiket() {
     "-";
   const eventDate = data.eventDate || data.event?.date || data.date;
   const venueName =
+    data.eventVenue ||
     data.venueName ||
-    data.venue ||
-    data.event?.venueName ||
     data.location ||
     "-";
 

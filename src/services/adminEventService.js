@@ -22,9 +22,10 @@ export const getAdminEvents = async (params = {}) => {
     search = "",
     page = 0,
     size = 20,
+    sort = "createdAt,desc",
   } = params;
 
-  return apiFetch(`/api/admin/events${toQueryString({ status, category, organizerId, dateFrom, dateTo, search, page, size })}`);
+  return apiFetch(`/api/admin/events${toQueryString({ status, category, organizerId, dateFrom, dateTo, search, page, size, sort })}`);
 };
 
 // ==========================================

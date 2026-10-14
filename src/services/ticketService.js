@@ -5,10 +5,18 @@ import { apiFetch } from "./api";
 
 // Daftar tiket saya → data: [TicketItem...]
 // GET /api/tickets/my-tickets?userEmail=<email>
-export const getMyTickets = (userEmail) =>
-  apiFetch(
-    `/api/tickets/my-tickets?userEmail=${encodeURIComponent(userEmail)}`,
+// Cookie access_token terkirim otomatis via apiFetch (credentials:'include').
+export const getMyTickets = (userEmail) => {
+  const email = (userEmail || "").trim();
+  if (!email) {
+    return Promise.reject(
+      Object.assign(new Error("Email pengguna wajib diisi."), { status: 400 }),
+    );
+  }
+  return apiFetch(
+    `/api/tickets/my-tickets?userEmail=${encodeURIComponent(email)}`,
   );
+};
 
 // Daftar tiket saya (auth-based, tanpa param) → data: [TicketItem...]
 // GET /api/tickets/my-tickets
@@ -18,13 +26,22 @@ export const getMyTicketsAuth = () =>
 // Detail E-Ticket → data: TicketDetailResponse
 // GET /api/tickets/issued-detail?ticketCode=<uuid>&userEmail=<email>
 export const getTicketDetail = (ticketCode, userEmail) => {
-  const email =
+  const code = (ticketCode || "").trim();
+  if (!code) {
+    return Promise.reject(
+      Object.assign(new Error("ticketCode wajib diisi."), { status: 400 }),
+    );
+  }
+  const email = (
     userEmail ||
     localStorage.getItem("email") ||
-    localStorage.getItem("userEmail");
+    localStorage.getItem("userEmail") ||
+    ""
+  ).trim();
 
-  const queryParams = new URLSearchParams({ ticketCode });
-  if (email) {
+  const queryParams = new URLSearchParams({ ticketCode: code });
+  // Jangan kirim userEmail kosong/null — backend bisa balas 400.
+  if (email && email !== "null" && email !== "undefined") {
     queryParams.append("userEmail", email);
   }
 
@@ -33,8 +50,15 @@ export const getTicketDetail = (ticketCode, userEmail) => {
 
 // Daftar tiket per order (eliminasi N+1 calls)
 // GET /api/tickets/by-order/<orderId>
-export const getTicketsByOrder = (orderId) =>
-  apiFetch(`/api/tickets/by-order/${orderId}`);
+export const getTicketsByOrder = (orderId) => {
+  const id = (orderId || "").trim();
+  if (!id) {
+    return Promise.reject(
+      Object.assign(new Error("orderId wajib diisi."), { status: 400 }),
+    );
+  }
+  return apiFetch(`/api/tickets/by-order/${encodeURIComponent(id)}`);
+};
 
 // Riwayat transaksi → data: [{orderId,orderNumber,eventTitle,ticketTierName,quantity,totalAmount,status,createdAt,expiredAt}]
 // GET /api/transactions/history
