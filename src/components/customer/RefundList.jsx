@@ -26,7 +26,8 @@ function RefundList() {
     const fetchRefunds = async () => {
       try {
         const res = await getRefundHistory();
-        const data = res?.data || [];
+        const raw = res?.data;
+        const data = Array.isArray(raw) ? raw : [];
 
         const enriched = await Promise.all(
           data.map(async (refund) => {
@@ -42,6 +43,10 @@ function RefundList() {
 
         setRefunds(enriched);
       } catch (err) {
+        if (err?.status === 401) {
+          navigate("/login", { replace: true });
+          return;
+        }
         console.error("[RefundList] Error:", err.message);
       } finally {
         setLoading(false);

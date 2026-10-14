@@ -46,6 +46,10 @@ function RefundDetail() {
 
         setRefund(refundData);
       } catch (err) {
+        if (err?.status === 401) {
+          navigate("/login", { replace: true });
+          return;
+        }
         console.error("[RefundDetail] Error:", err.message);
         setError(err.message || "Gagal memuat detail refund");
       } finally {

@@ -8,6 +8,7 @@ import {
   initiateCheckout,
   saveAttendees,
 } from "../../services/checkoutService";
+import { getTicketsByOrder, getTransactionHistory } from "../../services/ticketService";
 import {
   chargePayment,
   openMidtransPayment,
@@ -39,6 +40,9 @@ function Checkout() {
 
   // Ref pengunci untuk mencegah initiateCheckout dipanggil berulang kali
   const hasInitiatedRef = useRef(false);
+  // Kunci anti double-submit: state saja tidak cukup karena update-nya async,
+  // klik ganda cepat bisa lolos sebelum re-render.
+  const isPayingRef = useRef(false);
 
   const createEmptyBuyer = () => ({
     name: "",
@@ -112,6 +116,11 @@ function Checkout() {
   const isResume = !tierId && orderId;
   const [resumeEvent, setResumeEvent] = useState(null);
   const resumeTicketTierName = checkoutData?.ticketTierName || null;
+  // Quantity order asli — dari state navigasi bila ada (MyTicket/Transaksi
+  // mengirimnya), kalau tidak ada di-resolve dari backend di bawah.
+  const [resumeQuantity, setResumeQuantity] = useState(
+    () => Number(checkoutData.quantity) || null,
+  );
 
   useEffect(() => {
     if (!isResume || !id) return;
@@ -130,6 +139,45 @@ function Checkout() {
     };
   }, [isResume, id]);
 
+  // Resume tanpa quantity di state (deep-link / state lama): ambil quantity
+  // asli order dari backend agar jumlah form peserta tidak default 1.
+  useEffect(() => {
+    if (!isResume || !orderId || resumeQuantity) return;
+    let cancelled = false;
+    const loadQuantity = async () => {
+      try {
+        const summaryRes = await getCheckoutSummary(orderId);
+        const s = summaryRes?.data || {};
+        const fromSummary = Number(
+          s.quantity ?? s.totalTickets ?? s.ticketQuantity ?? s.ticketCount ?? s.count,
+        );
+        if (!cancelled && fromSummary > 0) {
+          setResumeQuantity(fromSummary);
+          return;
+        }
+      } catch {
+        // lanjut ke fallback history
+      }
+      try {
+        const histRes = await getTransactionHistory();
+        const raw = histRes?.data;
+        const list = Array.isArray(raw)
+          ? raw
+          : (raw?.data || raw?.content || raw?.items || []);
+        if (cancelled || !Array.isArray(list)) return;
+        const found = list.find((o) => o?.orderId === orderId);
+        const q = Number(found?.quantity);
+        if (q > 0) setResumeQuantity(q);
+      } catch {
+        // tetap default 1 di memo event
+      }
+    };
+    loadQuantity();
+    return () => {
+      cancelled = true;
+    };
+  }, [isResume, orderId, resumeQuantity]);
+
   const event = useMemo(() => {
     if (isResume && resumeEvent) {
       const tickets = resumeEvent.tickets || [];
@@ -143,7 +191,7 @@ function Checkout() {
         date: resumeEvent.dateDisplay || resumeEvent.date || "-",
         location: resumeEvent.location || "-",
         ticketName: selectedTicket?.label || selectedTicket?.name || "Regular",
-        quantity: Number(checkoutData.quantity) || 1,
+        quantity: resumeQuantity || Number(checkoutData.quantity) || 1,
         price: Number(selectedTicket?.price) || 0,
       };
     }
@@ -172,7 +220,7 @@ function Checkout() {
       price:
         Number(selectedTicket.price) || Number(checkoutData.price) || 200000,
     };
-  }, [checkoutData, id, isResume, resumeEvent, resumeTicketTierName]);
+  }, [checkoutData, id, isResume, resumeEvent, resumeTicketTierName, resumeQuantity]);
 
   useEffect(() => {
     const count = Math.max(1, event.quantity);
@@ -419,6 +467,9 @@ function Checkout() {
   };
 
   const handleCheckout = async () => {
+    // Guard sinkron anti double-click: 1 klik = 1x charge.
+    if (isPayingRef.current || isSubmitting) return;
+
     if (timeLeft <= 0) {
       Swal.fire({
         icon: "warning",
@@ -452,6 +503,7 @@ function Checkout() {
     }
 
     setIsSubmitting(true);
+    isPayingRef.current = true;
     try {
       const attendees = buyers.map((buyer) => ({
         fullName: buyer.name.trim(),
@@ -459,7 +511,36 @@ function Checkout() {
         phoneNumber: buyer.phoneNumber || buyer.phone || "",
         identityNumber: buyer.nik.trim(),
       }));
-      await saveAttendees(orderId, attendees);
+
+      // Mode resume ("Lanjut Bayar"): peserta mungkin sudah tersimpan dari
+      // percobaan bayar sebelumnya. Backend menumpuk (append) tiap POST
+      // attendees sehingga order berisi 2 tiket untuk quantity 1.
+      // Kalau tiket order ini sudah membawa nama peserta, lewati POST.
+      let skipSaveAttendees = false;
+      if (!tierId && orderId) {
+        try {
+          const existingRes = await getTicketsByOrder(orderId);
+          const rawExisting =
+            existingRes?.data || existingRes || {};
+          const existingTickets = Array.isArray(rawExisting)
+            ? rawExisting
+            : (rawExisting.data || rawExisting.content || rawExisting.items || []);
+          if (
+            Array.isArray(existingTickets) &&
+            existingTickets.length >= attendees.length &&
+            existingTickets.slice(0, attendees.length).every(
+              (t) => t?.attendeeName || t?.fullName || t?.name,
+            )
+          ) {
+            skipSaveAttendees = true;
+          }
+        } catch {
+          // Gagal cek — lanjut simpan seperti biasa.
+        }
+      }
+      if (!skipSaveAttendees) {
+        await saveAttendees(orderId, attendees);
+      }
 
       let summary = null;
       try {
@@ -562,6 +643,7 @@ function Checkout() {
       });
     } finally {
       setIsSubmitting(false);
+      isPayingRef.current = false;
     }
   };
 
