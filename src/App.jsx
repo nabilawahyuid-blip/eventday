@@ -60,6 +60,7 @@ import RegisterEO from "./components/eo/RegisterEO";
 import StatusRegisterEO from "./components/eo/StatusRegisterEO";
 import PayoutEO from "./components/eo/PayoutEO";
 import PengajuanPayoutEO from "./components/eo/PengajuanPayoutEO";
+import RedeemTiketEO from "./components/eo/RedeemTiketEO";
 
 // ==================== SHARED ====================
 import ProtectedRoute from "./components/shared/ProtectedRoute";
@@ -253,6 +254,11 @@ function App() {
             element={<PengajuanPayoutEO />}
           />
           </Route>
+          <Route
+            path="/eo/redeem"
+            element={<RedeemTiketEO />}
+          />
+          
 
           {/* ==================== CUSTOMER ==================== */}
           {/* Publik: dashboard, detail event, privacy, terms. */}
@@ -266,7 +272,7 @@ function App() {
             element={<DetailEventCustomer />}
           />
 
-          {/* Halaman customer yang butuh akun (wajib login, semua role). */}
+          {/* eo/redeem-tiketHalaman customer yang butuh akun (wajib login, semua role). */}
           <Route element={<ProtectedRoute />}>
           <Route
             path="/checkout/:id"

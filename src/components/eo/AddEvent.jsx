@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-
 import SidebarEO from "../shared/SidebarEO";
 import NavbarEO from "../shared/NavbarEO";
-
 import {
+
   createOrganizerEvent,
   publishOrganizerEvent,
   uploadOrganizerEventBanner,
@@ -13,20 +12,15 @@ import {
   extractUploadedImageUrl,
   getEventCategories,
 } from "../../services/organizerEventService";
-
 import "./AddEvent.css";
-
-<<<<<<< Updated upstream
 import { VALID_CATEGORIES, CATEGORY_LABELS } from "../../constants/categories";
 import { Trash2, Upload, X } from "lucide-react";
-
-=======
->>>>>>> Stashed changes
 function AddEvent() {
   const navigate = useNavigate();
 
   // =====================================================
   // BASIC EVENT DATA & CATEGORIES STATE
+
   // =====================================================
   const [eventName, setEventName] = useState("");
   const [category, setCategory] = useState("");
@@ -37,6 +31,7 @@ function AddEvent() {
 
   // =====================================================
   // SCHEDULE
+
   // =====================================================
   const [schedules, setSchedules] = useState([
     {
@@ -48,6 +43,7 @@ function AddEvent() {
 
   // =====================================================
   // TICKETS
+
   // =====================================================
   const [tickets, setTickets] = useState([
     {
@@ -59,6 +55,7 @@ function AddEvent() {
 
   // =====================================================
   // LINEUP (NAME + GAMBAR)
+
   // =====================================================
   // `file` = File lokal yang dipilih user, akan diupload ke
   // backend sebelum event disimpan. `image` = fallback kalau
@@ -69,11 +66,13 @@ function AddEvent() {
 
   // =====================================================
   // FACILITIES
+
   // =====================================================
   const [facilities, setFacilities] = useState([""]);
 
   // =====================================================
   // FILE & PREVIEW STATE
+
   // =====================================================
   const [banner, setBanner] = useState(null);
   const [bannerPreview, setBannerPreview] = useState(null);
@@ -81,19 +80,20 @@ function AddEvent() {
 
   // =====================================================
   // SUBMIT STATE
+
   // =====================================================
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   // =====================================================
   // FETCH CATEGORIES FROM BACKEND (ROBUST & SAFE)
+
   // =====================================================
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
         const res = await getEventCategories();
-
         // Ekstrak array dari berbagai kemungkinan format response backend
         let catData = [];
         if (Array.isArray(res)) {
@@ -105,7 +105,6 @@ function AddEvent() {
         } else if (Array.isArray(res?.content)) {
           catData = res.content;
         }
-
         // Jika data dari API kosong/gagal, gunakan Enum Default
         if (catData.length === 0) {
           catData = [
@@ -119,7 +118,6 @@ function AddEvent() {
             "COMMUNITY",
           ];
         }
-
         setCategories(catData);
       } catch (err) {
         console.warn("Gagal mengambil kategori dari API, menggunakan daftar fallback:", err);
@@ -137,10 +135,8 @@ function AddEvent() {
         setLoadingCategories(false);
       }
     };
-
     fetchCategories();
   }, []);
-
   // Helper untuk mendapatkan nilai value dan label kategori
   const getCategoryValue = (cat) => {
     if (!cat) return "";
@@ -149,7 +145,6 @@ function AddEvent() {
     }
     return String(cat);
   };
-
   const formatCategoryLabel = (cat) => {
     if (!cat) return "";
     const raw = typeof cat === "object" && cat !== null ? (cat.name || cat.label || cat.code) : cat;
@@ -161,6 +156,7 @@ function AddEvent() {
 
   // =====================================================
   // SCHEDULE HANDLERS
+
   // =====================================================
   const handleAddSchedule = () => {
     setSchedules([
@@ -168,13 +164,11 @@ function AddEvent() {
       { date: "", startTime: "", endTime: "" },
     ]);
   };
-
   const handleScheduleChange = (index, field, value) => {
     const updated = [...schedules];
     updated[index] = { ...updated[index], [field]: value };
     setSchedules(updated);
   };
-
   const handleDeleteSchedule = (index) => {
     if (schedules.length === 1) {
       Swal.fire({
@@ -190,17 +184,16 @@ function AddEvent() {
 
   // =====================================================
   // TICKET HANDLERS
+
   // =====================================================
   const handleAddTicket = () => {
     setTickets([...tickets, { name: "", price: "", quota: "" }]);
   };
-
   const handleTicketChange = (index, field, value) => {
     const updated = [...tickets];
     updated[index] = { ...updated[index], [field]: value };
     setTickets(updated);
   };
-
   const handleDeleteTicket = (index) => {
     if (tickets.length === 1) {
       Swal.fire({
@@ -216,11 +209,11 @@ function AddEvent() {
 
   // =====================================================
   // LINEUP HANDLERS
+
   // =====================================================
   const handleAddLineup = () => {
     setLineups([...lineups, { name: "", image: "", file: null }]);
   };
-
   const handleLineupChange = (index, field, value) => {
     const updated = [...lineups];
     // Kalau user mengetik URL manual, file yang sudah dipilih
@@ -231,7 +224,6 @@ function AddEvent() {
         : { ...updated[index], [field]: value };
     setLineups(updated);
   };
-
   const handleLineupFileChange = (index, file) => {
     if (!file) {
       const cleared = [...lineups];
@@ -239,7 +231,6 @@ function AddEvent() {
       setLineups(cleared);
       return;
     }
-
     if (file.size > 5 * 1024 * 1024) {
       Swal.fire({
         icon: "error",
@@ -249,12 +240,10 @@ function AddEvent() {
       });
       return;
     }
-
     const updated = [...lineups];
     updated[index] = { ...updated[index], file, image: "" };
     setLineups(updated);
   };
-
   const handleDeleteLineup = (index) => {
     if (lineups.length === 1) {
       Swal.fire({
@@ -267,7 +256,6 @@ function AddEvent() {
     }
     setLineups(lineups.filter((_, i) => i !== index));
   };
-
   // Upload semua gambar lineup yang dipilih user. Backend
   // membuang nilai URL eksternal pada field lineup, jadi gambar
   // harus berupa hasil upload (dikembalikan sebagai path relatif
@@ -278,7 +266,6 @@ function AddEvent() {
         if (!item.file) {
           return String(item.image || "").trim() || null;
         }
-
         const response = await uploadOrganizerLineupImage(item.file);
         return extractUploadedImageUrl(response);
       }),
@@ -286,17 +273,16 @@ function AddEvent() {
 
   // =====================================================
   // FACILITY HANDLERS
+
   // =====================================================
   const handleAddFacility = () => {
     setFacilities([...facilities, ""]);
   };
-
   const handleFacilityChange = (index, value) => {
     const updated = [...facilities];
     updated[index] = value;
     setFacilities(updated);
   };
-
   const handleDeleteFacility = (index) => {
     if (facilities.length === 1) {
       Swal.fire({
@@ -312,11 +298,11 @@ function AddEvent() {
 
   // =====================================================
   // BANNER & PERMISSION FILE HANDLER
+
   // =====================================================
   const handleBannerChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > 5 * 1024 * 1024) {
       Swal.fire({
         icon: "error",
@@ -327,11 +313,9 @@ function AddEvent() {
       e.target.value = "";
       return;
     }
-
     setBanner(file);
     setBannerPreview(URL.createObjectURL(file));
   };
-
   const handleRemoveBanner = (e) => {
     e.stopPropagation();
     setBanner(null);
@@ -340,7 +324,6 @@ function AddEvent() {
       setBannerPreview(null);
     }
   };
-
   const handlePermissionChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -349,6 +332,7 @@ function AddEvent() {
 
   // =====================================================
   // FORM VALIDATION & SUBMIT
+
   // =====================================================
   const validateForm = (isDraft = false) => {
     if (!eventName.trim()) {
@@ -369,25 +353,17 @@ function AddEvent() {
     }
     return true;
   };
-
   const buildEventPayload = (bannerUrl = null, lineupImages = []) => {
     const firstSchedule = schedules[0];
     const startDate = `${firstSchedule?.date}T${firstSchedule?.startTime}:00`;
     const endDate = `${firstSchedule?.date}T${firstSchedule?.endTime}:00`;
-
-    // Format LineUp hemat karakter: "Nama|PathGambar"
-    const lineupString = lineups
-      .map((item, index) => ({ item, image: lineupImages[index] }))
-      .filter(({ item }) => item.name.trim() !== "")
-      .map(({ item, image }) => {
-        const name = item.name.trim();
-        const img = String(image || "").trim();
-        return img ? `${name}|${img}` : name;
-      })
-      .join(", ");
-
+    const lineupData = lineups
+      .map((item, index) => ({
+        name: item.name.trim(),
+        image: String(lineupImages[index] || "").trim(),
+      }))
+      .filter((item) => item.name !== "");
     const facilityArray = facilities.map((item) => item.trim()).filter(Boolean);
-
     return {
       title: eventName.trim(),
       description: description.trim(),
@@ -397,11 +373,10 @@ function AddEvent() {
       date: startDate,
       start_date: startDate,
       end_date: endDate,
-      lineup: lineupString,
+      lineup: lineupData,
       facilities: facilityArray,
       image: bannerUrl,
       banner_url: bannerUrl,
-      
       // FIX TIKET: Kirim name, label, dan tier_name sekaligus agar dibaca backend
       tickets: tickets.map((t) => ({
         name: t.name.trim(),
@@ -413,13 +388,11 @@ function AddEvent() {
       })),
     };
   };
-
   // Upload banner + gambar lineup, lalu susun payload event.
   // Dipakai oleh "Buat Event" maupun "Simpan Draft" supaya
   // keduanya konsisten.
   const prepareEventPayload = async () => {
     let bannerUrl = null;
-
     if (banner) {
       const bannerResponse = await uploadOrganizerEventBanner(banner);
       bannerUrl =
@@ -428,27 +401,20 @@ function AddEvent() {
         bannerResponse?.banner_url ||
         null;
     }
-
     const lineupImages = await uploadLineupImages();
-
     return buildEventPayload(bannerUrl, lineupImages);
   };
-
   const handleCreateEvent = async () => {
     if (!validateForm(false)) return;
-
     try {
       setSubmitting(true);
       setError("");
-
       const payload = await prepareEventPayload();
       const response = await createOrganizerEvent(payload);
       const eventId = response?.data?.id || response?.data?.event_id || response?.id;
-
       if (eventId) {
         await publishOrganizerEvent({ event_id: eventId });
       }
-
       Swal.fire({
         icon: "success",
         title: "Berhasil Diajukan!",
@@ -464,17 +430,13 @@ function AddEvent() {
       setSubmitting(false);
     }
   };
-
   const handleSaveDraft = async () => {
     if (!validateForm(true)) return;
-
     try {
       setSubmitting(true);
       setError("");
-
       const payload = await prepareEventPayload();
       await createOrganizerEvent(payload);
-
       Swal.fire({
         icon: "success",
         title: "Draft Tersimpan!",
@@ -489,19 +451,14 @@ function AddEvent() {
       setSubmitting(false);
     }
   };
-
   const totalQuota = tickets.reduce((total, ticket) => total + (Number(ticket.quota) || 0), 0);
-
   return (
     <div className="add-event-page">
       <SidebarEO />
-
       <main className="add-event-main">
         <NavbarEO />
-
         <div className="add-event-content">
           {error && <div className="dashboard-error" style={{ marginBottom: "20px" }}>{error}</div>}
-
           {/* HEADER */}
           <div className="add-event-header">
             <div className="add-event-title">
@@ -509,7 +466,6 @@ function AddEvent() {
               <h1>Buat Event Baru</h1>
               <p>Isi detail di bawah untuk mempublikasikan event Anda.</p>
             </div>
-
             <div className="add-event-header-actions">
               <button
                 type="button"
@@ -519,7 +475,6 @@ function AddEvent() {
               >
                 {submitting ? "Menyimpan..." : "Simpan Draft"}
               </button>
-
               <button
                 type="button"
                 className="create-event-button"
@@ -531,11 +486,9 @@ function AddEvent() {
               </button>
             </div>
           </div>
-
           {/* INFORMASI DASAR */}
           <section className="form-card">
             <h2>Informasi Dasar</h2>
-
             <div className="form-grid">
               <div className="form-field">
                 <label>NAMA EVENT</label>
@@ -546,7 +499,6 @@ function AddEvent() {
                   placeholder="Contoh: Sedih Fest 2026"
                 />
               </div>
-
               {/* DROPDOWN KATEGORI FIX */}
               <div className="form-field">
                 <label>KATEGORI EVENT</label>
@@ -571,7 +523,6 @@ function AddEvent() {
                 </select>
               </div>
             </div>
-
             <div className="form-field description-field" style={{ marginTop: "16px" }}>
               <label>DESKRIPSI EVENT</label>
               <textarea
@@ -581,7 +532,6 @@ function AddEvent() {
               />
             </div>
           </section>
-
           {/* LOKASI EVENT */}
           <section className="form-card">
             <h2>Lokasi Event</h2>
@@ -595,7 +545,6 @@ function AddEvent() {
               />
             </div>
           </section>
-
           {/* BANNER EVENT */}
           <section className="form-card">
             <h2>Banner Event</h2>
@@ -617,7 +566,6 @@ function AddEvent() {
               </label>
             )}
           </section>
-
           {/* JADWAL EVENT */}
           <section className="form-card">
             <div className="section-header">
@@ -626,7 +574,6 @@ function AddEvent() {
                 + Tambah Jadwal
               </button>
             </div>
-
             <div className="schedule-list">
               {schedules.map((schedule, index) => (
                 <div className="schedule-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
@@ -661,7 +608,6 @@ function AddEvent() {
               ))}
             </div>
           </section>
-
           {/* KATEGORI TIKET */}
           <section className="form-card">
             <div className="section-header">
@@ -670,7 +616,6 @@ function AddEvent() {
                 + Tambah Kategori
               </button>
             </div>
-
             <div className="ticket-table">
               {tickets.map((ticket, index) => (
                 <div className="ticket-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
@@ -703,7 +648,6 @@ function AddEvent() {
             </div>
             <div style={{ marginTop: "10px", fontWeight: "600" }}>Total Kuota: {totalQuota}</div>
           </section>
-
           {/* LINE UP (NAME + FOTO) */}
           <section className="form-card">
             <div className="section-header">
@@ -712,7 +656,6 @@ function AddEvent() {
                 + Tambah LineUp
               </button>
             </div>
-
             <div className="lineup-list">
               {lineups.map((lineup, index) => (
                 <div className="lineup-row lineup-row-artist" key={index}>
@@ -724,7 +667,6 @@ function AddEvent() {
                     placeholder="Nama Artis / Pengisi Acara"
                     onChange={(e) => handleLineupChange(index, "name", e.target.value)}
                   />
-
                   {/* Kolom 2 — Upload foto (file langsung, tanpa URL) */}
                   <div className="lineup-file-picker">
                     <input
@@ -756,7 +698,6 @@ function AddEvent() {
                       </button>
                     )}
                   </div>
-
                   {/* Kolom 3 — Hapus baris */}
                   {lineups.length > 1 && (
                     <button
@@ -772,12 +713,10 @@ function AddEvent() {
                 </div>
               ))}
             </div>
-
             <p style={{ fontSize: "12px", color: "#6f7482", margin: "4px 0 0" }}>
               Foto artis wajib diupload sebagai file langsung (maks 5MB per foto).
             </p>
           </section>
-
           {/* FASILITAS EVENT */}
           <section className="form-card">
             <div className="section-header">
@@ -786,7 +725,6 @@ function AddEvent() {
                 + Tambah Fasilitas
               </button>
             </div>
-
             <div className="lineup-list">
               {facilities.map((facility, index) => (
                 <div className="lineup-row" key={index} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
@@ -804,7 +742,6 @@ function AddEvent() {
               ))}
             </div>
           </section>
-
           {/* PERIZINAN */}
           <section className="form-card">
             <h2>Perizinan Event</h2>
@@ -819,5 +756,4 @@ function AddEvent() {
     </div>
   );
 }
-
 export default AddEvent;
