@@ -405,10 +405,36 @@ function Register() {
       navigate("/login");
     };
 
+  const handleBack = () => {
+    navigate("/login");
+  };
+
   return (
     <div className="register-page">
 
       <header className="register-header">
+        <button
+          type="button"
+          className="register-back-button"
+          onClick={handleBack}
+          disabled={loading}
+          aria-label="Kembali ke halaman masuk"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="register-back-icon"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M19 12H5M12 5l-7 7 7 7"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
         <h1>
           EVENT<span>DAY</span>
         </h1>
