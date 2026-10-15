@@ -1,0 +1,290 @@
+.redeem-ticket-page {
+  padding: 32px;
+  min-height: 100vh;
+  background: #f8f7fc;
+}
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.redeem-ticket-header {
+  margin-bottom: 30px;
+}
+
+.redeem-ticket-header .section-label {
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #7c3aed;
+}
+
+.redeem-ticket-header h1 {
+  margin: 0;
+  font-size: 32px;
+  color: #171717;
+}
+
+.redeem-ticket-header p:last-child {
+  margin-top: 8px;
+  color: #737373;
+}
+
+
+/* ==========================================
+   SEARCH
+========================================== */
+
+.redeem-ticket-search {
+  background: white;
+  border: 1px solid #e8e5ef;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.redeem-ticket-search label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #27272a;
+}
+
+.redeem-search-row {
+  display: flex;
+  gap: 12px;
+}
+
+.redeem-search-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 15px;
+  border: 1px solid #d9d5e2;
+  border-radius: 10px;
+  outline: none;
+  font-size: 14px;
+  background: white;
+}
+
+.redeem-search-row input:focus {
+  border-color: #7c3aed;
+}
+
+.redeem-search-row button {
+  border: none;
+  border-radius: 10px;
+  padding: 0 24px;
+  background: #7c3aed;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.redeem-search-row button:hover {
+  background: #6d28d9;
+}
+
+.redeem-search-row button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* ==========================================
+   MESSAGE
+========================================== */
+
+.redeem-message {
+  padding: 14px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.redeem-message.success {
+  background: #ecfdf3;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.redeem-message.error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+
+/* ==========================================
+   TICKET CARD
+========================================== */
+
+.redeem-ticket-card {
+  background: white;
+  border: 1px solid #e8e5ef;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+
+/* ==========================================
+   CARD HEADER
+========================================== */
+
+.redeem-ticket-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px;
+  border-bottom: 1px solid #eeeaf3;
+}
+
+.ticket-label {
+  margin: 0 0 6px;
+  color: #7c3aed;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.redeem-ticket-card-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #18181b;
+}
+
+.ticket-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ticket-status.valid {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.ticket-status.redeemed {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+
+/* ==========================================
+   INFORMATION
+========================================== */
+
+.redeem-ticket-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: #eeeaf3;
+}
+
+.ticket-info-item {
+  background: white;
+  padding: 18px 24px;
+}
+
+.ticket-info-item span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #8b8794;
+}
+
+.ticket-info-item strong {
+  display: block;
+  color: #27272a;
+  font-size: 14px;
+  word-break: break-word;
+}
+
+
+/* ==========================================
+   ACTION
+========================================== */
+
+.redeem-ticket-action {
+  padding: 24px;
+}
+
+.redeem-button {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  background: #7c3aed;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.redeem-button:hover {
+  background: #6d28d9;
+}
+
+.redeem-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.already-redeemed {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 15px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.already-redeemed strong {
+  font-size: 14px;
+}
+
+.already-redeemed span {
+  font-size: 13px;
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 700px) {
+
+  .redeem-ticket-page {
+    padding: 20px;
+  }
+
+  .redeem-ticket-header h1 {
+    font-size: 26px;
+  }
+
+  .redeem-search-row {
+    flex-direction: column;
+  }
+
+  .redeem-search-row button {
+    padding: 13px;
+  }
+
+  .redeem-ticket-card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .redeem-ticket-info {
+    grid-template-columns: 1fr;
+  }
+
+}
