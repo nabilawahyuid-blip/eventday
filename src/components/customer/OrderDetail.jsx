@@ -76,6 +76,28 @@ function formatDateTime(dateStr) {
   }
 }
 
+// Backend membungkus payload dalam ApiResponse {msg, status, data}.
+// Wajib akses result.data DAN pastikan array sebelum .find()/.filter().
+// HTTP 200 bisa membawa status error di body — itu juga harus dicek.
+function extractArrayResponse(res) {
+  if (!res) return [];
+  if (typeof res.status === "number" && res.status !== 200) return [];
+  if (Array.isArray(res.data)) return res.data;
+  if (Array.isArray(res)) return res;
+  const nested = res.data?.data || res.data?.content || res.data?.items;
+  if (Array.isArray(nested)) return nested;
+  return [];
+}
+
+function safeParseArray(raw) {
+  try {
+    const parsed = JSON.parse(raw || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 function OrderDetail() {
   const navigate = useNavigate();
   const { orderId } = useParams();
@@ -97,8 +119,8 @@ function OrderDetail() {
       try {
         // 1) Ambil order info dari transactions/history
         const historyRes = await apiFetch("/api/transactions/history");
-        const allOrders = historyRes?.data || [];
-        const foundOrder = allOrders.find((o) => o.orderId === orderId);
+        const allOrders = extractArrayResponse(historyRes);
+        const foundOrder = allOrders.find((o) => o?.orderId === orderId);
 
         if (foundOrder) {
           setOrder(foundOrder);
@@ -119,8 +141,7 @@ function OrderDetail() {
         let foundTickets = [];
         try {
           const res = await getTicketsByOrder(orderId);
-          const tickets = res?.data || [];
-          console.log("[OrderDetail] getTicketsByOrder response:", tickets);
+          const tickets = extractArrayResponse(res);
 
           if (tickets.length > 0) {
             foundTickets = tickets;
@@ -133,16 +154,12 @@ function OrderDetail() {
             }
           }
         } catch (err) {
-          console.error("[OrderDetail] getTicketsByOrder error:", err.message);
-
           // Fallback to old method if new endpoint fails
-          const email = localStorage.getItem("email");
-          console.log("[OrderDetail] Fallback - Fetching tickets for order:", orderId, "email:", email);
-          if (email) {
+          const email = (localStorage.getItem("email") || "").trim();
+          if (email && email !== "null" && email !== "undefined") {
             try {
               const res = await getMyTickets(email);
-              const allTickets = res?.data || [];
-              console.log("[OrderDetail] allTickets (fallback):", allTickets);
+              const allTickets = extractArrayResponse(res);
 
               if (allTickets.length > 0) {
                 const matchingTickets = [];
@@ -154,7 +171,6 @@ function OrderDetail() {
 
                   try {
                     const detailRes = await getTicketDetail(code);
-                    console.log("[OrderDetail] issued-detail for", code, ":", detailRes);
                     const data = detailRes?.data;
                     if (data?.orderId === orderId) {
                       matchingTickets.push({
@@ -162,13 +178,12 @@ function OrderDetail() {
                         ...detailRes?.data,
                       });
                     }
-                  } catch (e) {
-                    console.warn("[OrderDetail] issued-detail error:", e);
+                  } catch {
+                    // Abaikan tiket yang gagal di-detail (jangan penuhi console)
                   }
                 }
 
                 foundTickets = matchingTickets;
-                console.log("[OrderDetail] Matching tickets for order:", orderId, ":", matchingTickets);
 
                 if (matchingTickets.length > 0) {
                   const firstMatch = matchingTickets[0];
@@ -178,33 +193,44 @@ function OrderDetail() {
                   }
                 }
               }
-            } catch (err) {
-              console.error("[OrderDetail] getMyTickets error (fallback):", err.message);
+            } catch {
+              // Fallback gagal — lanjut ke localStorage di bawah
             }
           }
         }
 
         // 3) Fallback: localStorage
         if (foundTickets.length === 0) {
-          const stored = JSON.parse(localStorage.getItem("issued_tickets") || "[]");
-          foundTickets = stored.filter((t) => t.orderId === orderId);
+          const stored = safeParseArray(localStorage.getItem("issued_tickets"));
+          foundTickets = stored.filter((t) => t?.orderId === orderId);
         }
 
-        // Set tiket
+        // Set tiket (deduplikasi by ticketCode — backend bisa return dobel)
         if (foundTickets.length > 0) {
-          setTickets(foundTickets);
+          const seenTicket = new Set();
+          const uniqueTickets = foundTickets.filter((t) => {
+            const key = t?.ticketCode || t?.ticketItemId || t?.id;
+            if (!key) return true;
+            if (seenTicket.has(key)) return false;
+            seenTicket.add(key);
+            return true;
+          });
+          setTickets(uniqueTickets);
 
           if (!foundOrder) {
             setOrder((prev) => ({
               ...prev,
-              eventTitle: foundTickets[0].eventTitle || prev.eventTitle,
-              ticketTierName: foundTickets[0].categoryName || prev.ticketTierName,
-              quantity: foundTickets.length,
+              eventTitle: uniqueTickets[0].eventTitle || prev.eventTitle,
+              ticketTierName: uniqueTickets[0].categoryName || prev.ticketTierName,
+              quantity: uniqueTickets.length,
             }));
           }
         }
       } catch (err) {
-        console.error("[OrderDetail] Error:", err.message);
+        if (err?.status === 401) {
+          navigate("/login", { replace: true });
+          return;
+        }
         setOrderNotFound(true);
       } finally {
         setLoading(false);
@@ -325,6 +351,23 @@ function OrderDetail() {
         {/* Daftar tiket */}
         <div className="order-tickets-section">
           <h2>E-Ticket ({tickets.length})</h2>
+
+          {Number(order?.quantity) > tickets.length && tickets.length > 0 && (
+            <div
+              role="alert"
+              style={{
+                margin: "0 0 16px",
+                padding: "12px 16px",
+                borderRadius: 10,
+                background: "#fffbeb",
+                border: "1px solid #fde68a",
+                color: "#92400e",
+              }}
+            >
+              Baru {tickets.length} dari {order.quantity} tiket yang terbit untuk pesanan ini.
+              Jika Anda memesan {order.quantity} tiket, hubungi support dengan nomor order {order.orderNumber || order.orderId}.
+            </div>
+          )}
 
           {tickets.length === 0 ? (
             <div className="order-no-tickets">

@@ -6,8 +6,6 @@ import FooterCustomer from "../shared/FooterCustomer";
 import {
   getTransactionHistory,
   getMyTicketsAuth,
-  getMyTickets,
-  getTicketDetail,
 } from "../../services/ticketService";
 import { getEvents } from "../../services/eventService";
 import { getRefundHistory } from "../../services/refundService";
@@ -42,7 +40,6 @@ const FILTER_OPTIONS = [
   { key: "PAID", label: "Terbayar" },
   { key: "PENDING", label: "Menunggu" },
   { key: "EXPIRED", label: "Gagal" },
-  { key: "REFUND", label: "Refund" },
 ];
 
 function formatCurrency(amount) {
@@ -66,6 +63,35 @@ function formatDate(dateStr) {
 
 const PENDING_STATUSES = ["PENDING", "WAITING_PAYMENT"];
 const REFUND_STATUSES = ["REFUND_REQUESTED", "REFUNDED", "REJECTED"];
+
+// Backend membungkus payload dalam ApiResponse {msg, status, data}.
+// HTTP 200 bisa membawa status error di body, dan apiFetch melempar
+// Error (dengan .status + .data) untuk HTTP non-2xx. Keduanya harus
+// ditangani sebelum .filter agar tidak kena "filter is not a function".
+function extractArrayResponse(res) {
+  if (!res) return { list: [], errorMsg: "" };
+  // ApiResponse error via HTTP 200: { status: 4xx/5xx, msg, data }
+  if (typeof res.status === "number" && res.status !== 200) {
+    return { list: [], errorMsg: res.msg || res.message || `Request gagal (${res.status})` };
+  }
+  if (Array.isArray(res.data)) return { list: res.data, errorMsg: "" };
+  if (Array.isArray(res)) return { list: res, errorMsg: "" };
+  // Bentuk pagination wrapper { data: { data/content/items: [] } }
+  const nested = res.data?.data || res.data?.content || res.data?.items;
+  if (Array.isArray(nested)) return { list: nested, errorMsg: "" };
+  if (res.data == null) return { list: [], errorMsg: "" };
+  return { list: [], errorMsg: res.msg || res.message || "Format data tidak dikenali." };
+}
+
+function getApiErrorMessage(err, fallback) {
+  return (
+    err?.data?.msg ||
+    err?.data?.message ||
+    err?.msg ||
+    err?.message ||
+    fallback
+  );
+}
 
 function getCategoryColor(title) {
   if (!title) return "#6c757d";
@@ -104,160 +130,148 @@ function MyTicket() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(0); // Halaman aktif, dimulai dari 0
   const pageSize = 6;
 
   useEffect(() => {
+    let cancelled = false;
     const fetchOrders = async () => {
-      try {
-        // Fetch both transaction history and refund history in parallel
-        const [transRes, refundRes] = await Promise.all([
-          getTransactionHistory(),
-          getRefundHistory(),
-        ]);
+      setLoading(true);
+      setLoadError("");
+      // allSettled: refund gagal tidak boleh menenggelamkan data transaksi.
+      const [transResult, refundResult] = await Promise.allSettled([
+        getTransactionHistory(),
+        getRefundHistory(),
+      ]);
 
-        const transData = transRes?.data || [];
-        const refundData = refundRes?.data || [];
+      if (cancelled) return;
 
-        // Deduplikasi by orderId (backend bisa return duplikat)
-        const seen = new Set();
-        const unique = transData.filter((o) => {
-          if (seen.has(o.orderId)) return false;
-          seen.add(o.orderId);
-          return true;
-        });
-
-        // Build refund map: orderId -> refund info
-        const refundMap = {};
-        refundData.forEach((refund) => {
-          if (refund.orderId) {
-            refundMap[refund.orderId] = {
-              refundId: refund.refundId,
-              status: refund.status, // PENDING, APPROVED, REJECTED, etc.
-              amount: refund.amount,
-              reason: refund.reason,
-              createdAt: refund.createdAt,
-            };
-          }
-        });
-
-        // Merge refund info into orders
-        const merged = unique.map((order) => {
-          const refundInfo = refundMap[order.orderId];
-          if (refundInfo) {
-            // Determine order status based on refund status
-            let orderStatus = order.status;
-            if (refundInfo.status === "PENDING") {
-              orderStatus = "REFUND_REQUESTED";
-            } else if (refundInfo.status === "APPROVED" || refundInfo.status === "REFUNDED") {
-              orderStatus = "REFUNDED";
-            } else if (refundInfo.status === "REJECTED") {
-              orderStatus = "REJECTED";
-            }
-            return {
-              ...order,
-              refundInfo,
-              status: orderStatus,
-            };
-          }
-          return order;
-        });
-
-        // Fetch event images from issued-detail for each order
-        // Strategy: Call issued-detail for first N tickets to build orderId -> imageUrl map
-        try {
-          const email = localStorage.getItem("email") || localStorage.getItem("userEmail");
-          console.log("[MyTicket] Fetching images - email:", email);
-          const myTicketsRes = email ? await getMyTickets(email) : await getMyTicketsAuth();
-          const myTickets = myTicketsRes?.data || [];
-          console.log("[MyTicket] myTickets:", myTickets);
-
-          // Call issued-detail for first N tickets to build orderId -> imageUrl map
-          // Tickets have ticketItemId; issued-detail returns orderId + eventImageUrl
-          const MAX_TICKETS = 15;
-          const ticketsToCheck = myTickets.slice(0, MAX_TICKETS);
-          console.log("[MyTicket] Checking tickets:", ticketsToCheck.map(t => t.ticketItemId));
-
-          const imagePromises = ticketsToCheck.map(async (ticket) => {
-            const code = ticket.ticketCode || ticket.ticketItemId;
-            if (!code) return { orderId: null, imageUrl: null };
-            try {
-              const detailRes = await getTicketDetail(code);
-              console.log("[MyTicket] issued-detail for", code, ":", detailRes);
-              const data = detailRes?.data;
-              const orderId = data?.orderId;
-              const imageUrl = data?.eventImageUrl || data?.eventImage;
-              return { orderId, imageUrl };
-            } catch (err) {
-              console.warn("[MyTicket] issued-detail error for", code, ":", err);
-              return { orderId: null, imageUrl: null };
-            }
-          });
-
-          const imageResults = await Promise.all(imagePromises);
-          console.log("[MyTicket] imageResults:", imageResults);
-
-          // Build orderId -> imageUrl map
-          const imageMap = {};
-          imageResults.forEach(({ orderId, imageUrl }) => {
-            if (orderId && imageUrl) imageMap[orderId] = imageUrl;
-          });
-          console.log("[MyTicket] imageMap:", imageMap);
-
-          // Merge image URLs into merged orders
-          const withImages = merged.map((order) => ({
-            ...order,
-            image: imageMap[order.orderId] || order.image || order.bannerUrl || null,
-          }));
-
-          setOrders(withImages);
-        } catch (imgErr) {
-          console.warn("[MyTicket] Failed to fetch event images:", imgErr);
-          setOrders(merged);
-        }
-      } catch (err) {
-        console.error("[MyTicket] transactions/history error:", err.message);
-
-        // Fallback: coba dari my-tickets lalu group by orderId
-        try {
-          const res = await getMyTicketsAuth();
-          const tickets = res?.data || [];
-          const orderMap = {};
-          tickets.forEach((t) => {
-            const oid = t.orderId;
-            if (!oid) return;
-            if (!orderMap[oid]) {
-              orderMap[oid] = {
-                orderId: oid,
-                orderNumber: oid.slice(0, 8).toUpperCase(),
-                eventTitle: t.eventTitle || "Event",
-                ticketTierName: t.categoryName || "-",
-                quantity: 0,
-                totalAmount: 0,
-                status: t.checkInStatus || "PENDING",
-                createdAt: t.issuedAt || null,
-                tickets: [],
-              };
-            }
-            orderMap[oid].quantity += 1;
-            orderMap[oid].tickets.push(t);
-          });
-          setOrders(Object.values(orderMap));
-        } catch (err2) {
-          console.error("[MyTicket] my-tickets fallback error:", err2.message);
-        }
-      } finally {
+      // Sesi kedaluwarsa (401) → tendang ke login, bukan banner error.
+      if (transResult.status === "rejected" && transResult.reason?.status === 401) {
         setLoading(false);
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      const transParsed =
+        transResult.status === "fulfilled"
+          ? extractArrayResponse(transResult.value)
+          : { list: [], errorMsg: getApiErrorMessage(transResult.reason, "Gagal memuat riwayat transaksi.") };
+      const refundParsed =
+        refundResult.status === "fulfilled"
+          ? extractArrayResponse(refundResult.value)
+          : { list: [], errorMsg: "" }; // refund gagal = perlakukan sebagai tanpa refund, bukan error fatal
+
+      const transData = transParsed.list;
+      const refundData = refundParsed.list;
+
+      // Deduplikasi by orderId (backend bisa return duplikat)
+      const seen = new Set();
+      const unique = transData.filter((o) => {
+        if (!o || !o.orderId) return false;
+        if (seen.has(o.orderId)) return false;
+        seen.add(o.orderId);
+        return true;
+      });
+
+      // Build refund map: orderId -> refund info
+      const refundMap = {};
+      refundData.forEach((refund) => {
+        if (refund && refund.orderId) {
+          refundMap[refund.orderId] = {
+            refundId: refund.refundId,
+            status: refund.status, // PENDING, APPROVED, REJECTED, etc.
+            amount: refund.amount,
+            reason: refund.reason,
+            createdAt: refund.createdAt,
+          };
+        }
+      });
+
+      // Merge refund info into orders
+      const merged = unique.map((order) => {
+        const refundInfo = refundMap[order.orderId];
+        // Gambar langsung dari payload history — tanpa N+1 issued-detail.
+        const image =
+          order.image ||
+          order.bannerUrl ||
+          order.eventImageUrl ||
+          order.eventImage ||
+          order.eventBannerUrl ||
+          null;
+        if (refundInfo) {
+          // Determine order status based on refund status
+          let orderStatus = order.status;
+          if (refundInfo.status === "PENDING") {
+            orderStatus = "REFUND_REQUESTED";
+          } else if (refundInfo.status === "APPROVED" || refundInfo.status === "REFUNDED") {
+            orderStatus = "REFUNDED";
+          } else if (refundInfo.status === "REJECTED") {
+            orderStatus = "REJECTED";
+          }
+          return { ...order, refundInfo, status: orderStatus, image };
+        }
+        return { ...order, image };
+      });
+
+      if (merged.length > 0 || !transParsed.errorMsg) {
+        if (!cancelled) {
+          setOrders(merged);
+          setLoadError("");
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Transaksi gagal total → fallback my-tickets lalu group by orderId
+      try {
+        const res = await getMyTicketsAuth();
+        if (cancelled) return;
+        const { list: tickets, errorMsg } = extractArrayResponse(res);
+        const orderMap = {};
+        tickets.forEach((t) => {
+          const oid = t?.orderId;
+          if (!oid) return;
+          if (!orderMap[oid]) {
+            orderMap[oid] = {
+              orderId: oid,
+              orderNumber: String(oid).slice(0, 8).toUpperCase(),
+              eventTitle: t.eventTitle || "Event",
+              ticketTierName: t.categoryName || "-",
+              quantity: 0,
+              totalAmount: 0,
+              status: t.checkInStatus || "PENDING",
+              createdAt: t.issuedAt || null,
+              tickets: [],
+              image: t.eventImageUrl || t.eventImage || null,
+            };
+          }
+          orderMap[oid].quantity += 1;
+          orderMap[oid].tickets.push(t);
+        });
+        const fallbackOrders = Object.values(orderMap);
+        setOrders(fallbackOrders);
+        setLoadError(fallbackOrders.length > 0 ? "" : (errorMsg || transParsed.errorMsg));
+      } catch (err2) {
+        if (cancelled) return;
+        if (err2?.status === 401) {
+          navigate("/login", { replace: true });
+          return;
+        }
+        setOrders([]);
+        setLoadError(getApiErrorMessage(err2, transParsed.errorMsg || "Gagal memuat pesanan."));
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchOrders();
+    return () => { cancelled = true; };
   }, []);
 
   const isPendingOrder = (order) => PENDING_STATUSES.includes(order?.status);
-
-  const REFUND_STATUSES = ["REFUND_REQUESTED", "REFUNDED", "REJECTED"];
 
   const NON_REFUND_STATUSES = ["PAID", "PENDING", "WAITING_PAYMENT", "EXPIRED"];
 
@@ -272,10 +286,10 @@ function MyTicket() {
 
   const getStatusPriority = (status) => STATUS_PRIORITY[status] || 99;
 
+  // Tab refund dihapus: order refund disembunyikan total dari halaman ini.
+  // Merge refund tetap dipertahankan agar status refund terdeteksi untuk filter.
   const filteredOrders = (filter === "all"
     ? orders.filter((o) => NON_REFUND_STATUSES.includes(o.status))
-    : filter === "REFUND"
-    ? orders.filter((o) => REFUND_STATUSES.includes(o.status))
     : orders.filter((o) => o.status === filter)
   ).sort((a, b) => {
     // Primary sort: status priority (pending first, then paid, then expired)
@@ -318,14 +332,24 @@ function MyTicket() {
 
   const handleOrderClick = async (order) => {
     if (isPendingOrder(order)) {
-      // Cari eventId berdasarkan eventTitle
+      // Utama: pakai eventId dari order bila ada (tanpa search rapuh).
+      const directEventId = order?.eventId || order?.event_id;
+      if (directEventId) {
+        navigate(`/checkout/${directEventId}`, {
+          state: {
+            orderId: order.orderId,
+            resume: true,
+            ticketTierName: order.ticketTierName, // kirim tier yang dipilih
+            quantity: order.quantity, // WAJIB: agar form peserta = quantity order asli
+          },
+        });
+        return;
+      }
+      // Fallback: cari eventId berdasarkan eventTitle
       try {
         const res = await getEvents({ search: order.eventTitle, limit: 1 });
         // Handle berbagai struktur response: array langsung, pagination wrapper {data: [], items: [], content: []}
-        const rawData = res?.data;
-        const eventsArray = Array.isArray(rawData)
-          ? rawData
-          : (rawData?.data || rawData?.items || rawData?.content || []);
+        const { list: eventsArray } = extractArrayResponse(res);
         const foundEvent = eventsArray[0];
         if (!foundEvent?.id) throw new Error("Event tidak ditemukan");
 
@@ -333,21 +357,28 @@ function MyTicket() {
           state: { 
             orderId: order.orderId, 
             resume: true,
-            ticketTierName: order.ticketTierName  // kirim tier yang dipilih
+            ticketTierName: order.ticketTierName,  // kirim tier yang dipilih
+            quantity: order.quantity, // WAJIB: agar form peserta = quantity order asli
           },
         });
       } catch (err) {
-        console.error("[MyTicket] Gagal cari eventId:", err);
         Swal.fire({
           icon: "error",
           title: "Gagal Lanjut Bayar",
-          text: "Tidak dapat menemukan event yang sesuai. Hubungi support.",
+          text: getApiErrorMessage(err, "Tidak dapat menemukan event yang sesuai. Hubungi support."),
           confirmButtonColor: "#5548dc",
         });
       }
     } else {
       navigate(`/customer/orders/${order.orderId}`);
     }
+  };
+
+  const handleRetry = () => {
+    setPage(0);
+    setLoadError("");
+    setLoading(true);
+    window.location.reload();
   };
 
   return (
@@ -379,6 +410,41 @@ function MyTicket() {
             ))}
           </div>
         </section>
+
+        {loadError && orders.length === 0 && !loading && (
+          <div
+            role="alert"
+            style={{
+              margin: "0 0 16px",
+              padding: "12px 16px",
+              borderRadius: 10,
+              background: "#fef2f2",
+              border: "1px solid #fecaca",
+              color: "#991b1b",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+            }}
+          >
+            <span>{loadError}</span>
+            <button
+              type="button"
+              onClick={handleRetry}
+              style={{
+                flexShrink: 0,
+                padding: "8px 14px",
+                borderRadius: 8,
+                border: "none",
+                background: "#5548dc",
+                color: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              Coba Lagi
+            </button>
+          </div>
+        )}
 
         {loading ? (
           <div className="my-ticket-loading">

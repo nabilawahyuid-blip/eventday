@@ -268,6 +268,12 @@ function DashboardEO() {
         return "Event Berakhir";
       case "CANCELLED":
         return "Dibatalkan";
+      case "PENDING":
+      case "PENDING_APPROVAL":
+      case "WAITING_APPROVAL":
+      case "SUBMITTED":
+      case "UNDER_REVIEW":
+        return "Pending";
       default:
         return status || "-";
     }

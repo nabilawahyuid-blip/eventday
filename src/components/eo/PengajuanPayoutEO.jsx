@@ -309,6 +309,18 @@ function PengajuanPayoutEO() {
       return;
     }
 
+    if (
+      String(accountNumber).replace(
+        /\D/g,
+        ""
+      ).length > 16
+    ) {
+      alert(
+        "Nomor rekening tidak boleh lebih dari 16 digit."
+      );
+      return;
+    }
+
     // -----------------------------------------
     // VALIDASI NAMA
     // -----------------------------------------
@@ -666,18 +678,30 @@ function PengajuanPayoutEO() {
                       id="accountNumber"
                       type="text"
                       inputMode="numeric"
-                      placeholder="Masukkan nomor rekening"
+                      maxLength={16}
+                      placeholder="Masukkan nomor rekening (maks. 16 digit)"
                       value={
                         accountNumber
                       }
-                      onChange={(e) =>
-                        setAccountNumber(
+                      onChange={(e) => {
+                        const digits =
                           e.target.value.replace(
                             /\D/g,
                             ""
-                          )
-                        )
-                      }
+                          );
+
+                        if (
+                          digits.length > 16
+                        ) {
+                          alert(
+                            "Nomor rekening tidak boleh lebih dari 16 digit."
+                          );
+                        }
+
+                        setAccountNumber(
+                          digits.slice(0, 16)
+                        );
+                      }}
                       disabled={submitting}
                     />
 

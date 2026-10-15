@@ -44,8 +44,74 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 
   background: #f7f8fc;
+}
+
+.register-back-button {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #41424d;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    0 1px 2px rgba(0, 0, 0, 0.04);
+
+  transition: all 0.2s ease;
+
+  z-index: 10;
+}
+
+.register-back-button:hover {
+  background: #f0f3fd;
+  color: #5146e5;
+  transform: translateY(-50%) scale(1.02);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.register-back-button:active {
+  transform: translateY(-50%) scale(0.98);
+  background: #e8ebfa;
+}
+
+.register-back-button:focus {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(81, 70, 229, 0.15),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.register-back-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.register-back-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+  stroke: currentColor;
 }
 
 .register-header h1 {

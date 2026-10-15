@@ -125,7 +125,25 @@ function RegisterEO() {
       const namaEO = formData.get("namaEO")?.trim();
       const npwpRaw = formData.get("npwp")?.trim();
       const namaBank = formData.get("namaBank")?.trim();
-      const nomorRekening = formData.get("nomorRekening")?.trim();
+      const nomorRekening = formData
+        .get("nomorRekening")
+        ?.trim()
+        .replace(/\D/g, "");
+
+      // VALIDASI NOMOR REKENING (maks. 16 digit)
+      if (!nomorRekening) {
+        alert("Nomor rekening wajib diisi.");
+        setLoading(false);
+        return;
+      }
+
+      if (nomorRekening.length > 16) {
+        alert(
+          "Nomor rekening tidak boleh lebih dari 16 digit."
+        );
+        setLoading(false);
+        return;
+      }
 
       const npwp = npwpRaw ? npwpRaw : null;
 
@@ -299,8 +317,24 @@ function RegisterEO() {
                 id="nomorRekening"
                 name="nomorRekening"
                 type="text"
-                placeholder="Masukan Nomor Rekening"
+                inputMode="numeric"
+                maxLength={16}
+                placeholder="Masukan Nomor Rekening (maks. 16 digit)"
                 required
+                onInput={(e) => {
+                  const digits = e.target.value.replace(
+                    /\D/g,
+                    ""
+                  );
+
+                  if (digits.length > 16) {
+                    alert(
+                      "Nomor rekening tidak boleh lebih dari 16 digit."
+                    );
+                  }
+
+                  e.target.value = digits.slice(0, 16);
+                }}
               />
             </div>
 

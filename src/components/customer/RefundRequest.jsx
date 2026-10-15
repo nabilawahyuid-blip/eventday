@@ -52,6 +52,20 @@ function RefundRequest() {
   }, [orderId]);
 
   const handleChange = (field, value) => {
+    if (field === "accountNumber") {
+      const digits = String(value || "").replace(/\D/g, "");
+
+      if (digits.length > 16) {
+        alert("Nomor rekening tidak boleh lebih dari 16 digit.");
+      }
+
+      setFormData((previous) => ({
+        ...previous,
+        [field]: digits.slice(0, 16),
+      }));
+      return;
+    }
+
     setFormData((previous) => ({
       ...previous,
       [field]: value,
@@ -73,6 +87,13 @@ function RefundRequest() {
 
     if (!formData.accountNumber.trim()) {
       alert("Nomor rekening wajib diisi.");
+      return;
+    }
+
+    if (
+      String(formData.accountNumber || "").replace(/\D/g, "").length > 16
+    ) {
+      alert("Nomor rekening tidak boleh lebih dari 16 digit.");
       return;
     }
 
@@ -209,12 +230,13 @@ function RefundRequest() {
                   <input
                     type="text"
                     inputMode="numeric"
-                    placeholder="Masukan Nomor Rekening"
+                    maxLength={16}
+                    placeholder="Masukan Nomor Rekening (maks. 16 digit)"
                     value={formData.accountNumber}
                     onChange={(e) =>
                       handleChange(
                         "accountNumber",
-                        e.target.value.replace(/\D/g, "")
+                        e.target.value
                       )
                     }
                   />
